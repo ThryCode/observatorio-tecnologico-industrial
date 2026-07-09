@@ -4,7 +4,6 @@
 [![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev/)
 [![Neo4j](https://img.shields.io/badge/Neo4j-008CC1?style=flat&logo=neo4j&logoColor=white)](https://neo4j.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Python](https://img.shields.io/badge/Python_3.11-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
 
 > Plataforma de vigilancia tecnológica y competitividad industrial para el Ministerio de Industrias de Cuba (MINDUS).
@@ -38,7 +37,7 @@ El Observatorio Tecnológico Industrial es un sistema de inteligencia estratégi
                ▼          ▼          ▼
         ┌──────────┐ ┌────────┐ ┌────────┐
         │PostgreSQL│ │ Redis  │ │Adminer │
-        │  15  alg.│ │ 7      │ │(GUI)   │
+        │  15  alg.│ │ 5      │ │(GUI)   │
         └──────────┘ └────────┘ └────────┘
 ```
 
@@ -47,36 +46,67 @@ El Observatorio Tecnológico Industrial es un sistema de inteligencia estratégi
 | Capa | Tecnología |
 |---|---|
 | **Backend** | Python 3.11, FastAPI, SQLAlchemy 2.0 async, Alembic, Pydantic v2 |
-| **Frontend** | React 18, Vite, Tailwind CSS, shadcn/ui, React Query |
+| **Frontend** | React 18, Vite, Tailwind CSS, shadcn/ui, TanStack Query |
 | **Grafo** | Neo4j 5 Community, APOC, Graph Data Science |
 | **Base de datos** | PostgreSQL 15 |
-| **Caché / Colas** | Redis 7 |
-| **Infraestructura** | Docker, Docker Compose |
+| **Caché / Colas** | Redis 5 (tporadowski) |
+| **Infraestructura** | Instalación nativa Windows 10 (Docker alternativo para producción) |
 
-## Inicio rápido
+## Requisitos del sistema
 
-```bash
-# Requisitos: Docker Engine ≥ 24, Docker Compose ≥ 2.20
+| Requisito | Versión mínima |
+|---|---|
+| Sistema operativo | Windows 10 Pro (build 18362+) |
+| RAM | 8 GB |
+| Python | 3.11 |
+| Node.js | 20 LTS |
+| PostgreSQL | 15 |
+| Neo4j | 5 Community |
+| Redis | 5.0 (tporadowski) |
+| Java | JDK 17 (requisito Neo4j) |
 
-# 1. Clonar
+## Inicio rápido (Windows nativo)
+
+```powershell
+# 1. Clonar el repositorio
 git clone https://github.com/ThryCode/observatorio-tecnologico-industrial.git
 cd observatorio-tecnologico-industrial
 
-# 2. Configurar entorno
-cp .env.example .env
-# Editar .env si es necesario (los valores por defecto funcionan para dev)
+# 2. Crear archivo de variables de entorno
+copy .env.windows backend\.env
 
-# 3. Levantar toda la infraestructura
-docker compose up -d
+# 3. Crear y activar entorno virtual
+python -m venv backend\venv
+backend\venv\Scripts\activate
 
-# 4. Ejecutar migraciones de base de datos
-docker compose exec backend alembic upgrade head
+# 4. Instalar dependencias del backend
+pip install -r backend\requirements.txt
 
-# 5. Abrir en navegador
-open http://localhost:8000/docs   # Swagger UI
-open http://localhost:7474        # Neo4j Browser
-open http://localhost:8080        # Adminer
+# 5. Ejecutar migraciones (requiere PostgreSQL corriendo)
+cd backend
+alembic upgrade head
+cd ..
+
+# 6. Iniciar backend
+cd backend
+..\venv\Scripts\activate
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+Abrir en el navegador:
+- **Documentación API:** http://localhost:8000/docs
+- **Neo4j Browser:** http://localhost:7474
+
+Para una guía detallada de instalación de cada componente, ver:
+**[docs/instalacion-windows.md](docs/instalacion-windows.md)**
+
+## Scripts de automatización
+
+| Script | Descripción |
+|---|---|
+| `scripts/setup-env.ps1` | Verifica servicios, copia `.env.windows`, ejecuta migraciones |
+| `scripts/start-windows.ps1` | Inicia backend (uvicorn) y frontend (vite) en ventanas separadas |
+| `scripts/stop-windows.ps1` | Detiene procesos de uvicorn y node |
 
 ## Servicios
 
@@ -86,8 +116,8 @@ open http://localhost:8080        # Adminer
 | 7687 | Neo4j Bolt | `localhost` | `neo4j` / `observatorio_dev` |
 | 7474 | Neo4j Browser | http://localhost:7474 | `neo4j` / `observatorio_dev` |
 | 6379 | Redis | `localhost` | Sin contraseña |
-| 8000 | Backend API | http://localhost:8000/docs | JWT (vía `/auth/register` y `/auth/login`) |
-| 8080 | Adminer | http://localhost:8080 | Servidor: `postgres`, Usuario: `observatorio` |
+| 8000 | Backend API | http://localhost:8000/docs | JWT (vía `/auth/login`) |
+| 5173 | Frontend (dev) | http://localhost:5173 | — |
 
 ## Estructura del proyecto
 
@@ -102,9 +132,18 @@ open http://localhost:8080        # Adminer
 │   │   ├── schemas/         # Pydantic v2
 │   │   └── services/        # Lógica de negocio
 │   ├── alembic/             # Migraciones async
+│   ├── .env                 # Variables de entorno (local)
 │   └── tests/
-├── docker-compose.yml
-├── .env.example
+├── frontend/
+│   └── src/                 # React + Vite + Tailwind
+├── docs/
+│   └── instalacion-windows.md
+├── scripts/
+│   ├── setup-env.ps1
+│   ├── start-windows.ps1
+│   └── stop-windows.ps1
+├── .env.example             # Referencia de variables Docker
+├── .env.windows             # Variables para desarrollo nativo Windows
 └── README.md
 ```
 
