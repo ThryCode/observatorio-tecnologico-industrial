@@ -15,6 +15,8 @@ class PatentCreate(BaseModel):
     abstract: str | None = None
     technological_sector: str | None = None
     country: str
+    technology_id: UUID | None = None
+    organization_id: UUID | None = None
 
 
 class PatentUpdate(BaseModel):
@@ -26,6 +28,8 @@ class PatentUpdate(BaseModel):
     abstract: str | None = None
     technological_sector: str | None = None
     country: str | None = None
+    technology_id: UUID | None = None
+    organization_id: UUID | None = None
 
 
 class PatentResponse(BaseModel):
@@ -40,6 +44,8 @@ class PatentResponse(BaseModel):
     abstract: str | None
     technological_sector: str | None
     country: str
+    technology_id: UUID | None
+    organization_id: UUID | None
     created_at: datetime
     updated_at: datetime
 

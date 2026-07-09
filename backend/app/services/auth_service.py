@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
 from app.schemas.auth import LoginRequest
 from app.schemas.user import UserCreate
-from app.core.security import hash_password, verify_password, create_access_token
+from app.core.security import get_password_hash, verify_password, create_access_token
 from app.core.exceptions import AppException
 
 
@@ -21,7 +21,7 @@ class AuthService:
         user = User(
             username=data.username,
             email=data.email,
-            hashed_password=hash_password(data.password),
+            hashed_password=get_password_hash(data.password),
             full_name=data.full_name,
         )
         self.db.add(user)

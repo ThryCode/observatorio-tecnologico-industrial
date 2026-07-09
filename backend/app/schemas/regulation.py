@@ -12,6 +12,7 @@ class RegulationCreate(BaseModel):
     effective_date: date | None = None
     category: RegulationCategory
     summary: str | None = None
+    sector_codigo: str | None = None
 
 
 class RegulationUpdate(BaseModel):
@@ -21,6 +22,7 @@ class RegulationUpdate(BaseModel):
     effective_date: date | None = None
     category: RegulationCategory | None = None
     summary: str | None = None
+    sector_codigo: str | None = None
 
 
 class RegulationResponse(BaseModel):
@@ -32,6 +34,7 @@ class RegulationResponse(BaseModel):
     effective_date: date | None
     category: RegulationCategory
     summary: str | None
+    sector_codigo: str | None
     created_at: datetime
     updated_at: datetime
 

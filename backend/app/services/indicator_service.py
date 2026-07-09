@@ -19,8 +19,8 @@ class IndicatorService:
         count_query = select(func.count(Indicator.id))
 
         if sector:
-            query = query.where(Indicator.sector == sector)
-            count_query = count_query.where(Indicator.sector == sector)
+            query = query.where(Indicator.sector_codigo == sector)
+            count_query = count_query.where(Indicator.sector_codigo == sector)
         if period:
             query = query.where(Indicator.period == period)
             count_query = count_query.where(Indicator.period == period)

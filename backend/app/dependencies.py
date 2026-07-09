@@ -1,33 +1,23 @@
-from collections.abc import AsyncGenerator
-from fastapi import Request, Depends
+from fastapi import Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from neo4j import AsyncGraphDatabase
 from redis.asyncio import Redis
 
-from app.core.security import decode_access_token
+from app.core.db import get_db
+from app.core.security import decode_token
 from app.core.exceptions import AppException
 from app.models.user import User
 
 security_scheme = HTTPBearer()
 
 
-async def get_db(request: Request) -> AsyncGenerator[AsyncSession, None]:
-    async with request.app.state.session_factory() as session:
-        try:
-            yield session
-            await session.commit()
-        except Exception:
-            await session.rollback()
-            raise
-
-
-async def get_neo4j(request: Request) -> AsyncGraphDatabase:
+async def get_neo4j(request) -> AsyncGraphDatabase:
     return request.app.state.neo4j
 
 
-async def get_redis(request: Request) -> Redis:
+async def get_redis(request) -> Redis:
     return request.app.state.redis
 
 
@@ -35,7 +25,7 @@ async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security_scheme),
     db: AsyncSession = Depends(get_db),
 ) -> User:
-    payload = decode_access_token(credentials.credentials)
+    payload = decode_token(credentials.credentials)
     if payload is None:
         raise AppException(401, "Invalid or expired token")
     user_id = payload.get("sub")

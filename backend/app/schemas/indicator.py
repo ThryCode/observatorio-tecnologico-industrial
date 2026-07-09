@@ -13,7 +13,7 @@ class IndicatorCreate(BaseModel):
     value: Decimal
     source: str
     period: IndicatorPeriod
-    sector: str | None = None
+    sector_codigo: str | None = None
 
 
 class IndicatorUpdate(BaseModel):
@@ -23,7 +23,7 @@ class IndicatorUpdate(BaseModel):
     value: Decimal | None = None
     source: str | None = None
     period: IndicatorPeriod | None = None
-    sector: str | None = None
+    sector_codigo: str | None = None
 
 
 class IndicatorResponse(BaseModel):
@@ -35,7 +35,7 @@ class IndicatorResponse(BaseModel):
     value: Decimal
     source: str
     period: IndicatorPeriod
-    sector: str | None
+    sector_codigo: str | None
     created_at: datetime
     updated_at: datetime
 

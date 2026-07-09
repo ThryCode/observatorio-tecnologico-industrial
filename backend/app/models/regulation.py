@@ -1,6 +1,6 @@
 import enum
 from datetime import date
-from sqlalchemy import String, Text, Date, Enum as SAEnum
+from sqlalchemy import String, Text, Date, Enum as SAEnum, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 from app.models.base import Base, UUIDMixin, TimestampMixin
 
@@ -23,3 +23,6 @@ class Regulation(Base, UUIDMixin, TimestampMixin):
     effective_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     category: Mapped[RegulationCategory] = mapped_column(SAEnum(RegulationCategory))
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    sector_codigo: Mapped[str | None] = mapped_column(
+        ForeignKey("industrial_sectores.codigo"), nullable=True
+    )
