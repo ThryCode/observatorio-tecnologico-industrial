@@ -1,5 +1,4 @@
 from collections.abc import AsyncGenerator
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import (
     create_async_engine,
     async_sessionmaker,
@@ -8,9 +7,7 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from app.core.config import settings
-from app.core.security import get_password_hash
 from app.models.base import Base
-from app.models.user import User
 
 _engine: AsyncEngine | None = None
 _session_factory: async_sessionmaker[AsyncSession] | None = None
@@ -34,26 +31,9 @@ async def init_db():
     async with _engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    await _seed_superuser()
-
-
-async def _seed_superuser():
     async with _session_factory() as session:
-        result = await session.execute(
-            select(User).where(User.username == settings.first_superuser)
-        )
-        if result.scalar_one_or_none():
-            return
-
-        user = User(
-            username=settings.first_superuser,
-            email=f"{settings.first_superuser}@mindus.gob.cu",
-            hashed_password=get_password_hash(settings.first_superuser_password),
-            full_name="Super Admin",
-            is_superuser=True,
-        )
-        session.add(user)
-        await session.commit()
+        from app.core.init_db import init_db as seed_db
+        await seed_db(session)
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

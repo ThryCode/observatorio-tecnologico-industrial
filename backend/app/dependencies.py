@@ -9,6 +9,7 @@ from app.core.db import get_db
 from app.core.security import decode_token
 from app.core.exceptions import AppException
 from app.models.user import User
+from app.models.user import UserRole
 
 security_scheme = HTTPBearer()
 
@@ -40,3 +41,14 @@ async def get_current_superuser(current_user: User = Depends(get_current_user)) 
     if not current_user.is_superuser:
         raise AppException(403, "Admin access required")
     return current_user
+
+
+def require_role(*roles: str):
+    async def _require_role(current_user: User = Depends(get_current_user)) -> User:
+        if current_user.role not in roles:
+            raise AppException(
+                403,
+                f"Se requiere uno de estos roles: {', '.join(roles)}",
+            )
+        return current_user
+    return _require_role
