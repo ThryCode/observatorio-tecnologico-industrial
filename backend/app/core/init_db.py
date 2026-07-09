@@ -22,9 +22,11 @@ async def create_superuser_if_not_exists(session: AsyncSession) -> None:
         logger.info(f"Superuser already exists: {existing_admin.email}")
         return
 
+    raw = settings.first_superuser
+    email = raw if "@" in raw else f"{raw}@mindus.gob.cu"
     superuser = User(
-        username=settings.first_superuser,
-        email=f"{settings.first_superuser}@mindus.gob.cu",
+        username=raw,
+        email=email,
         hashed_password=get_password_hash(settings.first_superuser_password),
         full_name="Administrador MINDUS",
         role=UserRole.ADMIN_MINDUS,

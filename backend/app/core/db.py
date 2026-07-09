@@ -33,7 +33,12 @@ async def init_db():
 
     async with _session_factory() as session:
         from app.core.init_db import init_db as seed_db
-        await seed_db(session)
+        try:
+            await seed_db(session)
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

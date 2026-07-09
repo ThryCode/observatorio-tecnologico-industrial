@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 const loginSchema = z.object({
-  username: z.string().email('Ingrese un correo electrónico válido'),
+  username: z.string().min(1, 'Ingrese su usuario o correo electrónico'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
 });
 
@@ -56,10 +56,10 @@ export default function Login() {
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Correo electrónico</Label>
+              <Label htmlFor="username">Usuario o correo electrónico</Label>
               <Input
                 id="username"
-                type="email"
+                type="text"
                 placeholder="admin@mindus.gob.cu"
                 {...register('username')}
               />

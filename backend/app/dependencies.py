@@ -1,4 +1,4 @@
-from fastapi import Depends
+from fastapi import Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,11 +14,11 @@ from app.models.user import UserRole
 security_scheme = HTTPBearer()
 
 
-async def get_neo4j(request) -> AsyncGraphDatabase:
+async def get_neo4j(request: Request) -> AsyncGraphDatabase:
     return request.app.state.neo4j
 
 
-async def get_redis(request) -> Redis:
+async def get_redis(request: Request) -> Redis:
     return request.app.state.redis
 
 

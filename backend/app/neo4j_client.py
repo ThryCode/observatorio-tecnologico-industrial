@@ -1,5 +1,5 @@
 from neo4j import AsyncGraphDatabase
-from app.config import Settings
+from app.core.config import Settings
 
 
 def create_neo4j_driver(settings: Settings):

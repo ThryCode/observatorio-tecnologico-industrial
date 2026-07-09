@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
@@ -23,13 +23,21 @@ class AuthService:
             email=data.email,
             hashed_password=get_password_hash(data.password),
             full_name=data.full_name,
+            role=data.role,
         )
         self.db.add(user)
         await self.db.flush()
         return user
 
     async def authenticate(self, data: LoginRequest) -> str:
-        result = await self.db.execute(select(User).where(User.username == data.username))
+        result = await self.db.execute(
+            select(User).where(
+                or_(
+                    User.username == data.username,
+                    User.email == data.username,
+                )
+            )
+        )
         user = result.scalar_one_or_none()
         if not user or not verify_password(data.password, user.hashed_password):
             raise AppException(401, "Invalid credentials")
