@@ -1,0 +1,38 @@
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.user import User
+from app.schemas.auth import LoginRequest
+from app.schemas.user import UserCreate
+from app.core.security import hash_password, verify_password, create_access_token
+from app.core.exceptions import AppException
+
+
+class AuthService:
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    async def register(self, data: UserCreate) -> User:
+        result = await self.db.execute(
+            select(User).where((User.username == data.username) | (User.email == data.email))
+        )
+        if result.scalar_one_or_none():
+            raise AppException(409, "Username or email already exists")
+        user = User(
+            username=data.username,
+            email=data.email,
+            hashed_password=hash_password(data.password),
+            full_name=data.full_name,
+        )
+        self.db.add(user)
+        await self.db.flush()
+        return user
+
+    async def authenticate(self, data: LoginRequest) -> str:
+        result = await self.db.execute(select(User).where(User.username == data.username))
+        user = result.scalar_one_or_none()
+        if not user or not verify_password(data.password, user.hashed_password):
+            raise AppException(401, "Invalid credentials")
+        if not user.is_active:
+            raise AppException(403, "Account is disabled")
+        return create_access_token({"sub": str(user.id), "username": user.username})
