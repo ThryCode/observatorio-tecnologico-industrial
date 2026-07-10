@@ -50,7 +50,7 @@ El Observatorio Tecnológico Industrial es un sistema de inteligencia estratégi
 | **Grafo** | Neo4j 5 Community, APOC, Graph Data Science |
 | **Base de datos** | PostgreSQL 15 |
 | **Caché / Colas** | Redis 5 (tporadowski) |
-| **Infraestructura** | Instalación nativa Windows 10 (Docker alternativo para producción) |
+| **Infraestructura** | Instalación nativa Windows 10 — **sin Docker** |
 
 ## Requisitos del sistema
 
@@ -142,7 +142,7 @@ Para una guía detallada de instalación de cada componente, ver:
 │   ├── setup-env.ps1
 │   ├── start-windows.ps1
 │   └── stop-windows.ps1
-├── .env.example             # Referencia de variables Docker
+├── .env.example             # Referencia de variables de entorno
 ├── .env.windows             # Variables para desarrollo nativo Windows
 └── README.md
 ```
@@ -150,3 +150,7 @@ Para una guía detallada de instalación de cada componente, ver:
 ## Licencia
 
 Este proyecto se desarrolla bajo la rectoría del **Ministerio de Industrias de Cuba (MINDUS)**. Todos los derechos reservados.
+
+---
+
+> **Nota sobre infraestructura:** Este proyecto **no usa Docker** en ninguna circunstancia. Todos los servicios (PostgreSQL, Neo4j, Redis, Python, Node.js) se instalan y ejecutan directamente en Windows 10 de forma nativa. No existen archivos Dockerfile, docker-compose ni configuración de contenedores.

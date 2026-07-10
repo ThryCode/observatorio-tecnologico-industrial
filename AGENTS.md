@@ -76,6 +76,7 @@ frontend/src/
 - Modify CORS or security settings
 
 ### Never do
+- **Use Docker for any purpose** — this project runs exclusively on native Windows 10. No Docker, no containers, no docker-compose. All services (PostgreSQL, Neo4j, Redis, Python, Node.js) are installed directly on the host OS.
 - Commit `.env` files or secrets
 - Hardcode API keys or passwords
 - Use sync DB operations in async context
