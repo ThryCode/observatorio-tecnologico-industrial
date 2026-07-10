@@ -1,27 +1,65 @@
-from pydantic import BaseModel
+import re
+from pydantic import BaseModel, Field, field_validator
 from uuid import UUID
 from datetime import datetime
 
+VALID_ROLES = {"admin_mindus", "rep_cti", "analista", "cliente", "visitante"}
+
 
 class UserCreate(BaseModel):
-    username: str
-    email: str
-    password: str
-    full_name: str
+    username: str = Field(..., min_length=3, max_length=50)
+    email: str = Field(..., max_length=255)
+    password: str = Field(..., min_length=8, max_length=128)
+    full_name: str = Field(..., min_length=1, max_length=200)
     role: str = "visitante"
     phone: str | None = None
     job_title: str | None = None
     organization_id: UUID | None = None
 
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", v):
+            raise ValueError("Invalid email format")
+        return v.lower()
+
+    @field_validator("role")
+    @classmethod
+    def validate_role(cls, v: str) -> str:
+        if v not in VALID_ROLES:
+            raise ValueError(f"Role must be one of: {', '.join(sorted(VALID_ROLES))}")
+        return v
+
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, v: str) -> str:
+        if not re.match(r"^[a-zA-Z0-9_-]+$", v):
+            raise ValueError("Username must contain only letters, numbers, underscores, or hyphens")
+        return v.lower()
+
 
 class UserUpdate(BaseModel):
-    email: str | None = None
-    full_name: str | None = None
+    email: str | None = Field(None, max_length=255)
+    full_name: str | None = Field(None, min_length=1, max_length=200)
     role: str | None = None
     phone: str | None = None
     job_title: str | None = None
     organization_id: UUID | None = None
     is_active: bool | None = None
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v: str | None) -> str | None:
+        if v is not None and not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", v):
+            raise ValueError("Invalid email format")
+        return v.lower() if v else v
+
+    @field_validator("role")
+    @classmethod
+    def validate_role(cls, v: str | None) -> str | None:
+        if v is not None and v not in VALID_ROLES:
+            raise ValueError(f"Role must be one of: {', '.join(sorted(VALID_ROLES))}")
+        return v
 
 
 class UserResponse(BaseModel):

@@ -9,7 +9,6 @@ from app.core.db import get_db
 from app.core.security import decode_token
 from app.core.exceptions import AppException
 from app.models.user import User
-from app.models.user import UserRole
 
 security_scheme = HTTPBearer()
 

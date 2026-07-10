@@ -1,5 +1,4 @@
 from uuid import UUID
-from decimal import Decimal
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession

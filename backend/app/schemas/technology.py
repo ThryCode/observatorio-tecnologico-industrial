@@ -1,25 +1,39 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 from uuid import UUID
 from datetime import datetime
 from typing import List
 
 
 class TechnologyCreate(BaseModel):
-    nombre: str
+    nombre: str = Field(..., min_length=1, max_length=200)
     descripcion: str | None = None
-    sector_codigo: str | None = None
-    trl_nivel: int | None = None
-    referencia_ontologia: str | None = None
+    sector_codigo: str | None = Field(None, min_length=3, max_length=3)
+    trl_nivel: int | None = Field(None, ge=1, le=9)
+    referencia_ontologia: str | None = Field(None, max_length=50)
     palabras_clave: List[str] | None = None
+
+    @field_validator("palabras_clave")
+    @classmethod
+    def validate_palabras_clave(cls, v: list[str] | None) -> list[str] | None:
+        if v is not None:
+            return [kw.strip().lower() for kw in v if kw.strip()]
+        return v
 
 
 class TechnologyUpdate(BaseModel):
-    nombre: str | None = None
+    nombre: str | None = Field(None, min_length=1, max_length=200)
     descripcion: str | None = None
-    sector_codigo: str | None = None
-    trl_nivel: int | None = None
-    referencia_ontologia: str | None = None
+    sector_codigo: str | None = Field(None, min_length=3, max_length=3)
+    trl_nivel: int | None = Field(None, ge=1, le=9)
+    referencia_ontologia: str | None = Field(None, max_length=50)
     palabras_clave: List[str] | None = None
+
+    @field_validator("palabras_clave")
+    @classmethod
+    def validate_palabras_clave(cls, v: list[str] | None) -> list[str] | None:
+        if v is not None:
+            return [kw.strip().lower() for kw in v if kw.strip()]
+        return v
 
 
 class TechnologyResponse(BaseModel):
