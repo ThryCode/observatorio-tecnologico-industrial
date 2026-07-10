@@ -73,3 +73,25 @@ async def test_me(client):
     response = await client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
     assert response.json()["username"] == "meuser"
+
+
+@pytest.mark.asyncio
+async def test_register_invalid_email(client):
+    response = await client.post("/api/v1/auth/register", json={
+        "username": "emailuser",
+        "email": "not-valid-email",
+        "password": "secret123",
+        "full_name": "Email User",
+    })
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_register_short_password(client):
+    response = await client.post("/api/v1/auth/register", json={
+        "username": "shortpw",
+        "email": "shortpw@test.com",
+        "password": "abc",
+        "full_name": "Short PW",
+    })
+    assert response.status_code == 422

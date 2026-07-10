@@ -5,7 +5,7 @@ import pytest
 def patent_payload():
     return {
         "title": "Industrial Process Optimization",
-        "patent_number": "CU2025001",
+        "patent_number": "CU-2025-0001",
         "applicant": "Ministry of Industries",
         "inventor": "Juan Pérez",
         "filing_date": "2025-06-15",
@@ -20,10 +20,10 @@ def patent_payload():
 async def test_create_patent(client, patent_payload):
     await client.post("/api/v1/auth/register", json={
         "username": "patentuser", "email": "patent@example.com",
-        "password": "secret", "full_name": "Patent User",
+        "password": "secret123", "full_name": "Patent User",
     })
     login = await client.post("/api/v1/auth/login", json={
-        "username": "patentuser", "password": "secret",
+        "username": "patentuser", "password": "secret123",
     })
     token = login.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
@@ -31,7 +31,7 @@ async def test_create_patent(client, patent_payload):
     response = await client.post("/api/v1/patents", json=patent_payload, headers=headers)
     assert response.status_code == 201
     data = response.json()
-    assert data["patent_number"] == "CU2025001"
+    assert data["patent_number"] == "CU-2025-0001"
     assert data["title"] == "Industrial Process Optimization"
 
 

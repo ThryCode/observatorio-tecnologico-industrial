@@ -4,8 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.db import init_db, close_db
-from app.neo4j_client import create_neo4j_driver
-from app.redis_client import create_redis_client
 from app.core.exceptions import register_exception_handlers
 from app.api.v1.router import api_router
 
@@ -13,8 +11,21 @@ from app.api.v1.router import api_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
-    neo4j = create_neo4j_driver(settings)
-    redis_client = create_redis_client(settings)
+
+    neo4j = None
+    redis_client = None
+
+    try:
+        from app.neo4j_client import create_neo4j_driver
+        neo4j = create_neo4j_driver(settings)
+    except Exception:
+        pass
+
+    try:
+        from app.redis_client import create_redis_client
+        redis_client = create_redis_client(settings)
+    except Exception:
+        pass
 
     app.state.neo4j = neo4j
     app.state.redis = redis_client
@@ -22,8 +33,16 @@ async def lifespan(app: FastAPI):
     yield
 
     await close_db()
-    await neo4j.close()
-    await redis_client.aclose()
+    if neo4j:
+        try:
+            await neo4j.close()
+        except Exception:
+            pass
+    if redis_client:
+        try:
+            await redis_client.aclose()
+        except Exception:
+            pass
 
 
 app = FastAPI(

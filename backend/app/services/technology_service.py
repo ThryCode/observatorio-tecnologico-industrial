@@ -46,6 +46,7 @@ class TechnologyService:
         for key, val in data.model_dump(exclude_unset=True).items():
             setattr(tech, key, val)
         await self.db.flush()
+        await self.db.refresh(tech)
         return tech
 
     async def delete(self, tech_id: UUID) -> None:

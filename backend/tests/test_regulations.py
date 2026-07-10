@@ -5,10 +5,10 @@ import pytest
 async def test_create_regulation(client):
     await client.post("/api/v1/auth/register", json={
         "username": "reguser", "email": "reg@example.com",
-        "password": "secret", "full_name": "Reg User",
+        "password": "secret123", "full_name": "Reg User",
     })
     login = await client.post("/api/v1/auth/login", json={
-        "username": "reguser", "password": "secret",
+        "username": "reguser", "password": "secret123",
     })
     token = login.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
