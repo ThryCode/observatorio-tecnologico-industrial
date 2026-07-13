@@ -17,3 +17,9 @@ venv/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local data
+pgdata/
+
+# Dependencies
+node_modules/
