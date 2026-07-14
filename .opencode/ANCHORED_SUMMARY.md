@@ -1,0 +1,16 @@
+Progress for this conversation:
+- Fase 0 (Seguridad): 8 items — secrets→env, no self-escalation, JWT user_id only, ReDoS fix, CORS hardening, auth on graph endpoints, test fixes. 46 tests pass.
+- Fase 1 (Backend Completitud): refresh() after flush() in 6 services, Field(...) constraints in org schema, response_model + type hints on all endpoints, dead code removed, commit→flush fix, StrEnum migration, Ruff rules. 246 insertions, 175 deletions.
+- Fase 2 (Frontend) — completed:
+  - types/index.ts: Indicator, Regulation, Technology, IndustrialSector, GraphStat
+  - 5 API clients (indicators, regulations, technologies, industrialSectors, graph) with mock mode
+  - 4 TanStack Query hooks (useIndicators, useRegulations, useTechnologies, useGraph)
+  - 3 pages (Indicators, Regulations, GraphExplorer) with table/dialog/skeleton
+  - App.tsx: routes /indicators, /regulations, /graph
+  - Dashboard: KPIs now API-driven (fetches totals), cn() added to KPIs/GraficoPatentes/AlertasTable
+  - Quality: isError handling in Organizations.tsx and Patents.tsx, new ErrorBoundary.tsx
+  - tsconfig.node.json fixed (composite: true, emitDeclarationOnly), @types/node installed
+  - npm run build passes successfully
+- No Docker, all services native on Windows 10.
+- PATH must include G:\Proyects\Observatorio\tools\nodejs\node-v20.18.3-win-x64 for Node 20.
+- Next steps: Fase 3+ (CI/CD, monorepo, Docker, etc.) need user direction.

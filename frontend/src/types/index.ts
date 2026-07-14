@@ -83,3 +83,62 @@ export interface Alert {
   date: string;
   source: string;
 }
+
+export type IndicatorPeriod = 'monthly' | 'quarterly' | 'yearly';
+
+export interface Indicator {
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  unit: string;
+  value: number;
+  source: string;
+  period: IndicatorPeriod;
+  sector_codigo?: string;
+  date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export type RegulationCategory = 'law' | 'decree' | 'resolution' | 'standard' | 'other';
+
+export interface Regulation {
+  id: string;
+  title: string;
+  regulation_number: string;
+  issuing_body: string;
+  publication_date: string;
+  effective_date?: string;
+  category: RegulationCategory;
+  summary?: string;
+  full_text_url?: string;
+  sector_codigo?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Technology {
+  id: string;
+  nombre: string;
+  descripcion?: string;
+  trl_nivel?: number;
+  sector_codigo?: string;
+  palabras_clave?: string[];
+  referencia_ontologia?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IndustrialSector {
+  codigo: string;
+  nombre: string;
+  descripcion?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GraphStat {
+  label: string;
+  count: number;
+}

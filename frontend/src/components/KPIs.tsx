@@ -1,3 +1,4 @@
+import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Building2, Scale, TrendingUp } from 'lucide-react';
 import type { KpiData } from '@/types';
@@ -38,13 +39,12 @@ export default function KPIs({ data }: KPIsProps) {
             <CardContent>
               <div className="text-2xl font-bold">{kpi.value}</div>
               <p
-                className={`text-xs ${
-                  kpi.changeType === 'positive'
-                    ? 'text-green-600'
-                    : kpi.changeType === 'negative'
-                      ? 'text-red-600'
-                      : 'text-muted-foreground'
-                }`}
+                className={cn(
+                  'text-xs',
+                  kpi.changeType === 'positive' && 'text-green-600',
+                  kpi.changeType === 'negative' && 'text-red-600',
+                  kpi.changeType === 'neutral' && 'text-muted-foreground',
+                )}
               >
                 {kpi.change} respecto al mes anterior
               </p>

@@ -5,6 +5,9 @@ import Login from '@/pages/Login';
 import Dashboard from '@/pages/Dashboard';
 import Organizations from '@/pages/Organizations';
 import Patents from '@/pages/Patents';
+import Indicators from '@/pages/Indicators';
+import Regulations from '@/pages/Regulations';
+import GraphExplorer from '@/pages/GraphExplorer';
 import Profile from '@/pages/Profile';
 
 export default function App() {
@@ -16,6 +19,9 @@ export default function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/organizations" element={<Organizations />} />
           <Route path="/patents" element={<Patents />} />
+          <Route path="/indicators" element={<Indicators />} />
+          <Route path="/regulations" element={<Regulations />} />
+          <Route path="/graph" element={<GraphExplorer />} />
           <Route path="/profile" element={<Profile />} />
         </Route>
       </Route>

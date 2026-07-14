@@ -46,7 +46,23 @@ export default function Organizations() {
   const [page, setPage] = useState(1);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
 
-  const { data, isLoading } = useOrganizations(page, 20, sector || undefined);
+  const { data, isLoading, isError } = useOrganizations(page, 20, sector || undefined);
+
+  if (isError) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Organizaciones</h2>
+          <p className="text-muted-foreground">Error al cargar los datos.</p>
+        </div>
+        <Card>
+          <CardContent className="flex flex-col items-center gap-2 py-8">
+            <p className="text-sm text-destructive">No se pudieron cargar las organizaciones. Intente de nuevo mas tarde.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const filtered = data?.items.filter(
     (org) =>

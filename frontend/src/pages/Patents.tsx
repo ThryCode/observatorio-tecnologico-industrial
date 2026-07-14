@@ -56,7 +56,23 @@ export default function Patents() {
   const [page, setPage] = useState(1);
   const [selectedPatent, setSelectedPatent] = useState<Patent | null>(null);
 
-  const { data, isLoading } = usePatents(page, 20, sector || undefined, status || undefined, search || undefined);
+  const { data, isLoading, isError } = usePatents(page, 20, sector || undefined, status || undefined, search || undefined);
+
+  if (isError) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Patentes</h2>
+          <p className="text-muted-foreground">Error al cargar los datos.</p>
+        </div>
+        <Card>
+          <CardContent className="flex flex-col items-center gap-2 py-8">
+            <p className="text-sm text-destructive">No se pudieron cargar las patentes. Intente de nuevo mas tarde.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
