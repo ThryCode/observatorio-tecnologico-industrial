@@ -1,5 +1,6 @@
-from neo4j import AsyncGraphDatabase
 import re
+
+from neo4j import AsyncGraphDatabase
 
 
 class GraphRepository:

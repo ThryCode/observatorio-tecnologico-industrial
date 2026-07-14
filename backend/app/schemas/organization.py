@@ -1,28 +1,29 @@
-from pydantic import BaseModel
-from uuid import UUID
 from datetime import datetime
+from uuid import UUID
+
+from pydantic import BaseModel, Field
 
 
 class OrganizationCreate(BaseModel):
-    nombre: str
-    siglas: str
-    tipo: str
-    sector_codigo: str | None = None
-    pais: str | None = None
-    provincia: str | None = None
-    sitio_web: str | None = None
-    email_contacto: str | None = None
+    nombre: str = Field(..., min_length=1, max_length=200)
+    siglas: str = Field(..., min_length=1, max_length=20)
+    tipo: str = Field(..., max_length=50)
+    sector_codigo: str | None = Field(None, max_length=3)
+    pais: str | None = Field(None, max_length=100)
+    provincia: str | None = Field(None, max_length=100)
+    sitio_web: str | None = Field(None, max_length=500)
+    email_contacto: str | None = Field(None, max_length=255)
 
 
 class OrganizationUpdate(BaseModel):
-    nombre: str | None = None
-    siglas: str | None = None
-    tipo: str | None = None
-    sector_codigo: str | None = None
-    pais: str | None = None
-    provincia: str | None = None
-    sitio_web: str | None = None
-    email_contacto: str | None = None
+    nombre: str | None = Field(None, min_length=1, max_length=200)
+    siglas: str | None = Field(None, min_length=1, max_length=20)
+    tipo: str | None = Field(None, max_length=50)
+    sector_codigo: str | None = Field(None, max_length=3)
+    pais: str | None = Field(None, max_length=100)
+    provincia: str | None = Field(None, max_length=100)
+    sitio_web: str | None = Field(None, max_length=500)
+    email_contacto: str | None = Field(None, max_length=255)
 
 
 class OrganizationResponse(BaseModel):

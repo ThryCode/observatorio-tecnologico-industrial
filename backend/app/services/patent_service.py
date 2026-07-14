@@ -1,11 +1,11 @@
 from uuid import UUID
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import AppException
 from app.models.patent import Patent
 from app.schemas.patent import PatentCreate, PatentUpdate
-from app.core.exceptions import AppException
 
 
 class PatentService:
@@ -13,7 +13,7 @@ class PatentService:
         self.db = db
 
     async def list(self, page: int, per_page: int, sector: str | None = None,
-                   status: str | None = None, q: str | None = None):
+                   status: str | None = None, q: str | None = None) -> tuple[list[Patent], int]:
         query = select(Patent)
         count_query = select(func.count(Patent.id))
 
@@ -58,6 +58,7 @@ class PatentService:
         for key, val in data.model_dump(exclude_unset=True).items():
             setattr(patent, key, val)
         await self.db.flush()
+        await self.db.refresh(patent)
         return patent
 
     async def delete(self, patent_id: UUID) -> None:

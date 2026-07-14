@@ -1,11 +1,13 @@
-import uuid
 import enum
-from sqlalchemy import String, Boolean, ForeignKey
+import uuid
+
+from sqlalchemy import Boolean, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
-from app.models.base import Base, UUIDMixin, TimestampMixin
+
+from app.models.base import Base, TimestampMixin, UUIDMixin
 
 
-class UserRole(str, enum.Enum):
+class UserRole(enum.StrEnum):
     ADMIN_MINDUS = "admin_mindus"
     REP_CTI = "rep_cti"
     ANALISTA = "analista"

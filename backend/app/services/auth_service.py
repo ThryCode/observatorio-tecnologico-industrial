@@ -1,11 +1,11 @@
-from sqlalchemy import select, or_
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import AppException
+from app.core.security import create_access_token, get_password_hash, verify_password
 from app.models.user import User
 from app.schemas.auth import LoginRequest
 from app.schemas.user import UserCreate
-from app.core.security import get_password_hash, verify_password, create_access_token
-from app.core.exceptions import AppException
 
 
 class AuthService:

@@ -1,12 +1,15 @@
-import uuid
 import enum
+import uuid
 from datetime import date
-from sqlalchemy import String, Text, Date, Enum as SAEnum, ForeignKey
+
+from sqlalchemy import Date, ForeignKey, String, Text
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column
-from app.models.base import Base, UUIDMixin, TimestampMixin
+
+from app.models.base import Base, TimestampMixin, UUIDMixin
 
 
-class PatentStatus(str, enum.Enum):
+class PatentStatus(enum.StrEnum):
     FILED = "filed"
     EXAMINATION = "examination"
     GRANTED = "granted"

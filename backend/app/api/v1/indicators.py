@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 
-from app.schemas.indicator import IndicatorCreate, IndicatorUpdate, IndicatorResponse
-from app.schemas.common import PaginatedResponse, Message
-from app.services.indicator_service import IndicatorService
-from app.dependencies import get_db, get_current_user, get_current_superuser
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.dependencies import get_current_superuser, get_current_user, get_db
 from app.models.user import User
+from app.schemas.common import Message, PaginatedResponse
+from app.schemas.indicator import IndicatorCreate, IndicatorResponse, IndicatorUpdate
+from app.services.indicator_service import IndicatorService
 
 router = APIRouter(prefix="/indicators", tags=["indicators"])
 

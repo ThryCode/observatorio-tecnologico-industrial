@@ -1,17 +1,17 @@
 import pytest_asyncio
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (
-    create_async_engine,
-    async_sessionmaker,
     AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
 )
 from sqlalchemy.pool import NullPool
 
-from app.main import app
+from app.core.security import get_password_hash
 from app.dependencies import get_db
+from app.main import app
 from app.models.base import Base
 from app.models.user import User
-from app.core.security import get_password_hash
 
 TEST_DATABASE_URL = "postgresql+asyncpg://observatorio:observatorio_dev@localhost:5432/observatorio_test"
 

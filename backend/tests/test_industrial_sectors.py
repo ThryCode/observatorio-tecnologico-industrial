@@ -25,8 +25,9 @@ def superuser_headers(client, db_session, superuser_token_headers):
         })
         token = login.json()["access_token"]
 
-        from app.models.user import User
         from sqlalchemy import update
+
+        from app.models.user import User
         await db_session.execute(
             update(User).where(User.username == username).values(is_superuser=True)
         )

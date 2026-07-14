@@ -1,16 +1,16 @@
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import AppException
 from app.models.industrial_sector import IndustrialSector
 from app.schemas.industrial_sector import IndustrialSectorCreate, IndustrialSectorUpdate
-from app.core.exceptions import AppException
 
 
 class IndustrialSectorService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def list(self, page: int, per_page: int):
+    async def list(self, page: int, per_page: int) -> tuple[list[IndustrialSector], int]:
         count_query = select(func.count(IndustrialSector.codigo))
         total = (await self.db.execute(count_query)).scalar()
         offset = (page - 1) * per_page
@@ -45,6 +45,7 @@ class IndustrialSectorService:
         for key, val in data.model_dump(exclude_unset=True).items():
             setattr(sector, key, val)
         await self.db.flush()
+        await self.db.refresh(sector)
         return sector
 
     async def delete(self, codigo: str) -> None:

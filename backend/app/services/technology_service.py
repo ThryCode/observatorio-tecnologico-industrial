@@ -1,18 +1,18 @@
 from uuid import UUID
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import AppException
 from app.models.technology import Technology
 from app.schemas.technology import TechnologyCreate, TechnologyUpdate
-from app.core.exceptions import AppException
 
 
 class TechnologyService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def list(self, page: int, per_page: int, sector_codigo: str | None = None):
+    async def list(self, page: int, per_page: int, sector_codigo: str | None = None) -> tuple[list[Technology], int]:
         query = select(Technology)
         count_query = select(func.count(Technology.id))
 

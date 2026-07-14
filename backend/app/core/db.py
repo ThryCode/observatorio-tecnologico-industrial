@@ -1,9 +1,10 @@
 from collections.abc import AsyncGenerator
+
 from sqlalchemy.ext.asyncio import (
-    create_async_engine,
-    async_sessionmaker,
-    AsyncSession,
     AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
 )
 
 from app.core.config import settings
@@ -13,7 +14,7 @@ _engine: AsyncEngine | None = None
 _session_factory: async_sessionmaker[AsyncSession] | None = None
 
 
-async def init_db():
+async def init_db() -> None:
     global _engine, _session_factory
 
     _engine = create_async_engine(

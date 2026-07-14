@@ -1,6 +1,8 @@
 import logging
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.config import settings
 from app.core.security import get_password_hash
 from app.models.user import User, UserRole
@@ -35,5 +37,5 @@ async def create_superuser_if_not_exists(session: AsyncSession) -> None:
     )
 
     session.add(superuser)
-    await session.commit()
+    await session.flush()
     logger.info(f"Superuser created: {superuser.email}")

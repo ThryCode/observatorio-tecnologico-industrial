@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 
-from app.schemas.patent import PatentCreate, PatentUpdate, PatentResponse
-from app.schemas.common import PaginatedResponse, Message
-from app.services.patent_service import PatentService
-from app.dependencies import get_db, get_current_user, get_current_superuser
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.dependencies import get_current_superuser, get_current_user, get_db
 from app.models.user import User
+from app.schemas.common import Message, PaginatedResponse
+from app.schemas.patent import PatentCreate, PatentResponse, PatentUpdate
+from app.services.patent_service import PatentService
 
 router = APIRouter(prefix="/patents", tags=["patents"])
 

@@ -1,15 +1,15 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.dependencies import get_current_superuser, get_db
+from app.models.user import User
+from app.schemas.common import Message, PaginatedResponse
 from app.schemas.industrial_sector import (
     IndustrialSectorCreate,
-    IndustrialSectorUpdate,
     IndustrialSectorResponse,
+    IndustrialSectorUpdate,
 )
-from app.schemas.common import PaginatedResponse, Message
 from app.services.industrial_sector_service import IndustrialSectorService
-from app.dependencies import get_db, get_current_superuser
-from app.models.user import User
 
 router = APIRouter(prefix="/industrial-sectors", tags=["industrial-sectors"])
 

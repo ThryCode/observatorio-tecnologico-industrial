@@ -1,18 +1,18 @@
 from uuid import UUID
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import AppException
 from app.models.organization import Organization
 from app.schemas.organization import OrganizationCreate, OrganizationUpdate
-from app.core.exceptions import AppException
 
 
 class OrganizationService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def list(self, page: int, per_page: int, tipo: str | None = None):
+    async def list(self, page: int, per_page: int, tipo: str | None = None) -> tuple[list[Organization], int]:
         query = select(Organization)
         count_query = select(func.count(Organization.id))
 
@@ -46,6 +46,7 @@ class OrganizationService:
         for key, val in data.model_dump(exclude_unset=True).items():
             setattr(org, key, val)
         await self.db.flush()
+        await self.db.refresh(org)
         return org
 
     async def delete(self, org_id: UUID) -> None:

@@ -1,7 +1,7 @@
-from pydantic import BaseModel, Field, field_validator
-from uuid import UUID
 from datetime import datetime
-from typing import List
+from uuid import UUID
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class TechnologyCreate(BaseModel):
@@ -10,7 +10,7 @@ class TechnologyCreate(BaseModel):
     sector_codigo: str | None = Field(None, min_length=3, max_length=3)
     trl_nivel: int | None = Field(None, ge=1, le=9)
     referencia_ontologia: str | None = Field(None, max_length=50)
-    palabras_clave: List[str] | None = None
+    palabras_clave: list[str] | None = None
 
     @field_validator("palabras_clave")
     @classmethod
@@ -26,7 +26,7 @@ class TechnologyUpdate(BaseModel):
     sector_codigo: str | None = Field(None, min_length=3, max_length=3)
     trl_nivel: int | None = Field(None, ge=1, le=9)
     referencia_ontologia: str | None = Field(None, max_length=50)
-    palabras_clave: List[str] | None = None
+    palabras_clave: list[str] | None = None
 
     @field_validator("palabras_clave")
     @classmethod
@@ -43,7 +43,7 @@ class TechnologyResponse(BaseModel):
     sector_codigo: str | None
     trl_nivel: int | None
     referencia_ontologia: str | None
-    palabras_clave: List[str] | None
+    palabras_clave: list[str] | None
     created_at: datetime
     updated_at: datetime
 

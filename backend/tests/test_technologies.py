@@ -22,6 +22,7 @@ def auth_headers(client, db_session, superuser_token_headers):
         }, headers=superuser_token_headers)
         if is_superuser:
             from sqlalchemy import update
+
             from app.models.user import User
             await db_session.execute(
                 update(User).where(User.username == username).values(is_superuser=True)

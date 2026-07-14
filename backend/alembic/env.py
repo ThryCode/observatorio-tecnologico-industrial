@@ -1,14 +1,16 @@
 import asyncio
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
+
+from alembic import context
 
 config = context.config
 fileConfig(config.config_file_name)
 
 from app.models.base import Base
+
 target_metadata = Base.metadata
 
 

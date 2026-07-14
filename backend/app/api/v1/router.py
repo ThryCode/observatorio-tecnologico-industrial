@@ -1,14 +1,15 @@
 from fastapi import APIRouter
+
 from app.api.v1 import (
     auth,
-    users,
+    graph,
+    indicators,
+    industrial_sectors,
+    organizations,
     patents,
     regulations,
-    indicators,
-    graph,
-    organizations,
     technologies,
-    industrial_sectors,
+    users,
 )
 
 api_router = APIRouter(prefix="/api/v1")

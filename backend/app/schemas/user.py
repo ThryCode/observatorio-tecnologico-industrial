@@ -1,7 +1,8 @@
 import re
-from pydantic import BaseModel, Field, field_validator
-from uuid import UUID
 from datetime import datetime
+from uuid import UUID
+
+from pydantic import BaseModel, Field, field_validator
 
 VALID_ROLES = {"admin_mindus", "rep_cti", "analista", "cliente", "visitante"}
 

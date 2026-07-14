@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 
-from app.schemas.organization import OrganizationCreate, OrganizationUpdate, OrganizationResponse
-from app.schemas.common import PaginatedResponse, Message
-from app.services.organization_service import OrganizationService
-from app.dependencies import get_db, get_current_user, get_current_superuser
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.dependencies import get_current_superuser, get_current_user, get_db
 from app.models.user import User
+from app.schemas.common import Message, PaginatedResponse
+from app.schemas.organization import OrganizationCreate, OrganizationResponse, OrganizationUpdate
+from app.services.organization_service import OrganizationService
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
 

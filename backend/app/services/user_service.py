@@ -1,18 +1,18 @@
 from uuid import UUID
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import AppException
 from app.models.user import User
 from app.schemas.user import UserUpdate
-from app.core.exceptions import AppException
 
 
 class UserService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def list(self, page: int, per_page: int):
+    async def list(self, page: int, per_page: int) -> tuple[list[User], int]:
         total = (await self.db.execute(select(func.count(User.id)))).scalar()
         offset = (page - 1) * per_page
         result = await self.db.execute(select(User).offset(offset).limit(per_page))
@@ -31,6 +31,7 @@ class UserService:
         for key, val in data.model_dump(exclude_unset=True).items():
             setattr(user, key, val)
         await self.db.flush()
+        await self.db.refresh(user)
         return user
 
     async def delete(self, user_id: UUID) -> None:

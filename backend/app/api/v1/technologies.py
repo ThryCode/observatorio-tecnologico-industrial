@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 
-from app.schemas.technology import TechnologyCreate, TechnologyUpdate, TechnologyResponse
-from app.schemas.common import PaginatedResponse, Message
-from app.services.technology_service import TechnologyService
-from app.dependencies import get_db, get_current_user, get_current_superuser
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.dependencies import get_current_superuser, get_current_user, get_db
 from app.models.user import User
+from app.schemas.common import Message, PaginatedResponse
+from app.schemas.technology import TechnologyCreate, TechnologyResponse, TechnologyUpdate
+from app.services.technology_service import TechnologyService
 
 router = APIRouter(prefix="/technologies", tags=["technologies"])
 

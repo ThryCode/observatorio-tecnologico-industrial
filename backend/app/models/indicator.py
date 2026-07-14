@@ -1,11 +1,14 @@
 import enum
 from decimal import Decimal
-from sqlalchemy import String, Text, Numeric, Enum as SAEnum, ForeignKey
+
+from sqlalchemy import Enum as SAEnum
+from sqlalchemy import ForeignKey, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
-from app.models.base import Base, UUIDMixin, TimestampMixin
+
+from app.models.base import Base, TimestampMixin, UUIDMixin
 
 
-class IndicatorPeriod(str, enum.Enum):
+class IndicatorPeriod(enum.StrEnum):
     MONTHLY = "monthly"
     QUARTERLY = "quarterly"
     ANNUAL = "annual"

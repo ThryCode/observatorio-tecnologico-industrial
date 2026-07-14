@@ -1,11 +1,11 @@
 from uuid import UUID
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import AppException
 from app.models.indicator import Indicator
 from app.schemas.indicator import IndicatorCreate, IndicatorUpdate
-from app.core.exceptions import AppException
 
 
 class IndicatorService:
@@ -13,7 +13,7 @@ class IndicatorService:
         self.db = db
 
     async def list(self, page: int, per_page: int, sector: str | None = None,
-                   period: str | None = None):
+                   period: str | None = None) -> tuple[list[Indicator], int]:
         query = select(Indicator)
         count_query = select(func.count(Indicator.id))
 
@@ -50,6 +50,7 @@ class IndicatorService:
         for key, val in data.model_dump(exclude_unset=True).items():
             setattr(indicator, key, val)
         await self.db.flush()
+        await self.db.refresh(indicator)
         return indicator
 
     async def delete(self, indicator_id: UUID) -> None:

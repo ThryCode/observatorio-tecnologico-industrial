@@ -1,18 +1,18 @@
 from uuid import UUID
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import AppException
 from app.models.regulation import Regulation
 from app.schemas.regulation import RegulationCreate, RegulationUpdate
-from app.core.exceptions import AppException
 
 
 class RegulationService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def list(self, page: int, per_page: int, category: str | None = None):
+    async def list(self, page: int, per_page: int, category: str | None = None) -> tuple[list[Regulation], int]:
         query = select(Regulation)
         count_query = select(func.count(Regulation.id))
 
@@ -46,6 +46,7 @@ class RegulationService:
         for key, val in data.model_dump(exclude_unset=True).items():
             setattr(regulation, key, val)
         await self.db.flush()
+        await self.db.refresh(regulation)
         return regulation
 
     async def delete(self, regulation_id: UUID) -> None:
