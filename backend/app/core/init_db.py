@@ -1,13 +1,10 @@
-import logging
-
+from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.security import get_password_hash
 from app.models.user import User, UserRole
-
-logger = logging.getLogger(__name__)
 
 
 async def init_db(session: AsyncSession) -> None:

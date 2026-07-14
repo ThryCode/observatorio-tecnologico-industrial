@@ -349,7 +349,7 @@ class GraphRepository:
             "CREATE CONSTRAINT IF NOT EXISTS FOR (n:Person) REQUIRE n.id IS UNIQUE",
         ]
         for cql in constraints:
-            try:
+            try:  # noqa: SIM105
                 await session.run(cql)
             except Exception:
                 pass

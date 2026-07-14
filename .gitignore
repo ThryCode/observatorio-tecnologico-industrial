@@ -23,3 +23,7 @@ pgdata/
 
 # Dependencies
 node_modules/
+
+# Logs
+logs/
+
