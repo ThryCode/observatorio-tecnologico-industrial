@@ -1,5 +1,7 @@
+import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -45,7 +47,6 @@ async def client(db_session):
 
 @pytest_asyncio.fixture
 async def superuser_token_headers(client, db_session):
-    """Create a superuser directly in DB and return auth headers via login."""
     user = User(
         username="testsuperuser",
         email="super@test.com",
@@ -56,10 +57,32 @@ async def superuser_token_headers(client, db_session):
     )
     db_session.add(user)
     await db_session.flush()
-
     login = await client.post("/api/v1/auth/login", json={
         "username": "testsuperuser",
         "password": "secret123",
     })
     token = login.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def auth_headers(client, db_session, superuser_token_headers):
+    async def _make(username: str, is_superuser: bool = False):
+        await client.post("/api/v1/auth/register", json={
+            "username": username,
+            "email": f"{username}@test.com",
+            "password": "secret123",
+            "full_name": "Test User",
+        }, headers=superuser_token_headers)
+        if is_superuser:
+            await db_session.execute(
+                update(User).where(User.username == username).values(is_superuser=True)
+            )
+            await db_session.flush()
+        login = await client.post("/api/v1/auth/login", json={
+            "username": username,
+            "password": "secret123",
+        })
+        token = login.json()["access_token"]
+        return {"Authorization": f"Bearer {token}"}
+    return _make

@@ -1,5 +1,7 @@
 import pytest
 
+from tests.factories import make_patent
+
 
 @pytest.fixture
 def patent_payload():
@@ -17,34 +19,58 @@ def patent_payload():
 
 
 @pytest.mark.asyncio
-async def test_create_patent(client, patent_payload, superuser_token_headers):
-    await client.post("/api/v1/auth/register", json={
-        "username": "patentuser", "email": "patent@example.com",
-        "password": "secret123", "full_name": "Patent User",
-    }, headers=superuser_token_headers)
-    login = await client.post("/api/v1/auth/login", json={
-        "username": "patentuser", "password": "secret123",
-    })
-    token = login.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-
-    response = await client.post("/api/v1/patents", json=patent_payload, headers=headers)
-    assert response.status_code == 201
-    data = response.json()
+async def test_create_patent(client, patent_payload, auth_headers):
+    headers = await auth_headers("patuser")
+    resp = await client.post("/api/v1/patents", json=patent_payload, headers=headers)
+    assert resp.status_code == 201
+    data = resp.json()
     assert data["patent_number"] == "CU-2025-0001"
     assert data["title"] == "Industrial Process Optimization"
 
 
 @pytest.mark.asyncio
-async def test_list_patents(client, patent_payload):
-    response = await client.get("/api/v1/patents")
-    assert response.status_code == 200
-    data = response.json()
+async def test_create_patent_no_auth(client, patent_payload):
+    resp = await client.post("/api/v1/patents", json=patent_payload)
+    assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_list_patents(client):
+    resp = await client.get("/api/v1/patents")
+    assert resp.status_code == 200
+    data = resp.json()
     assert "items" in data
     assert "total" in data
 
 
 @pytest.mark.asyncio
+async def test_get_patent(client, db_session):
+    pat = await make_patent(db_session)
+    resp = await client.get(f"/api/v1/patents/{pat.id}")
+    assert resp.status_code == 200
+    assert resp.json()["id"] == str(pat.id)
+
+
+@pytest.mark.asyncio
 async def test_get_patent_not_found(client):
-    response = await client.get("/api/v1/patents/00000000-0000-0000-0000-000000000001")
-    assert response.status_code == 404
+    resp = await client.get("/api/v1/patents/00000000-0000-0000-0000-000000000001")
+    assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_update_patent(client, db_session, auth_headers):
+    pat = await make_patent(db_session, patent_number="CU-2026-002")
+    headers = await auth_headers("patupd")
+    resp = await client.put(f"/api/v1/patents/{pat.id}", json={"title": "Updated Title"}, headers=headers)
+    assert resp.status_code == 200
+    assert resp.json()["title"] == "Updated Title"
+
+
+@pytest.mark.asyncio
+async def test_delete_patent(client, db_session, auth_headers):
+    pat = await make_patent(db_session, patent_number="CU-2026-003")
+    headers = await auth_headers("patdel", is_superuser=True)
+    resp = await client.delete(f"/api/v1/patents/{pat.id}", headers=headers)
+    assert resp.status_code == 200
+    resp = await client.get(f"/api/v1/patents/{pat.id}")
+    assert resp.status_code == 404
