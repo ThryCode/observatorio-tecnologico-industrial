@@ -12,14 +12,14 @@ def tech_payload():
 
 
 @pytest.fixture
-def auth_headers(client, db_session):
+def auth_headers(client, db_session, superuser_token_headers):
     async def _register_and_login(username: str = "techuser", is_superuser: bool = False):
         await client.post("/api/v1/auth/register", json={
             "username": username,
             "email": f"{username}@test.com",
             "password": "secret123",
             "full_name": "Tech User",
-        })
+        }, headers=superuser_token_headers)
         if is_superuser:
             from sqlalchemy import update
             from app.models.user import User

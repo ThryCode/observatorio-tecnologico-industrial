@@ -11,7 +11,6 @@ class UserCreate(BaseModel):
     email: str = Field(..., max_length=255)
     password: str = Field(..., min_length=8, max_length=128)
     full_name: str = Field(..., min_length=1, max_length=200)
-    role: str = "visitante"
     phone: str | None = None
     job_title: str | None = None
     organization_id: UUID | None = None
@@ -22,13 +21,6 @@ class UserCreate(BaseModel):
         if not re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", v):
             raise ValueError("Invalid email format")
         return v.lower()
-
-    @field_validator("role")
-    @classmethod
-    def validate_role(cls, v: str) -> str:
-        if v not in VALID_ROLES:
-            raise ValueError(f"Role must be one of: {', '.join(sorted(VALID_ROLES))}")
-        return v
 
     @field_validator("username")
     @classmethod

@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, Query
 
-from app.dependencies import get_neo4j
+from app.dependencies import get_neo4j, get_current_user
 from app.core.exceptions import AppException
+from app.models.user import User
 
 router = APIRouter(prefix="/graph", tags=["graph"])
 
@@ -11,6 +12,7 @@ async def explore_node(
     node_id: str = Query(...),
     depth: int = Query(2, ge=1, le=5),
     neo4j=Depends(get_neo4j),
+    _: User = Depends(get_current_user),
 ):
     if not neo4j:
         raise AppException(503, "Neo4j is not available")
@@ -24,6 +26,7 @@ async def search_nodes(
     q: str = Query(...),
     labels: str | None = Query(None),
     neo4j=Depends(get_neo4j),
+    _: User = Depends(get_current_user),
 ):
     if not neo4j:
         raise AppException(503, "Neo4j is not available")
@@ -34,7 +37,10 @@ async def search_nodes(
 
 
 @router.get("/stats")
-async def graph_stats(neo4j=Depends(get_neo4j)):
+async def graph_stats(
+    neo4j=Depends(get_neo4j),
+    _: User = Depends(get_current_user),
+):
     if not neo4j:
         raise AppException(503, "Neo4j is not available")
     from app.graph.repository import GraphRepository

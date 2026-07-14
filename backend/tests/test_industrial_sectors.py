@@ -11,14 +11,14 @@ def sector_payload():
 
 
 @pytest.fixture
-def superuser_headers(client, db_session):
+def superuser_headers(client, db_session, superuser_token_headers):
     async def _create_superuser(username: str = "superadmin"):
         await client.post("/api/v1/auth/register", json={
             "username": username,
             "email": f"{username}@test.com",
             "password": "secret123",
             "full_name": "Super Admin",
-        })
+        }, headers=superuser_token_headers)
         login = await client.post("/api/v1/auth/login", json={
             "username": username,
             "password": "secret123",
@@ -37,14 +37,14 @@ def superuser_headers(client, db_session):
 
 
 @pytest.fixture
-def normal_headers(client):
+def normal_headers(client, superuser_token_headers):
     async def _register(username: str = "normaluser"):
         await client.post("/api/v1/auth/register", json={
             "username": username,
             "email": f"{username}@test.com",
             "password": "secret123",
             "full_name": "Normal User",
-        })
+        }, headers=superuser_token_headers)
         login = await client.post("/api/v1/auth/login", json={
             "username": username,
             "password": "secret123",

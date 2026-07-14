@@ -34,8 +34,6 @@ def register_exception_handlers(app):
                 "loc": error.get("loc", []),
                 "msg": error.get("msg", ""),
             }
-            if "input" in error:
-                err_detail["input"] = str(error["input"])
             if "ctx" in error:
                 err_detail["ctx"] = {k: str(v) for k, v in error["ctx"].items()}
             errors.append(err_detail)

@@ -2,11 +2,11 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_create_indicator(client):
+async def test_create_indicator(client, superuser_token_headers):
     await client.post("/api/v1/auth/register", json={
         "username": "induser", "email": "ind@example.com",
         "password": "secret123", "full_name": "Ind User",
-    })
+    }, headers=superuser_token_headers)
     login = await client.post("/api/v1/auth/login", json={
         "username": "induser", "password": "secret123",
     })

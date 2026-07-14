@@ -2,14 +2,14 @@ import pytest
 
 
 @pytest.fixture
-def auth_headers(client):
+def auth_headers(client, superuser_token_headers):
     async def _register(username: str):
         await client.post("/api/v1/auth/register", json={
             "username": username,
             "email": f"{username}@test.com",
             "password": "secret123",
             "full_name": "Validator User",
-        })
+        }, headers=superuser_token_headers)
         login = await client.post("/api/v1/auth/login", json={
             "username": username,
             "password": "secret123",
@@ -20,47 +20,35 @@ def auth_headers(client):
 
 
 @pytest.mark.asyncio
-async def test_user_email_invalid(client):
+async def test_user_email_invalid(client, superuser_token_headers):
     response = await client.post("/api/v1/auth/register", json={
         "username": "validuser",
         "email": "not-an-email",
         "password": "secret123",
         "full_name": "Valid User",
-    })
+    }, headers=superuser_token_headers)
     assert response.status_code == 422
 
 
 @pytest.mark.asyncio
-async def test_user_username_invalid_chars(client):
+async def test_user_username_invalid_chars(client, superuser_token_headers):
     response = await client.post("/api/v1/auth/register", json={
         "username": "user with spaces!",
         "email": "valid@test.com",
         "password": "secret123",
         "full_name": "Valid User",
-    })
+    }, headers=superuser_token_headers)
     assert response.status_code == 422
 
 
 @pytest.mark.asyncio
-async def test_user_password_too_short(client):
+async def test_user_password_too_short(client, superuser_token_headers):
     response = await client.post("/api/v1/auth/register", json={
         "username": "shortpwuser",
         "email": "short@test.com",
         "password": "abc",
         "full_name": "Short PW User",
-    })
-    assert response.status_code == 422
-
-
-@pytest.mark.asyncio
-async def test_user_invalid_role(client):
-    response = await client.post("/api/v1/auth/register", json={
-        "username": "badroleuser",
-        "email": "badrole@test.com",
-        "password": "secret123",
-        "full_name": "Bad Role User",
-        "role": "superadmin_root",
-    })
+    }, headers=superuser_token_headers)
     assert response.status_code == 422
 
 

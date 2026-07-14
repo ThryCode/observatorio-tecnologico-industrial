@@ -10,17 +10,17 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    database_url: str = "postgresql+asyncpg://observatorio:observatorio_dev@postgres:5432/observatorio_db"
-    neo4j_uri: str = "bolt://neo4j:7687"
+    database_url: str
+    neo4j_uri: str = "bolt://localhost:7687"
     neo4j_user: str = "neo4j"
-    neo4j_password: str = "observatorio_dev"
-    redis_url: str = "redis://redis:6379/0"
-    secret_key: str = "dev-secret-key-no-usar-en-produccion"
+    neo4j_password: str
+    redis_url: str = "redis://localhost:6379/0"
+    secret_key: str
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
-    backend_cors_origins: str = '["http://localhost:3000","http://localhost:5173"]'
-    first_superuser: str = "admin"
-    first_superuser_password: str = "admin"
+    backend_cors_origins: str = '["http://localhost:5173"]'
+    first_superuser: str = "admin@mindus.gob.cu"
+    first_superuser_password: str
 
     @property
     def cors_origins(self) -> List[str]:

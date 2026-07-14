@@ -23,7 +23,7 @@ class AuthService:
             email=data.email,
             hashed_password=get_password_hash(data.password),
             full_name=data.full_name,
-            role=data.role,
+            role="visitante",
         )
         self.db.add(user)
         await self.db.flush()
@@ -43,4 +43,4 @@ class AuthService:
             raise AppException(401, "Invalid credentials")
         if not user.is_active:
             raise AppException(403, "Account is disabled")
-        return create_access_token({"sub": str(user.id), "username": user.username})
+        return create_access_token({"sub": str(user.id)})

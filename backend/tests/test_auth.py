@@ -2,14 +2,14 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_register(client):
+async def test_register(client, superuser_token_headers):
     payload = {
         "username": "testuser",
         "email": "test@example.com",
         "password": "secret123",
         "full_name": "Test User",
     }
-    response = await client.post("/api/v1/auth/register", json=payload)
+    response = await client.post("/api/v1/auth/register", json=payload, headers=superuser_token_headers)
     assert response.status_code == 201
     data = response.json()
     assert data["username"] == "testuser"
@@ -18,26 +18,39 @@ async def test_register(client):
 
 
 @pytest.mark.asyncio
-async def test_register_duplicate(client):
+async def test_register_duplicate(client, superuser_token_headers):
     payload = {
         "username": "dupuser",
         "email": "dup@example.com",
         "password": "secret123",
         "full_name": "Dup User",
     }
-    await client.post("/api/v1/auth/register", json=payload)
-    response = await client.post("/api/v1/auth/register", json=payload)
+    await client.post("/api/v1/auth/register", json=payload, headers=superuser_token_headers)
+    response = await client.post("/api/v1/auth/register", json=payload, headers=superuser_token_headers)
     assert response.status_code == 409
 
 
 @pytest.mark.asyncio
-async def test_login(client):
+async def test_register_not_superuser(client):
+    """Normal users (no auth) should get 401 when calling register."""
+    payload = {
+        "username": "nosuperuser",
+        "email": "nosuper@test.com",
+        "password": "secret123",
+        "full_name": "No Super",
+    }
+    response = await client.post("/api/v1/auth/register", json=payload)
+    assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_login(client, superuser_token_headers):
     await client.post("/api/v1/auth/register", json={
         "username": "loginuser",
         "email": "login@example.com",
         "password": "secret123",
         "full_name": "Login User",
-    })
+    }, headers=superuser_token_headers)
     response = await client.post("/api/v1/auth/login", json={
         "username": "loginuser",
         "password": "secret123",
@@ -58,13 +71,13 @@ async def test_login_invalid(client):
 
 
 @pytest.mark.asyncio
-async def test_me(client):
+async def test_me(client, superuser_token_headers):
     await client.post("/api/v1/auth/register", json={
         "username": "meuser",
         "email": "me@example.com",
         "password": "secret123",
         "full_name": "Me User",
-    })
+    }, headers=superuser_token_headers)
     login_resp = await client.post("/api/v1/auth/login", json={
         "username": "meuser",
         "password": "secret123",
@@ -76,22 +89,22 @@ async def test_me(client):
 
 
 @pytest.mark.asyncio
-async def test_register_invalid_email(client):
+async def test_register_invalid_email(client, superuser_token_headers):
     response = await client.post("/api/v1/auth/register", json={
         "username": "emailuser",
         "email": "not-valid-email",
         "password": "secret123",
         "full_name": "Email User",
-    })
+    }, headers=superuser_token_headers)
     assert response.status_code == 422
 
 
 @pytest.mark.asyncio
-async def test_register_short_password(client):
+async def test_register_short_password(client, superuser_token_headers):
     response = await client.post("/api/v1/auth/register", json={
         "username": "shortpw",
         "email": "shortpw@test.com",
         "password": "abc",
         "full_name": "Short PW",
-    })
+    }, headers=superuser_token_headers)
     assert response.status_code == 422

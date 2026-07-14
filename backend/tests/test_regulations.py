@@ -2,11 +2,11 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_create_regulation(client):
+async def test_create_regulation(client, superuser_token_headers):
     await client.post("/api/v1/auth/register", json={
         "username": "reguser", "email": "reg@example.com",
         "password": "secret123", "full_name": "Reg User",
-    })
+    }, headers=superuser_token_headers)
     login = await client.post("/api/v1/auth/login", json={
         "username": "reguser", "password": "secret123",
     })

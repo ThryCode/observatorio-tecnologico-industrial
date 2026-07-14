@@ -1,4 +1,5 @@
 from neo4j import AsyncGraphDatabase
+import re
 
 
 class GraphRepository:
@@ -22,7 +23,7 @@ class GraphRepository:
             return record.data() if record else None
 
     async def search_nodes(self, q: str, labels: list[str] | None = None):
-        params = {"q": f"(?i).*{q}.*"}
+        params = {"q": re.escape(q)}
         label_filter = ""
         if labels:
             label_filter = "AND any(lbl IN labels(n) WHERE lbl IN $labels)"
@@ -33,9 +34,9 @@ class GraphRepository:
                 f"""
                 MATCH (n)
                 WHERE (
-                    n.name =~ $q OR
-                    n.title =~ $q OR
-                    n.code =~ $q
+                    toLower(n.name) CONTAINS toLower($q) OR
+                    toLower(n.title) CONTAINS toLower($q) OR
+                    toLower(n.code) CONTAINS toLower($q)
                 )
                 {label_filter}
                 RETURN n, labels(n) AS labels

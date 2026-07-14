@@ -17,11 +17,11 @@ def patent_payload():
 
 
 @pytest.mark.asyncio
-async def test_create_patent(client, patent_payload):
+async def test_create_patent(client, patent_payload, superuser_token_headers):
     await client.post("/api/v1/auth/register", json={
         "username": "patentuser", "email": "patent@example.com",
         "password": "secret123", "full_name": "Patent User",
-    })
+    }, headers=superuser_token_headers)
     login = await client.post("/api/v1/auth/login", json={
         "username": "patentuser", "password": "secret123",
     })

@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import json
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -6,6 +7,8 @@ from app.core.config import settings
 from app.core.db import init_db, close_db
 from app.core.exceptions import register_exception_handlers
 from app.api.v1.router import api_router
+
+origins = json.loads(settings.backend_cors_origins)
 
 
 @asynccontextmanager
@@ -53,10 +56,10 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 register_exception_handlers(app)
