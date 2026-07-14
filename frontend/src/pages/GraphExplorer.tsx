@@ -18,7 +18,7 @@ export default function GraphExplorer() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Explorador del Grafo</h2>
         <p className="text-muted-foreground">
-          Visualización y exploración del grafo de conocimiento industrial.
+          Visualizacion y exploracion del grafo de conocimiento industrial.
         </p>
       </div>
 
@@ -81,7 +81,7 @@ export default function GraphExplorer() {
         </div>
       )}
 
-      {searchResults && searchResults.length === 0 && activeQuery && (
+      {searchResults && searchResults.items.length === 0 && activeQuery && (
         <Card>
           <CardContent className="flex flex-col items-center gap-2 py-8">
             <AlertCircle className="h-8 w-8 text-muted-foreground" />
@@ -92,15 +92,15 @@ export default function GraphExplorer() {
         </Card>
       )}
 
-      {searchResults && searchResults.length > 0 && (
+      {searchResults && searchResults.items.length > 0 && (
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">
-            {searchResults.length} resultado(s) encontrado(s)
+            {searchResults.total} resultado(s) encontrado(s)
           </p>
           <div className="grid gap-2">
-            {searchResults.slice(0, 20).map((result: unknown, i: number) => {
+            {searchResults.items.map((result: unknown, i: number) => {
               const node = (result as Record<string, unknown>).n as Record<string, unknown> | undefined;
-              const labels = (result as Record<string, unknown>).labels as string[] | undefined;
+              const labels = (result as Record<string, unknown>).node_labels as string[] | undefined;
               return (
                 <Card key={i}>
                   <CardContent className="flex items-center gap-3 p-4">
@@ -109,6 +109,7 @@ export default function GraphExplorer() {
                       <p className="truncate text-sm font-medium">
                         {typeof node?.name === 'string' ? node.name :
                          typeof node?.title === 'string' ? node.title :
+                         typeof node?.nombre === 'string' ? node.nombre :
                          typeof node?.id === 'string' ? node.id : 'Nodo'}
                       </p>
                     </div>

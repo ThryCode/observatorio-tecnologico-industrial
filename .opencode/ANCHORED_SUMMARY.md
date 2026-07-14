@@ -1,16 +1,16 @@
 Progress for this conversation:
-- Fase 0 (Seguridad): 8 items — secrets→env, no self-escalation, JWT user_id only, ReDoS fix, CORS hardening, auth on graph endpoints, test fixes. 46 tests pass.
-- Fase 1 (Backend Completitud): refresh() after flush() in 6 services, Field(...) constraints in org schema, response_model + type hints on all endpoints, dead code removed, commit→flush fix, StrEnum migration, Ruff rules. 246 insertions, 175 deletions.
-- Fase 2 (Frontend) — completed:
-  - types/index.ts: Indicator, Regulation, Technology, IndustrialSector, GraphStat
-  - 5 API clients (indicators, regulations, technologies, industrialSectors, graph) with mock mode
-  - 4 TanStack Query hooks (useIndicators, useRegulations, useTechnologies, useGraph)
-  - 3 pages (Indicators, Regulations, GraphExplorer) with table/dialog/skeleton
-  - App.tsx: routes /indicators, /regulations, /graph
-  - Dashboard: KPIs now API-driven (fetches totals), cn() added to KPIs/GraficoPatentes/AlertasTable
-  - Quality: isError handling in Organizations.tsx and Patents.tsx, new ErrorBoundary.tsx
-  - tsconfig.node.json fixed (composite: true, emitDeclarationOnly), @types/node installed
-  - npm run build passes successfully
+- Fase 0 (Seguridad): secrets→env, no self-escalation, JWT user_id only, ReDoS fix, CORS hardening, auth on graph endpoints, test fixes. 46 tests pass.
+- Fase 1 (Backend Completitud): refresh() after flush() in 6 services, Field(...) constraints, response_model + type hints, dead code removed, commit→flush fix, StrEnum migration, Ruff rules.
+- Fase 2 (Frontend): 5 API clients, 4 hooks, 3 pages (Indicators/Regulations/GraphExplorer), routing, Dashboard API-driven, cn(), isError, ErrorBoundary, .env with VITE_USE_MOCK=true, npm run build passes.
+- Fase 3 (Knowledge Graph) — COMPLETED:
+  - graph/models.py: Company→Organization rename, IndustrialSector node, full properties per label, missing FK relationships (BELONGS_TO_SECTOR x4)
+  - graph/repository.py: AsyncGraphDatabase→AsyncDriver fix, APOC check fallback, pagination in search_nodes, shortest_path endpoint, sync_all() (reads PG→MERGE nodes+rels+Person from inventors)
+  - api/v1/graph.py: POST /graph/sync (superuser), GET /graph/shortest-path
+  - schemas/graph.py: SyncResponse, ShortestPathResponse, paginated GraphSearchResponse, GraphStatsResponse with items wrapper
+  - Neo4j 5.26.0 started on localhost:7687 (auth disabled for dev via neo4j.conf)
+  - Sync executed: 8 nodes (4 sectors, 1 org, 1 tech, 1 reg, 1 indicator) + 4 relationships seeded
+  - Frontend: graph.ts updated for new response formats, GraphExplorer.tsx fixed for paginated search
+  - 46/46 backend tests passing, frontend build passes
 - No Docker, all services native on Windows 10.
 - PATH must include G:\Proyects\Observatorio\tools\nodejs\node-v20.18.3-win-x64 for Node 20.
-- Next steps: Fase 3+ (CI/CD, monorepo, Docker, etc.) need user direction.
+- Next steps: Fase 4 (Tests) or Fase 5 (DevOps) per user direction.

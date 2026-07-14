@@ -10,11 +10,14 @@ class GraphExploreResponse(BaseModel):
 
 class GraphSearchItem(BaseModel):
     n: dict[str, Any]
-    labels: list[str]
+    node_labels: list[str]
 
 
 class GraphSearchResponse(BaseModel):
     items: list[GraphSearchItem]
+    total: int
+    page: int
+    per_page: int
 
 
 class GraphStatItem(BaseModel):
@@ -24,3 +27,14 @@ class GraphStatItem(BaseModel):
 
 class GraphStatsResponse(BaseModel):
     items: list[GraphStatItem]
+
+
+class SyncResponse(BaseModel):
+    nodes_merged: int
+    relationships_merged: int
+
+
+class ShortestPathResponse(BaseModel):
+    node_ids: list[str] | None = None
+    rel_types: list[str] | None = None
+    weight: int | None = None
