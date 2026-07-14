@@ -13,11 +13,13 @@ export default function Dashboard() {
   const { data: regulations } = useRegulations(1, 1);
   const { data: indicators } = useIndicators(1, 1);
 
+  const showChange = (total: number | undefined) => total !== undefined && total > 0;
+
   const kpis: KpiData[] = [
-    { title: 'Total Patentes', value: patents?.total.toLocaleString('es-ES') ?? '—', change: '+12%', changeType: 'positive', icon: 'FileText' },
-    { title: 'Organizaciones', value: orgs?.total.toLocaleString('es-ES') ?? '—', change: '+3', changeType: 'positive', icon: 'Building2' },
-    { title: 'Normativas', value: regulations?.total.toLocaleString('es-ES') ?? '—', change: '+8%', changeType: 'positive', icon: 'Scale' },
-    { title: 'Indicadores', value: indicators?.total.toLocaleString('es-ES') ?? '—', change: '+5%', changeType: 'positive', icon: 'TrendingUp' },
+    { title: 'Total Patentes', value: patents?.total.toLocaleString('es-ES') ?? '—', ...(showChange(patents?.total) && { change: '+12%', changeType: 'positive' as const }), icon: 'FileText' },
+    { title: 'Organizaciones', value: orgs?.total.toLocaleString('es-ES') ?? '—', ...(showChange(orgs?.total) && { change: '+3', changeType: 'positive' as const }), icon: 'Building2' },
+    { title: 'Normativas', value: regulations?.total.toLocaleString('es-ES') ?? '—', ...(showChange(regulations?.total) && { change: '+8%', changeType: 'positive' as const }), icon: 'Scale' },
+    { title: 'Indicadores', value: indicators?.total.toLocaleString('es-ES') ?? '—', ...(showChange(indicators?.total) && { change: '+5%', changeType: 'positive' as const }), icon: 'TrendingUp' },
   ];
 
   return (

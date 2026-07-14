@@ -70,8 +70,8 @@ export interface TokenResponse {
 export interface KpiData {
   title: string;
   value: string;
-  change: string;
-  changeType: 'positive' | 'negative' | 'neutral';
+  change?: string;
+  changeType?: 'positive' | 'negative' | 'neutral';
   icon: string;
 }
 

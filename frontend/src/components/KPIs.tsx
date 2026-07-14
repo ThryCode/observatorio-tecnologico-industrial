@@ -38,16 +38,18 @@ export default function KPIs({ data }: KPIsProps) {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{kpi.value}</div>
-              <p
-                className={cn(
-                  'text-xs',
-                  kpi.changeType === 'positive' && 'text-green-600',
-                  kpi.changeType === 'negative' && 'text-red-600',
-                  kpi.changeType === 'neutral' && 'text-muted-foreground',
-                )}
-              >
-                {kpi.change} respecto al mes anterior
-              </p>
+              {kpi.change && (
+                <p
+                  className={cn(
+                    'text-xs',
+                    kpi.changeType === 'positive' && 'text-green-600',
+                    kpi.changeType === 'negative' && 'text-red-600',
+                    (!kpi.changeType || kpi.changeType === 'neutral') && 'text-muted-foreground',
+                  )}
+                >
+                  {kpi.change} respecto al mes anterior
+                </p>
+              )}
             </CardContent>
           </Card>
         );
