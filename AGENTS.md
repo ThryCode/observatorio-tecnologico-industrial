@@ -94,11 +94,21 @@ frontend/src/
 ## Known Issues (from audit #2)
 - `.env` file is committed (should be `.env.example` only)
 - `setup-env.ps1` has syntax errors (needs rewrite)
-- No health check endpoint (`/api/v1/health`)
-- No rate limiting (slowapi not installed)
-- No frontend tests (Vitest/Playwright)
+- ~~No health check endpoint (`/api/v1/health`)~~ ✅ Fixed
+- ~~No rate limiting (slowapi not installed)~~ ✅ Fixed
+- ~~No frontend tests (Vitest/Playwright)~~ ✅ Vitest + happy-dom (10 tests)
 - No GitHub branch protection or PR reviews
 - No deployment strategy documented
 - No backup procedures for PG/Neo4j
 - `python3` needed in CI, not `python`
 - `pytest-timeout` not in requirements (don't use `--timeout` flag)
+
+## User Registration Workflow
+- **Public registration:** `POST /api/v1/auth/register/public` — creates user with `status=pending`
+- **Admin approval:** superuser calls `POST /api/v1/auth/{user_id}/approve`
+- **Admin rejection:** superuser calls `POST /api/v1/auth/{user_id}/reject` with reason
+- **Pending list:** `GET /api/v1/auth/pending` (superuser only)
+- **Login blocked** for `status=pending` or `status=rejected`
+- **Frontend pages:** `/register` (public), `/admin/pending` (superuser sidebar: "Solicitudes")
+- **Alembic migration:** `0003_user_registration_fields.py` adds `account_type`, `status`, `rejection_reason`, `approved_by`, `approved_at`
+- **After pull:** run `alembic upgrade head` to apply new columns

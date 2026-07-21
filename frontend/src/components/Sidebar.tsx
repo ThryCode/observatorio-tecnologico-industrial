@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   LayoutDashboard,
   Building2,
@@ -8,6 +9,7 @@ import {
   Scale,
   Share2,
   UserCircle,
+  ClipboardCheck,
 } from 'lucide-react';
 
 const navItems = [
@@ -20,6 +22,8 @@ const navItems = [
 ];
 
 export default function Sidebar() {
+  const { user } = useAuth();
+
   return (
     <aside className="flex h-full w-64 flex-col border-r bg-card">
       <div className="flex h-14 items-center border-b px-6">
@@ -45,6 +49,22 @@ export default function Sidebar() {
             {item.label}
           </NavLink>
         ))}
+        {user?.is_superuser && (
+          <NavLink
+            to="/admin/pending"
+            className={({ isActive }) =>
+              cn(
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                isActive
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+              )
+            }
+          >
+            <ClipboardCheck className="h-4 w-4" />
+            Solicitudes
+          </NavLink>
+        )}
       </nav>
       <div className="border-t p-4">
         <NavLink
