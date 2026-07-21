@@ -56,6 +56,9 @@ jobs:
       - name: Run tests
         env:
           DATABASE_URL: postgresql+asyncpg://observatorio:observatorio_dev@localhost:5432/observatorio_test
+          NEO4J_PASSWORD: neo4j
+          SECRET_KEY: ci-test-secret-key
+          FIRST_SUPERUSER_PASSWORD: admin123
         run: python3 -m pytest -v
         timeout-minutes: 10
 
