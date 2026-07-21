@@ -8,7 +8,9 @@ Plataforma SaaS de inteligencia estrategica para el MINDUS (Ministerio de Indust
 - **Frontend:** React 18, TypeScript 5.5, Vite 5.4, Tailwind 3.4, TanStack Query 5
 - **Databases:** PostgreSQL 15, Neo4j 5 Community, Redis 5.0
 - **Testing:** pytest + pytest-asyncio (backend)
-- **Linting:** Ruff (backend, line-length=120, target py311), ESLint (frontend)
+- **Linting:** Ruff (backend, line-length=120, target py311, rules: E,F,W,I,N,UP,B,SIM), ESLint (frontend)
+- **Logging:** loguru with rotating files (backend)
+- **Caching:** Redis with `app/services/cache.py` wrapper
 
 ## Setup Commands
 ```bash
@@ -36,7 +38,7 @@ backend/app/
   services/       - Business logic layer
   models/         - SQLAlchemy ORM models
   schemas/        - Pydantic v2 validation
-  core/           - Config, security, DB setup
+  core/           - Config, security, DB setup, logging
   graph/          - Neo4j Cypher queries
 
 frontend/src/
@@ -66,6 +68,9 @@ frontend/src/
 - Run `npm run lint` before committing frontend
 - Use `PaginatedResponse[T]` wrapper for list endpoints
 - Use parameterized Cypher queries (never string concat)
+- Use `contextlib.asynccontextmanager` for lifespan (not deprecated `on_event`)
+- Use `React.lazy()` + `Suspense` for route-level code splitting
+- Use `manualChunks` in Vite config for vendor splitting
 
 ### Ask first
 - Run database migrations (`alembic upgrade/downgrade`)
@@ -85,3 +90,15 @@ frontend/src/
 - Skip error handling in API endpoints
 - Use string concatenation for Cypher queries
 - Import from `node_modules` directly in source
+
+## Known Issues (from audit #2)
+- `.env` file is committed (should be `.env.example` only)
+- `setup-env.ps1` has syntax errors (needs rewrite)
+- No health check endpoint (`/api/v1/health`)
+- No rate limiting (slowapi not installed)
+- No frontend tests (Vitest/Playwright)
+- No GitHub branch protection or PR reviews
+- No deployment strategy documented
+- No backup procedures for PG/Neo4j
+- `python3` needed in CI, not `python`
+- `pytest-timeout` not in requirements (don't use `--timeout` flag)

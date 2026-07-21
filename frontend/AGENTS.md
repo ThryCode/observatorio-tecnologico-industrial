@@ -39,6 +39,8 @@ React 18 + TypeScript SPA with Vite, Tailwind CSS, shadcn/ui, and TanStack Query
 - React Router v6 with `createBrowserRouter`
 - Protected routes: wrap with `<ProtectedRoute>` component
 - Auth check: `useAuth()` hook reads from AuthContext
+- **Code splitting**: All route pages use `React.lazy()` + `<Suspense>` in `App.tsx`
+- Vendor chunks: manualChunks in `vite.config.ts` (vendor/charts/query/forms)
 
 ## Forms
 - React Hook Form for form state

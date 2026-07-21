@@ -8,9 +8,14 @@ FastAPI backend with async SQLAlchemy, Pydantic v2, and Neo4j graph layer.
 - `app/core/config.py` - Pydantic BaseSettings from .env
 - `app/core/db.py` - Async SQLAlchemy engine + session factory
 - `app/core/security.py` - JWT (python-jose) + bcrypt (passlib)
+- `app/core/logging_config.py` - Loguru setup (stdout + rotating file)
+- `app/core/exceptions.py` - AppException + IntegrityError->409 handler
 - `app/dependencies.py` - FastAPI DI: get_db, get_current_user, require_role
 - `app/api/v1/router.py` - Central router registering all sub-routers
 - `app/graph/repository.py` - Neo4j Cypher queries via APOC
+- `app/services/cache.py` - Redis caching (get/set/invalidate/cache_key)
+- `app/redis_client.py` - Redis client factory
+- `app/neo4j_client.py` - Neo4j driver factory
 
 ## FastAPI Patterns
 - Use `lifespan` context manager for startup/shutdown (not deprecated `on_event`)
@@ -58,3 +63,24 @@ FastAPI backend with async SQLAlchemy, Pydantic v2, and Neo4j graph layer.
 - Global handler in `main.py` catches `AppException`
 - Validation errors return 422 with Pydantic details
 - Auth errors return 401 with "Could not validate credentials"
+- `IntegrityError` (unique constraint) -> 409 Conflict
+
+## Redis Caching
+- Wrapper: `app/services/cache.py` (get/set/invalidate/cache_key)
+- Pattern: services accept optional `redis` param, skip caching if None
+- Key format: `entity:list:{hash}` for lists, `entity:{id}` for singles
+- Invalidate on mutation: `await cache.invalidate_pattern("entity:*")`
+- Dependencies: `get_redis()` in `app/dependencies.py`
+
+## Logging (loguru)
+- Setup: `app/core/logging_config.py` — stdout + `logs/observatorio.log` (10MB rotation, 30 days)
+- Usage: `from loguru import logger; logger.info("message")`
+- Wired in `main.py` lifespan (startup + shutdown)
+- `init_db.py` also uses loguru for seed info
+
+## CI Notes
+- Workflow: `.github/workflows/ci.yml` (ubuntu-latest, Python 3.11, Node 20)
+- Use `python3` (not `python`) in CI commands
+- Don't use `--timeout` flag in pytest (pytest-timeout not installed)
+- PostgreSQL service container with `observatorio_test` DB
+- Env vars needed: DATABASE_URL, NEO4J_PASSWORD, SECRET_KEY, FIRST_SUPERUSER_PASSWORD

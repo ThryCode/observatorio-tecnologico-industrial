@@ -1,3 +1,5 @@
+import os
+
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
@@ -8,6 +10,8 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.pool import NullPool
+
+os.environ["TESTING"] = "1"
 
 from app.core.security import get_password_hash
 from app.dependencies import get_db
