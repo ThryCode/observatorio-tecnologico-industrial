@@ -59,6 +59,7 @@ jobs:
           NEO4J_PASSWORD: neo4j
           SECRET_KEY: ci-test-secret-key
           FIRST_SUPERUSER_PASSWORD: admin123
+          TESTING: "1"
         run: python3 -m pytest -v
         timeout-minutes: 10
 
@@ -80,6 +81,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Run tests
+        run: npm run test
 
       - name: Build
         run: npm run build
