@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { AxiosError } from 'axios';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLogin } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -80,6 +81,12 @@ export default function Login() {
             <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
               {loginMutation.isPending ? 'Iniciando sesión...' : 'Iniciar sesión'}
             </Button>
+            <p className="text-center text-sm text-muted-foreground">
+              No tiene una cuenta?{' '}
+              <Link to="/register" className="text-primary hover:underline">
+                Solicitar registro
+              </Link>
+            </p>
           </form>
         </CardContent>
       </Card>

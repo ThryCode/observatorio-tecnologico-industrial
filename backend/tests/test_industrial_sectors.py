@@ -1,4 +1,7 @@
 import pytest
+from sqlalchemy import update
+
+from app.models.user import User
 
 
 @pytest.fixture
@@ -19,26 +22,29 @@ def superuser_headers(client, db_session, superuser_token_headers):
             "password": "secret123",
             "full_name": "Super Admin",
         }, headers=superuser_token_headers)
-        login = await client.post("/api/v1/auth/login", json={
-            "username": username,
-            "password": "secret123",
-        })
-        token = login.json()["access_token"]
 
         from sqlalchemy import update
 
         from app.models.user import User
         await db_session.execute(
-            update(User).where(User.username == username).values(is_superuser=True)
+            update(User).where(User.username == username).values(
+                is_superuser=True,
+                status="approved",
+            )
         )
         await db_session.flush()
 
+        login = await client.post("/api/v1/auth/login", json={
+            "username": username,
+            "password": "secret123",
+        })
+        token = login.json()["access_token"]
         return {"Authorization": f"Bearer {token}"}
     return _create_superuser
 
 
 @pytest.fixture
-def normal_headers(client, superuser_token_headers):
+def normal_headers(client, db_session, superuser_token_headers):
     async def _register(username: str = "normaluser"):
         await client.post("/api/v1/auth/register", json={
             "username": username,
@@ -46,6 +52,10 @@ def normal_headers(client, superuser_token_headers):
             "password": "secret123",
             "full_name": "Normal User",
         }, headers=superuser_token_headers)
+        await db_session.execute(
+            update(User).where(User.username == username).values(status="approved")
+        )
+        await db_session.flush()
         login = await client.post("/api/v1/auth/login", json={
             "username": username,
             "password": "secret123",

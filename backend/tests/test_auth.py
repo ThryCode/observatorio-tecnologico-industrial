@@ -1,4 +1,7 @@
 import pytest
+from sqlalchemy import update
+
+from app.models.user import User
 
 
 @pytest.mark.asyncio
@@ -44,13 +47,17 @@ async def test_register_not_superuser(client):
 
 
 @pytest.mark.asyncio
-async def test_login(client, superuser_token_headers):
+async def test_login(client, superuser_token_headers, db_session):
     await client.post("/api/v1/auth/register", json={
         "username": "loginuser",
         "email": "login@example.com",
         "password": "secret123",
         "full_name": "Login User",
     }, headers=superuser_token_headers)
+    await db_session.execute(
+        update(User).where(User.username == "loginuser").values(status="approved")
+    )
+    await db_session.flush()
     response = await client.post("/api/v1/auth/login", json={
         "username": "loginuser",
         "password": "secret123",
@@ -71,13 +78,17 @@ async def test_login_invalid(client):
 
 
 @pytest.mark.asyncio
-async def test_me(client, superuser_token_headers):
+async def test_me(client, superuser_token_headers, db_session):
     await client.post("/api/v1/auth/register", json={
         "username": "meuser",
         "email": "me@example.com",
         "password": "secret123",
         "full_name": "Me User",
     }, headers=superuser_token_headers)
+    await db_session.execute(
+        update(User).where(User.username == "meuser").values(status="approved")
+    )
+    await db_session.flush()
     login_resp = await client.post("/api/v1/auth/login", json={
         "username": "meuser",
         "password": "secret123",

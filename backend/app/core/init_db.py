@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.security import get_password_hash
-from app.models.user import User, UserRole
+from app.models.user import User, UserRole, UserStatus
 
 
 async def init_db(session: AsyncSession) -> None:
@@ -31,6 +31,7 @@ async def create_superuser_if_not_exists(session: AsyncSession) -> None:
         role=UserRole.ADMIN_MINDUS,
         is_superuser=True,
         is_active=True,
+        status=UserStatus.APPROVED.value,
     )
 
     session.add(superuser)

@@ -7,7 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_superuser, get_current_user, get_db
 from app.models.user import User
-from app.schemas.auth import LoginRequest, TokenResponse
+from app.schemas.auth import LoginRequest, RegisterRequest, RejectRequest, TokenResponse
+from app.schemas.common import PaginatedResponse
 from app.schemas.user import UserCreate, UserResponse
 from app.services.auth_service import AuthService
 
@@ -28,6 +29,17 @@ async def register(
     return await AuthService(db).register(data)
 
 
+@router.post("/register/public", status_code=201)
+@limiter.limit("3/hour")
+async def register_public(
+    request: Request,
+    data: RegisterRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    await AuthService(db).register_public(data)
+    return {"detail": "Registration submitted. Please wait for administrator approval."}
+
+
 @router.post("/login", response_model=TokenResponse)
 @limiter.limit("10/minute")
 async def login(
@@ -42,3 +54,37 @@ async def login(
 @router.get("/me", response_model=UserResponse)
 async def me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.get("/pending", response_model=PaginatedResponse[UserResponse])
+async def list_pending(
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_superuser),
+):
+    users = await AuthService(db).list_pending()
+    return PaginatedResponse(
+        items=users,
+        total=len(users),
+        page=1,
+        per_page=len(users) or 1,
+        total_pages=1,
+    )
+
+
+@router.post("/{user_id}/approve", response_model=UserResponse)
+async def approve_user(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_superuser),
+):
+    return await AuthService(db).approve_user(user_id, str(current_user.id))
+
+
+@router.post("/{user_id}/reject", response_model=UserResponse)
+async def reject_user(
+    user_id: str,
+    data: RejectRequest,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(get_current_superuser),
+):
+    return await AuthService(db).reject_user(user_id, data.reason)

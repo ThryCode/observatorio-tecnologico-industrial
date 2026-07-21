@@ -13,6 +13,10 @@ export interface User {
   organization_id?: string;
   is_active: boolean;
   is_superuser: boolean;
+  account_type?: string;
+  status?: string;
+  rejection_reason?: string;
+  approved_at?: string;
   created_at: string;
   updated_at: string;
 }
@@ -65,6 +69,41 @@ export interface LoginRequest {
 export interface TokenResponse {
   access_token: string;
   token_type: string;
+}
+
+export type AccountType = 'representante' | 'analista';
+
+export interface RegisterRequest {
+  account_type: AccountType;
+  username: string;
+  email: string;
+  password: string;
+  full_name: string;
+  phone?: string;
+  job_title: string;
+  organization_id?: string;
+  new_organization_name?: string;
+  new_organization_siglas?: string;
+  sector_codigo?: string;
+}
+
+export interface RejectRequest {
+  reason: string;
+}
+
+export interface PendingUser {
+  id: string;
+  username: string;
+  email: string;
+  full_name: string;
+  account_type?: string;
+  phone?: string;
+  job_title?: string;
+  organization_id?: string;
+  status: string;
+  rejection_reason?: string;
+  approved_at?: string;
+  created_at: string;
 }
 
 export interface KpiData {

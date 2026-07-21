@@ -10,6 +10,8 @@ vi.mock('@/pages/Regulations', () => ({ default: () => <div>Regulations</div> })
 vi.mock('@/pages/GraphExplorer', () => ({ default: () => <div>GraphExplorer</div> }));
 vi.mock('@/pages/Profile', () => ({ default: () => <div>Profile</div> }));
 vi.mock('@/pages/Login', () => ({ default: () => <div>Login</div> }));
+vi.mock('@/pages/Register', () => ({ default: () => <div>Register</div> }));
+vi.mock('@/pages/PendingApprovals', () => ({ default: () => <div>PendingApprovals</div> }));
 vi.mock('@/components/ProtectedRoute', () => ({
   ProtectedRoute: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
@@ -45,6 +47,12 @@ describe('App', () => {
     renderWithProviders(<App />, '/login');
     const login = await screen.findByText('Login');
     expect(login).toBeInTheDocument();
+  });
+
+  it('renders Register for /register route', async () => {
+    renderWithProviders(<App />, '/register');
+    const register = await screen.findByText('Register');
+    expect(register).toBeInTheDocument();
   });
 
   it('renders Layout wrapper for / route', () => {

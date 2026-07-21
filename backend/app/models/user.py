@@ -1,7 +1,8 @@
 import enum
 import uuid
+from datetime import datetime
 
-from sqlalchemy import Boolean, ForeignKey, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin, UUIDMixin
@@ -13,6 +14,17 @@ class UserRole(enum.StrEnum):
     ANALISTA = "analista"
     CLIENTE = "cliente"
     VISITANTE = "visitante"
+
+
+class AccountType(enum.StrEnum):
+    REPRESENTANTE = "representante"
+    ANALISTA = "analista"
+
+
+class UserStatus(enum.StrEnum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
 
 
 class User(Base, UUIDMixin, TimestampMixin):
@@ -30,3 +42,12 @@ class User(Base, UUIDMixin, TimestampMixin):
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # Registration fields
+    account_type: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    status: Mapped[str] = mapped_column(String(20), default=UserStatus.PENDING.value)
+    rejection_reason: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    approved_by: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id"), nullable=True
+    )
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

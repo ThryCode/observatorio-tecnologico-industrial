@@ -11,6 +11,8 @@ const Indicators = lazy(() => import('@/pages/Indicators'));
 const Regulations = lazy(() => import('@/pages/Regulations'));
 const GraphExplorer = lazy(() => import('@/pages/GraphExplorer'));
 const Profile = lazy(() => import('@/pages/Profile'));
+const Register = lazy(() => import('@/pages/Register'));
+const PendingApprovals = lazy(() => import('@/pages/PendingApprovals'));
 
 function PageLoader() {
   return (
@@ -25,6 +27,7 @@ export default function App() {
     <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
@@ -34,6 +37,7 @@ export default function App() {
             <Route path="/regulations" element={<Regulations />} />
             <Route path="/graph" element={<GraphExplorer />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/admin/pending" element={<PendingApprovals />} />
           </Route>
         </Route>
       </Routes>

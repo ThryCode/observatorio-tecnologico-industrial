@@ -66,6 +66,10 @@ class UserResponse(BaseModel):
     organization_id: UUID | None
     is_active: bool
     is_superuser: bool
+    account_type: str | None
+    status: str
+    rejection_reason: str | None
+    approved_at: datetime | None
     created_at: datetime
     updated_at: datetime
 

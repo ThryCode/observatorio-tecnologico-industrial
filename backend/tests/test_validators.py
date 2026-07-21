@@ -1,4 +1,7 @@
 import pytest
+from sqlalchemy import update
+
+from app.models.user import User
 
 
 @pytest.fixture
@@ -10,6 +13,10 @@ def auth_headers(client, db_session, superuser_token_headers):
             "password": "secret123",
             "full_name": "Validator User",
         }, headers=superuser_token_headers)
+        await db_session.execute(
+            update(User).where(User.username == username).values(status="approved")
+        )
+        await db_session.flush()
         login = await client.post("/api/v1/auth/login", json={
             "username": username,
             "password": "secret123",
