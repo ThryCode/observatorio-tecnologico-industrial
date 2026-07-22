@@ -218,12 +218,16 @@ export default function Sidebar() {
   );
 }
 
-function Section({ label, collapsed }: { label: string; collapsed: boolean }) {
-  if (collapsed) return null;
+function Section({ label, collapsed, children }: { label: string; collapsed: boolean; children: React.ReactNode }) {
   return (
-    <p className="text-[10px] uppercase tracking-wider text-white/35 font-semibold px-1 mb-2">
-      {label}
-    </p>
+    <div>
+      {!collapsed && (
+        <p className="text-[10px] uppercase tracking-wider text-white/35 font-semibold px-1 mb-2">
+          {label}
+        </p>
+      )}
+      {children}
+    </div>
   );
 }
 
