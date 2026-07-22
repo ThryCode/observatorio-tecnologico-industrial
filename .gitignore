@@ -28,7 +28,7 @@ node_modules/
 logs/
 
 # Portable services
-services/
+/services/
 
 # Bundled Python
 backend/python/
