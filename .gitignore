@@ -27,3 +27,15 @@ node_modules/
 # Logs
 logs/
 
+# Portable services
+services/
+
+# Bundled Python
+backend/python/
+
+# Redis dump
+dump.rdb
+
+# Temp files
+backend/token.txt
+

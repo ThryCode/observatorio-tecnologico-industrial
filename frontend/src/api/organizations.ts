@@ -68,11 +68,11 @@ const MOCK_ORGANIZATIONS: Organization[] = [
 export async function getOrganizations(
   page = 1,
   perPage = 20,
-  tipo?: string,
+  sectorCodigo?: string,
 ): Promise<PaginatedResponse<Organization>> {
   if (USE_MOCK) {
-    const filtered = tipo
-      ? MOCK_ORGANIZATIONS.filter((o) => o.tipo === tipo)
+    const filtered = sectorCodigo
+      ? MOCK_ORGANIZATIONS.filter((o) => o.sector_codigo === sectorCodigo)
       : MOCK_ORGANIZATIONS;
     return {
       items: filtered,
@@ -83,7 +83,7 @@ export async function getOrganizations(
     };
   }
   const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
-  if (tipo) params.set('tipo', tipo);
+  if (sectorCodigo) params.set('sector_codigo', sectorCodigo);
   const res = await client.get<PaginatedResponse<Organization>>(`/organizations?${params}`);
   return res.data;
 }

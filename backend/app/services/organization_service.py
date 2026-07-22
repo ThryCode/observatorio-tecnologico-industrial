@@ -12,13 +12,16 @@ class OrganizationService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def list(self, page: int, per_page: int, tipo: str | None = None) -> tuple[list[Organization], int]:
+    async def list(self, page: int, per_page: int, tipo: str | None = None, sector_codigo: str | None = None) -> tuple[list[Organization], int]:
         query = select(Organization)
         count_query = select(func.count(Organization.id))
 
         if tipo:
             query = query.where(Organization.tipo == tipo)
             count_query = count_query.where(Organization.tipo == tipo)
+        if sector_codigo:
+            query = query.where(Organization.sector_codigo == sector_codigo)
+            count_query = count_query.where(Organization.sector_codigo == sector_codigo)
 
         total = (await self.db.execute(count_query)).scalar()
         offset = (page - 1) * per_page

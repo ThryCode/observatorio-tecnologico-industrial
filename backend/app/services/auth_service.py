@@ -68,11 +68,12 @@ class AuthService:
         await self.db.flush()
 
     async def authenticate(self, data: LoginRequest) -> str:
+        username = data.username.lower()
         result = await self.db.execute(
             select(User).where(
                 or_(
-                    User.username == data.username,
-                    User.email == data.username,
+                    User.username == username,
+                    User.email == username,
                 )
             )
         )

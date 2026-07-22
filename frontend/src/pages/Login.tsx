@@ -35,7 +35,7 @@ export default function Login() {
   }
 
   const onSubmit = (data: LoginForm) => {
-    loginMutation.mutate(data);
+    loginMutation.mutate({ ...data, username: data.username.toLowerCase() });
   };
 
   const errorMessage = (() => {

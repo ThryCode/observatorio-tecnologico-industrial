@@ -17,9 +17,10 @@ async def list_organizations(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
     tipo: str | None = Query(None),
+    sector_codigo: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
-    items, total = await OrganizationService(db).list(page, per_page, tipo)
+    items, total = await OrganizationService(db).list(page, per_page, tipo, sector_codigo)
     return PaginatedResponse(
         items=items,
         total=total,

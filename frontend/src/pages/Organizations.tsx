@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useOrganizations } from '@/hooks/useOrganizations';
+import { getIndustrialSectors } from '@/api/industrialSectors';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -31,22 +33,20 @@ import { Search, Building2, Globe, MapPin, ExternalLink } from 'lucide-react';
 import { formatDate } from '@/utils/formatters';
 import type { Organization } from '@/types';
 
-const sectorOptions = [
-  { value: '', label: 'Todos los sectores' },
-  { value: 'SID', label: 'Siderurgia' },
-  { value: 'MET', label: 'Metalurgia' },
-  { value: 'ELE', label: 'Electrónica' },
-  { value: 'QUI', label: 'Química' },
-  { value: 'AUT', label: 'Automación' },
-];
-
 export default function Organizations() {
   const [search, setSearch] = useState('');
-  const [sector, setSector] = useState('');
+  const [sector, setSector] = useState('all');
   const [page, setPage] = useState(1);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
 
-  const { data, isLoading, isError } = useOrganizations(page, 20, sector || undefined);
+  const { data: sectorsData } = useQuery({
+    queryKey: ['industrial-sectors'],
+    queryFn: () => getIndustrialSectors(1, 100),
+  });
+
+  const sectorMap = new Map(sectorsData?.items?.map((s) => [s.codigo, s.nombre]) ?? []);
+
+  const { data, isLoading, isError } = useOrganizations(page, 100, sector === 'all' ? undefined : sector);
 
   if (isError) {
     return (
@@ -64,7 +64,7 @@ export default function Organizations() {
     );
   }
 
-  const filtered = data?.items.filter(
+  const filtered = (data?.items ?? []).filter(
     (org) =>
       !search ||
       org.nombre.toLowerCase().includes(search.toLowerCase()) ||
@@ -90,14 +90,15 @@ export default function Organizations() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Select value={sector} onValueChange={setSector}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Sector" />
+        <Select value={sector} onValueChange={(v) => { setSector(v); setPage(1); }}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="Filtrar por sector" />
           </SelectTrigger>
           <SelectContent>
-            {sectorOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
+            <SelectItem value="all">Todos los sectores</SelectItem>
+            {sectorsData?.items?.map((s) => (
+              <SelectItem key={s.codigo} value={s.codigo}>
+                {s.nombre}
               </SelectItem>
             ))}
           </SelectContent>
@@ -128,22 +129,30 @@ export default function Organizations() {
                       ))}
                     </TableRow>
                   ))
-                : filtered?.map((org) => (
-                    <TableRow key={org.id}>
-                      <TableCell className="font-medium">{org.nombre}</TableCell>
-                      <TableCell>{org.siglas}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{org.tipo}</Badge>
-                      </TableCell>
-                      <TableCell>{org.sector_codigo || '-'}</TableCell>
-                      <TableCell>{org.provincia || '-'}</TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="sm" onClick={() => setSelectedOrg(org)}>
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                : filtered && filtered.length > 0
+                  ? filtered.map((org) => (
+                      <TableRow key={org.id}>
+                        <TableCell className="font-medium">{org.nombre}</TableCell>
+                        <TableCell>{org.siglas}</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">{org.tipo}</Badge>
+                        </TableCell>
+                        <TableCell>{sectorMap.get(org.sector_codigo ?? '') || org.sector_codigo || '-'}</TableCell>
+                        <TableCell>{org.provincia || '-'}</TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="sm" onClick={() => setSelectedOrg(org)}>
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  : (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                          No hay organizaciones registradas aún.
+                        </TableCell>
+                      </TableRow>
+                    )}
             </TableBody>
           </Table>
         </CardContent>

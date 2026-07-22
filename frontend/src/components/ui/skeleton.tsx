@@ -5,7 +5,7 @@ interface SkeletonProps {
   variant?: 'text' | 'card' | 'circle' | 'table-row';
 }
 
-export default function Skeleton({ className, variant = 'text' }: SkeletonProps) {
+export function Skeleton({ className, variant = 'text' }: SkeletonProps) {
   if (variant === 'circle') {
     return (
       <div className={cn('rounded-full bg-border-subtle animate-skeleton-shimmer bg-[length:200%_100%]', className)} />
@@ -29,6 +29,8 @@ export function CardSkeleton() {
     </div>
   );
 }
+
+export default Skeleton;
 
 export function TableSkeleton({ rows = 5 }: { rows?: number }) {
   return (

@@ -3,13 +3,17 @@ import os
 from fastapi import APIRouter, Depends, Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import AppException
 from app.dependencies import get_current_superuser, get_current_user, get_db
+from app.models.organization import Organization
 from app.models.user import User
 from app.schemas.auth import LoginRequest, RegisterRequest, RejectRequest, TokenResponse
 from app.schemas.common import PaginatedResponse
-from app.schemas.user import UserCreate, UserResponse
+from app.schemas.organization import OrganizationResponse, OrganizationUpdate
+from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -54,6 +58,54 @@ async def login(
 @router.get("/me", response_model=UserResponse)
 async def me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.put("/me", response_model=UserResponse)
+async def update_me(
+    data: UserUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    allowed = {"full_name", "phone", "job_title"}
+    for key, val in data.model_dump(exclude_unset=True).items():
+        if key in allowed:
+            setattr(current_user, key, val)
+    await db.flush()
+    await db.refresh(current_user)
+    return current_user
+
+
+@router.get("/me/organization", response_model=OrganizationResponse)
+async def get_my_organization(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if not current_user.organization_id:
+        raise AppException(404, "You are not associated with any organization")
+    result = await db.execute(select(Organization).where(Organization.id == current_user.organization_id))
+    org = result.scalar_one_or_none()
+    if not org:
+        raise AppException(404, "Organization not found")
+    return org
+
+
+@router.put("/me/organization", response_model=OrganizationResponse)
+async def update_my_organization(
+    data: OrganizationUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if not current_user.organization_id:
+        raise AppException(404, "You are not associated with any organization")
+    result = await db.execute(select(Organization).where(Organization.id == current_user.organization_id))
+    org = result.scalar_one_or_none()
+    if not org:
+        raise AppException(404, "Organization not found")
+    for key, val in data.model_dump(exclude_unset=True).items():
+        setattr(org, key, val)
+    await db.flush()
+    await db.refresh(org)
+    return org
 
 
 @router.get("/pending", response_model=PaginatedResponse[UserResponse])
