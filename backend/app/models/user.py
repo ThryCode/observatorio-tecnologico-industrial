@@ -1,11 +1,17 @@
+from __future__ import annotations
+
 import enum
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, UUIDMixin
+
+if TYPE_CHECKING:
+    from app.models.professional_profile import ProfessionalProfile
 
 
 class UserRole(enum.StrEnum):
@@ -19,6 +25,7 @@ class UserRole(enum.StrEnum):
 class AccountType(enum.StrEnum):
     REPRESENTANTE = "representante"
     ANALISTA = "analista"
+    PROFESIONAL = "profesional"
 
 
 class UserStatus(enum.StrEnum):
@@ -51,3 +58,7 @@ class User(Base, UUIDMixin, TimestampMixin):
         ForeignKey("users.id"), nullable=True
     )
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    professional_profile: Mapped[ProfessionalProfile | None] = relationship(
+        "ProfessionalProfile", back_populates="user", uselist=False, lazy="selectin"
+    )

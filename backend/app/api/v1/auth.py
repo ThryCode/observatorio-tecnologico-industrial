@@ -30,7 +30,9 @@ async def register(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_superuser),
 ):
-    return await AuthService(db).register(data)
+    user = await AuthService(db).register(data)
+    await db.refresh(user)
+    return user
 
 
 @router.post("/register/public", status_code=201)

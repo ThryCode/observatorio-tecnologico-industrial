@@ -55,6 +55,16 @@ class UserUpdate(BaseModel):
         return v
 
 
+class ProfessionalProfileBrief(BaseModel):
+    especialidad: str
+    grado_cientifico: str | None
+    cv_url: str | None
+    biografia: str | None
+    intereses: list[str] | None
+
+    model_config = {"from_attributes": True}
+
+
 class UserResponse(BaseModel):
     id: UUID
     username: str
@@ -72,5 +82,6 @@ class UserResponse(BaseModel):
     approved_at: datetime | None
     created_at: datetime
     updated_at: datetime
+    professional_profile: ProfessionalProfileBrief | None = None
 
     model_config = {"from_attributes": True}

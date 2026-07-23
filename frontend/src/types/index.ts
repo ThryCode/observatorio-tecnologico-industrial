@@ -19,6 +19,7 @@ export interface User {
   approved_at?: string;
   created_at: string;
   updated_at: string;
+  professional_profile?: ProfessionalProfile;
 }
 
 export interface Organization {
@@ -71,7 +72,17 @@ export interface TokenResponse {
   token_type: string;
 }
 
-export type AccountType = 'representante' | 'analista';
+export type AccountType = 'representante' | 'analista' | 'profesional';
+
+export interface ProfessionalProfile {
+  id: string;
+  user_id: string;
+  especialidad: string;
+  grado_cientifico?: string;
+  cv_url?: string;
+  biografia?: string;
+  intereses?: string[];
+}
 
 export interface RegisterRequest {
   account_type: AccountType;
@@ -85,6 +96,8 @@ export interface RegisterRequest {
   new_organization_name?: string;
   new_organization_siglas?: string;
   sector_codigo?: string;
+  especialidad?: string;
+  grado_cientifico?: string;
 }
 
 export interface RejectRequest {
@@ -180,4 +193,15 @@ export interface IndustrialSector {
 export interface GraphStat {
   label: string;
   count: number;
+}
+
+export interface ProfessionalListItem {
+  id: string;
+  full_name: string;
+  username: string;
+  email: string;
+  phone?: string;
+  job_title?: string;
+  organization_id?: string;
+  profile?: ProfessionalProfile;
 }

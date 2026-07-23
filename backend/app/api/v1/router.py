@@ -8,6 +8,7 @@ from app.api.v1 import (
     industrial_sectors,
     organizations,
     patents,
+    professionals,
     regulations,
     technologies,
     users,
@@ -24,3 +25,4 @@ api_router.include_router(graph.router)
 api_router.include_router(organizations.router)
 api_router.include_router(technologies.router)
 api_router.include_router(industrial_sectors.router)
+api_router.include_router(professionals.router)

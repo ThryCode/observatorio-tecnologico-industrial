@@ -3,6 +3,7 @@ from app.models.indicator import Indicator
 from app.models.industrial_sector import IndustrialSector
 from app.models.organization import Organization
 from app.models.patent import Patent
+from app.models.professional_profile import ProfessionalProfile
 from app.models.regulation import Regulation
 from app.models.technology import Technology
 from app.models.user import User
@@ -16,4 +17,5 @@ __all__ = [
     "IndustrialSector",
     "Organization",
     "Technology",
+    "ProfessionalProfile",
 ]

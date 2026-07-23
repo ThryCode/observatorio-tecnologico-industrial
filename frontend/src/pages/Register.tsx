@@ -28,7 +28,7 @@ import {
 
 const registerSchema = z
   .object({
-    account_type: z.enum(['representante', 'analista'], {
+    account_type: z.enum(['representante', 'analista', 'profesional'], {
       required_error: 'Seleccione un tipo de cuenta',
     }),
     username: z
@@ -45,6 +45,8 @@ const registerSchema = z
     full_name: z.string().min(1, 'Nombre completo requerido'),
     phone: z.string().optional(),
     job_title: z.string().min(1, 'Cargo requerido'),
+    especialidad: z.string().optional(),
+    grado_cientifico: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Las contraseñas no coinciden',
@@ -136,7 +138,7 @@ export default function Register() {
               <Select
                 value={accountType}
                 onValueChange={(v) =>
-                  setValue('account_type', v as 'representante' | 'analista')
+                  setValue('account_type', v as 'representante' | 'analista' | 'profesional')
                 }
               >
                 <SelectTrigger>
@@ -147,6 +149,9 @@ export default function Register() {
                     Representante CTI
                   </SelectItem>
                   <SelectItem value="analista">Analista</SelectItem>
+                  <SelectItem value="profesional">
+                    Profesional / Investigador
+                  </SelectItem>
                 </SelectContent>
               </Select>
               {errors.account_type && (
@@ -272,6 +277,39 @@ export default function Register() {
                 )}
               </div>
             </div>
+
+            {accountType === 'profesional' && (
+              <div className="space-y-4 rounded-md border border-border bg-muted/30 p-4">
+                <p className="text-sm font-medium text-foreground">
+                  Información profesional
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="especialidad">Especialidad *</Label>
+                    <Input
+                      id="especialidad"
+                      placeholder="Biotecnología, Energía, etc."
+                      {...register('especialidad', {
+                        required: accountType === 'profesional' ? 'Especialidad requerida' : false,
+                      })}
+                    />
+                    {errors.especialidad && (
+                      <p className="text-xs text-red-500">
+                        {errors.especialidad.message}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="grado_cientifico">Grado científico</Label>
+                    <Input
+                      id="grado_cientifico"
+                      placeholder="Dr.C., MSc., Ing."
+                      {...register('grado_cientifico')}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {serverError && (
               <p className="text-sm text-red-500">{serverError}</p>

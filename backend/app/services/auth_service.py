@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import AppException
 from app.core.security import create_access_token, get_password_hash, verify_password
 from app.models.organization import Organization
+from app.models.professional_profile import ProfessionalProfile
 from app.models.user import User, UserStatus
 from app.schemas.auth import LoginRequest, RegisterRequest
 from app.schemas.user import UserCreate
@@ -66,6 +67,15 @@ class AuthService:
         )
         self.db.add(user)
         await self.db.flush()
+
+        if data.account_type == "profesional" and data.especialidad:
+            profile = ProfessionalProfile(
+                user_id=user.id,
+                especialidad=data.especialidad,
+                grado_cientifico=data.grado_cientifico,
+            )
+            self.db.add(profile)
+            await self.db.flush()
 
     async def authenticate(self, data: LoginRequest) -> str:
         username = data.username.lower()

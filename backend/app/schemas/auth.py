@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
 
-VALID_ACCOUNT_TYPES = {"representante", "analista"}
+VALID_ACCOUNT_TYPES = {"representante", "analista", "profesional"}
 
 
 class LoginRequest(BaseModel):
@@ -18,7 +18,7 @@ class TokenResponse(BaseModel):
 
 
 class RegisterRequest(BaseModel):
-    account_type: str = Field(..., description="representante o analista")
+    account_type: str = Field(..., description="representante, analista o profesional")
     username: str = Field(..., min_length=3, max_length=50)
     email: str = Field(..., max_length=255)
     password: str = Field(..., min_length=8, max_length=128)
@@ -29,6 +29,8 @@ class RegisterRequest(BaseModel):
     new_organization_name: str | None = Field(None, max_length=200)
     new_organization_siglas: str | None = Field(None, max_length=20)
     sector_codigo: str | None = None
+    especialidad: str | None = Field(None, max_length=100)
+    grado_cientifico: str | None = Field(None, max_length=50)
 
     @field_validator("account_type")
     @classmethod
