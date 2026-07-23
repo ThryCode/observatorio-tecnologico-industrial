@@ -17,6 +17,7 @@ const AlertsPage = lazy(() => import('@/pages/AlertsPage'));
 const Bulletins = lazy(() => import('@/pages/Bulletins'));
 const Competitiveness = lazy(() => import('@/pages/Competitiveness'));
 const PatentMaps = lazy(() => import('@/pages/PatentMaps'));
+const MiEmpresa = lazy(() => import('@/pages/MiEmpresa'));
 const Network = lazy(() => import('@/pages/Network'));
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
 
@@ -38,6 +39,7 @@ export default function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/organizations" element={<Organizations />} />
+            <Route path="/mi-empresa" element={<MiEmpresa />} />
             <Route path="/patents" element={<Patents />} />
             <Route path="/indicators" element={<Indicators />} />
             <Route path="/regulations" element={<Regulations />} />

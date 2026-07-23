@@ -68,6 +68,10 @@ export default function Sidebar() {
     visitante: 'Visitante',
   };
 
+  const repNav = user?.account_type === 'representante'
+    ? [{ to: '/mi-empresa', label: 'Mi Empresa', icon: Building2 }]
+    : [];
+
   const adminNav = user?.is_superuser
     ? [{ to: '/admin/pending', label: 'Solicitudes', icon: ClipboardCheck }]
     : [];
@@ -125,7 +129,7 @@ export default function Sidebar() {
         </Section>
 
         <Section label="Organización" collapsed={collapsed}>
-          {[...orgNav, ...adminNav].map((item) => (
+          {[...repNav, ...orgNav, ...adminNav].map((item) => (
             <NavItem
               key={item.to}
               to={item.to}

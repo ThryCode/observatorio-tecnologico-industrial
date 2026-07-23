@@ -1,12 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import * as authApi from '@/api/auth';
-import { getIndustrialSectors } from '@/api/industrialSectors';
 import type { RegisterRequest } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,11 +58,6 @@ export default function Register() {
   const [success, setSuccess] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
-  const { data: sectorsData } = useQuery({
-    queryKey: ['industrial-sectors'],
-    queryFn: () => getIndustrialSectors(1, 100),
-  });
-
   const registerMutation = useMutation({
     mutationFn: (data: RegisterRequest) => authApi.registerPublic(data),
     onSuccess: () => setSuccess(true),
@@ -80,8 +74,8 @@ export default function Register() {
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
     watch,
+    setValue,
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
   });
@@ -208,29 +202,11 @@ export default function Register() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="job_title">Cargo</Label>
-                {accountType === 'representante' ? (
-                  <Select
-                    value={watch('job_title') || ''}
-                    onValueChange={(v) => setValue('job_title', v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccione el sector empresarial..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {sectorsData?.items?.map((s) => (
-                        <SelectItem key={s.codigo} value={s.nombre}>
-                          {s.nombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Input
-                    id="job_title"
-                    placeholder="Especialista en CTI"
-                    {...register('job_title')}
-                  />
-                )}
+                <Input
+                  id="job_title"
+                  placeholder="Especialista en CTI"
+                  {...register('job_title')}
+                />
                 {errors.job_title && (
                   <p className="text-xs text-red-500">
                     {errors.job_title.message}

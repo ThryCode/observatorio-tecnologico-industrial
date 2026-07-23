@@ -1,5 +1,5 @@
 import client, { USE_MOCK } from './client';
-import type { Organization, PaginatedResponse } from '@/types';
+import type { Organization, PaginatedResponse, User } from '@/types';
 
 const MOCK_ORGANIZATIONS: Organization[] = [
   {
@@ -64,6 +64,11 @@ const MOCK_ORGANIZATIONS: Organization[] = [
     updated_at: '2024-06-10T10:00:00Z',
   },
 ];
+
+export async function getOrganizationRepresentative(orgId: string): Promise<User> {
+  const res = await client.get<User>(`/organizations/${orgId}/representative`);
+  return res.data;
+}
 
 export async function getOrganizations(
   page = 1,

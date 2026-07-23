@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useOrganizations } from '@/hooks/useOrganizations';
+import { getOrganizationRepresentative } from '@/api/organizations';
 import { getIndustrialSectors } from '@/api/industrialSectors';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -29,15 +30,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Building2, Globe, MapPin, ExternalLink } from 'lucide-react';
+import { Search, Building2, Globe, MapPin, ExternalLink, User as UserIcon, Mail, Phone, Briefcase } from 'lucide-react';
 import { formatDate } from '@/utils/formatters';
-import type { Organization } from '@/types';
+import type { Organization, User } from '@/types';
 
 export default function Organizations() {
   const [search, setSearch] = useState('');
   const [sector, setSector] = useState('all');
   const [page, setPage] = useState(1);
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
+  const [representative, setRepresentative] = useState<User | null>(null);
+  const [repLoading, setRepLoading] = useState(false);
+
+  useEffect(() => {
+    if (selectedOrg) {
+      setRepLoading(true);
+      setRepresentative(null);
+      getOrganizationRepresentative(selectedOrg.id)
+        .then(setRepresentative)
+        .catch(() => setRepresentative(null))
+        .finally(() => setRepLoading(false));
+    } else {
+      setRepresentative(null);
+    }
+  }, [selectedOrg]);
 
   const { data: sectorsData } = useQuery({
     queryKey: ['industrial-sectors'],
@@ -159,7 +175,7 @@ export default function Organizations() {
       </Card>
 
       <Dialog open={!!selectedOrg} onOpenChange={() => setSelectedOrg(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>{selectedOrg?.nombre}</DialogTitle>
             <DialogDescription>{selectedOrg?.siglas}</DialogDescription>
@@ -189,6 +205,37 @@ export default function Organizations() {
                 <span className="font-medium">Creado:</span>{' '}
                 <span className="text-muted-foreground">{formatDate(selectedOrg.created_at)}</span>
               </div>
+
+              <hr className="border-border" />
+              <p className="text-sm font-medium">Representante</p>
+              {repLoading ? (
+                <p className="text-sm text-muted-foreground">Cargando...</p>
+              ) : representative ? (
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <UserIcon className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">{representative.full_name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">{representative.email}</span>
+                  </div>
+                  {representative.phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">{representative.phone}</span>
+                    </div>
+                  )}
+                  {representative.job_title && (
+                    <div className="flex items-center gap-2">
+                      <Briefcase className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">{representative.job_title}</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Sin representante asignado</p>
+              )}
             </div>
           )}
         </DialogContent>

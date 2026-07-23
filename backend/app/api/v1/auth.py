@@ -12,7 +12,7 @@ from app.models.organization import Organization
 from app.models.user import User
 from app.schemas.auth import LoginRequest, RegisterRequest, RejectRequest, TokenResponse
 from app.schemas.common import PaginatedResponse
-from app.schemas.organization import OrganizationResponse, OrganizationUpdate
+from app.schemas.organization import OrganizationCreate, OrganizationResponse, OrganizationUpdate
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.services.auth_service import AuthService
 
@@ -88,6 +88,23 @@ async def get_my_organization(
     org = result.scalar_one_or_none()
     if not org:
         raise AppException(404, "Organization not found")
+    return org
+
+
+@router.post("/me/organization", response_model=OrganizationResponse, status_code=201)
+async def create_my_organization(
+    data: OrganizationCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.organization_id:
+        raise AppException(400, "You already have an organization")
+    org = Organization(**data.model_dump())
+    db.add(org)
+    await db.flush()
+    current_user.organization_id = org.id
+    await db.flush()
+    await db.refresh(org)
     return org
 
 

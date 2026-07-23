@@ -1,57 +1,51 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { AxiosError } from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import client from '@/api/client';
-import { getMyOrganization, updateMyOrganization, getMyProfessionalProfile, updateMyProfessionalProfile } from '@/api/auth';
-import { getIndustrialSectors } from '@/api/industrialSectors';
+import { getMyProfessionalProfile, updateMyProfessionalProfile } from '@/api/auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { User, Mail, Phone, Briefcase, Building2, Calendar, Globe, MapPin, Save, GraduationCap } from 'lucide-react';
+import { User, Mail, Phone, Briefcase, Calendar, Save, GraduationCap } from 'lucide-react';
 import { formatDate } from '@/utils/formatters';
+import type { ProfessionalProfile } from '@/types';
 
 export default function Profile() {
   const { user, loginSuccess } = useAuth();
   const queryClient = useQueryClient();
   const [userError, setUserError] = useState<string | null>(null);
-  const [orgError, setOrgError] = useState<string | null>(null);
   const [profError, setProfError] = useState<string | null>(null);
   const [userSuccess, setUserSuccess] = useState(false);
-  const [orgSuccess, setOrgSuccess] = useState(false);
   const [profSuccess, setProfSuccess] = useState(false);
 
   const isProfessional = user?.account_type === 'profesional';
 
-  const { data: org, isLoading: orgLoading } = useQuery({
-    queryKey: ['my-organization'],
-    queryFn: getMyOrganization,
-    enabled: !!user?.organization_id,
-  });
+  const [profProfile, setProfProfile] = useState<ProfessionalProfile | null>(null);
+  const [profLoading, setProfLoading] = useState(false);
 
-  const { data: profProfile, isLoading: profLoading } = useQuery({
-    queryKey: ['my-professional-profile'],
-    queryFn: getMyProfessionalProfile,
-    enabled: isProfessional,
-  });
-
-  const { data: sectorsData } = useQuery({
-    queryKey: ['industrial-sectors'],
-    queryFn: () => getIndustrialSectors(1, 100),
-  });
+  useEffect(() => {
+    if (isProfessional) {
+      setProfLoading(true);
+      getMyProfessionalProfile()
+        .then((data) => {
+          setProfProfile(data);
+          profForm.reset({
+            especialidad: data.especialidad || '',
+            grado_cientifico: data.grado_cientifico || '',
+            biografia: data.biografia || '',
+            cv_url: data.cv_url || '',
+          });
+        })
+        .catch(() => {})
+        .finally(() => setProfLoading(false));
+    }
+  }, [isProfessional]);
 
   const userForm = useForm({ defaultValues: { full_name: '', phone: '', job_title: '' } });
-  const orgForm = useForm({ defaultValues: { sitio_web: '', pais: '', provincia: '', sector_codigo: '' } });
   const profForm = useForm({
     defaultValues: { especialidad: '', grado_cientifico: '', biografia: '', cv_url: '' },
   });
@@ -66,37 +60,14 @@ export default function Profile() {
     }
   }, [user, userForm.reset]);
 
-  useEffect(() => {
-    if (org) {
-      orgForm.reset({
-        sitio_web: org.sitio_web || '',
-        pais: org.pais || '',
-        provincia: org.provincia || '',
-        sector_codigo: org.sector_codigo || '',
-      });
-    }
-  }, [org, orgForm.reset]);
-
-  useEffect(() => {
-    if (profProfile) {
-      profForm.reset({
-        especialidad: profProfile.especialidad || '',
-        grado_cientifico: profProfile.grado_cientifico || '',
-        biografia: profProfile.biografia || '',
-        cv_url: profProfile.cv_url || '',
-      });
-    }
-  }, [profProfile, profForm.reset]);
-
   const userMutation = useMutation({
     mutationFn: async (data: { full_name: string; phone: string; job_title: string }) => {
       const res = await client.put('/auth/me', data);
       return res.data;
     },
-    onSuccess: async (res) => {
+    onSuccess: async () => {
       setUserSuccess(true);
       setUserError(null);
-      queryClient.invalidateQueries({ queryKey: ['my-organization'] });
       const token = localStorage.getItem('token');
       if (token) await loginSuccess(token);
     },
@@ -106,24 +77,6 @@ export default function Profile() {
         setUserError(error.response.data.detail);
       } else {
         setUserError('Error al actualizar perfil.');
-      }
-    },
-  });
-
-  const orgMutation = useMutation({
-    mutationFn: (data: { sitio_web?: string; pais?: string; provincia?: string; sector_codigo?: string }) =>
-      updateMyOrganization(data),
-    onSuccess: () => {
-      setOrgSuccess(true);
-      setOrgError(null);
-      queryClient.invalidateQueries({ queryKey: ['my-organization'] });
-    },
-    onError: (error) => {
-      setOrgSuccess(false);
-      if (error instanceof AxiosError && error.response?.data?.detail) {
-        setOrgError(error.response.data.detail);
-      } else {
-        setOrgError('Error al actualizar organización.');
       }
     },
   });
@@ -150,17 +103,6 @@ export default function Profile() {
     setUserSuccess(false);
     setUserError(null);
     userMutation.mutate(data);
-  };
-
-  const onOrgSubmit = (data: { sitio_web: string; pais: string; provincia: string; sector_codigo: string }) => {
-    setOrgSuccess(false);
-    setOrgError(null);
-    const payload: Record<string, string | undefined> = {};
-    if (data.sitio_web) payload.sitio_web = data.sitio_web;
-    if (data.pais) payload.pais = data.pais;
-    if (data.provincia) payload.provincia = data.provincia;
-    if (data.sector_codigo) payload.sector_codigo = data.sector_codigo;
-    orgMutation.mutate(payload);
   };
 
   const onProfSubmit = (data: { especialidad: string; grado_cientifico: string; biografia: string; cv_url: string }) => {
@@ -246,88 +188,11 @@ export default function Profile() {
 
             <Button type="submit" className="w-full" disabled={userMutation.isPending}>
               <Save className="h-4 w-4 mr-2" />
-              {userMutation.isPending ? 'Guardando...' : 'Guardar cambios del perfil'}
+              {userMutation.isPending ? 'Guardando...' : 'Guardar cambios'}
             </Button>
           </form>
         </CardContent>
       </Card>
-
-      {orgLoading && (
-        <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">Cargando organización...</CardContent>
-        </Card>
-      )}
-
-      {org && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <Building2 className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-lg">{org.nombre} ({org.siglas})</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={orgForm.handleSubmit(onOrgSubmit)} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="sitio_web">Sitio web</Label>
-                <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-muted-foreground" />
-                  <Input id="sitio_web" placeholder="https://ejemplo.cu" {...orgForm.register('sitio_web')} />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="pais">País</Label>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <Input id="pais" placeholder="Cuba" {...orgForm.register('pais')} />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="provincia">Provincia</Label>
-                  <Input id="provincia" placeholder="La Habana" {...orgForm.register('provincia')} />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="sector_codigo">Sector industrial</Label>
-                <Select
-                  value={orgForm.watch('sector_codigo')}
-                  onValueChange={(v) => orgForm.setValue('sector_codigo', v)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccione un sector..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {sectorsData?.items?.map((s) => (
-                      <SelectItem key={s.codigo} value={s.codigo}>
-                        {s.nombre}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {orgError && <p className="text-sm text-red-500">{orgError}</p>}
-              {orgSuccess && <p className="text-sm text-green-500">Organización actualizada correctamente.</p>}
-
-              <Button type="submit" className="w-full" disabled={orgMutation.isPending}>
-                <Save className="h-4 w-4 mr-2" />
-                {orgMutation.isPending ? 'Guardando...' : 'Guardar cambios de la organización'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      )}
-
-      {!user.organization_id && !isProfessional && (
-        <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">
-            No estás asociado a ninguna organización.
-          </CardContent>
-        </Card>
-      )}
 
       {isProfessional && profLoading && (
         <Card>

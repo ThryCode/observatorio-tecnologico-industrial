@@ -1,12 +1,15 @@
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import AppException
 from app.dependencies import get_current_superuser, get_current_user, get_db
 from app.models.user import User
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.organization import OrganizationCreate, OrganizationResponse, OrganizationUpdate
+from app.schemas.user import UserResponse
 from app.services.organization_service import OrganizationService
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
@@ -33,6 +36,15 @@ async def list_organizations(
 @router.get("/{org_id}", response_model=OrganizationResponse)
 async def get_organization(org_id: UUID, db: AsyncSession = Depends(get_db)):
     return await OrganizationService(db).get(org_id)
+
+
+@router.get("/{org_id}/representative", response_model=UserResponse)
+async def get_organization_representative(org_id: UUID, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(User).where(User.organization_id == org_id))
+    rep = result.scalar_one_or_none()
+    if not rep:
+        raise AppException(404, "No representative found for this organization")
+    return rep
 
 
 @router.post("", response_model=OrganizationResponse, status_code=201)
