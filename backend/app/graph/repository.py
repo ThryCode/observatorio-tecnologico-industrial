@@ -319,7 +319,7 @@ class GraphRepository:
                     "source": ind.source,
                     "period": ind.period.value if ind.period else None,
                     "sector_codigo": ind.sector_codigo,
-                    "date": str(ind.date) if hasattr(ind, 'date') and ind.date else None,
+                    "created_at": str(ind.created_at) if ind.created_at else None,
                 }
                 await session.run(
                     "MERGE (n:Indicator {id: $id}) SET n += $props",

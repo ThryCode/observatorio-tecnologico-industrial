@@ -10,7 +10,7 @@ from slowapi.util import get_remote_address
 
 from app.api.v1.router import api_router
 from app.core.config import settings
-from app.core.db import close_db, init_db
+from app.core.db import close_db, startup_db
 from app.core.exceptions import register_exception_handlers
 from app.core.logging_config import setup_logging
 
@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI):
     setup_logging()
     logger.info("Starting Observatorio Tecnológico Industrial API")
 
-    await init_db()
+    await startup_db()
 
     neo4j = None
     redis_client = None
