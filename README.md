@@ -312,20 +312,27 @@ npx eslint src/
 | Utils | 3 | Vitest | utils.test.tsx |
 | **Total** | **100** | | |
 
-## CI/CD
+## Integración Continua
 
-GitHub Actions workflow (`.github/workflows/ci.yml`):
+Este proyecto usa GitHub Actions para CI. El workflow `.github/workflows/ci.yml` ejecuta:
 
-- **Trigger:** push y PR a `main`
-- **Backend job:** PostgreSQL 15 service container, Python 3.11, `pytest -v`
-- **Frontend job:** Node 20, `npx vitest run`
-- **Env vars:** `DATABASE_URL`, `NEO4J_PASSWORD`, `SECRET_KEY`, `FIRST_SUPERUSER_PASSWORD`, `TESTING=1`
+| Job | Comandos |
+|-----|----------|
+| **backend** | `ruff check`, `pytest -v` (con PostgreSQL 15 service container) |
+| **frontend** | `npm run lint`, `npm test`, `npm run build` |
+
+El badge de estado está en la parte superior del README.
 
 ### Notas de CI
 - Usa `python3` (no `python`) en comandos CI
 - `TESTING=1` deshabilita rate limiting en tests
 - `pytest-timeout` NO está instalado — no usar `--timeout`
-- Neon4j y Redis son opcionales en tests (aceptan 503)
+- Neo4j y Redis son opcionales en tests (aceptan 503)
+
+## Documentación adicional
+
+- [`docs/production-guide.md`](docs/production-guide.md) — Guía de deploy en producción
+- [`docs/backup-recovery.md`](docs/backup-recovery.md) — Backup y recuperación de datos
 
 ## Convenciones de código
 
@@ -368,15 +375,18 @@ alembic downgrade -1
 
 > **NUNCA** editar un archivo de migración ya commiteado.
 
-## Conocido pendiente
+## Issues conocidos (de la auditoría)
 
-- `.env` está commiteado (debería ser solo `.env.example`)
-- `setup-env.ps1` tiene errores de sintaxis
-- No hay branch protection ni PR reviews en GitHub
-- No hay estrategia de deployment documentada
-- No hay procedimientos de backup para PG/Neo4j
+- ~~`.env` está commiteado~~ ✅ Resuelto (F0-01)
+- ~~`setup-env.ps1` tiene errores de sintaxis~~ ✅ Resuelto (F3-16)
+- ~~No hay frontend tests~~ ✅ Resuelto (F3-13, Vitest + happy-dom)
+- ~~No hay health check endpoint~~ ✅ Resuelto
+- ~~No hay rate limiting~~ ✅ Resuelto
+- `alembic upgrade head` obligatorio antes de arrancar
+- No deployment strategy documented (ver `docs/production-guide.md`)
+- No backup procedures (ver `docs/backup-recovery.md`)
 - Frontend no tiene eslint config (`eslint.config.js`)
-- `pytest-timeout` no está en requirements
+- Branch protection no configurada (ver `.github/PULL_REQUEST_TEMPLATE.md`)
 
 ## Licencia
 
