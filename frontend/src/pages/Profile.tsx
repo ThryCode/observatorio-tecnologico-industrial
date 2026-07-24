@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { AxiosError } from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import client from '@/api/client';
-import { getMyProfessionalProfile, updateMyProfessionalProfile } from '@/api/auth';
+import { useMyProfessionalProfile, useUpdateMyProfessionalProfile } from '@/hooks/useProfessionals';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { User, Mail, Phone, Briefcase, Calendar, Save, GraduationCap } from 'lucide-react';
 import { formatDate } from '@/utils/formatters';
-import type { ProfessionalProfile } from '@/types';
 
 export default function Profile() {
   const { user, loginSuccess } = useAuth();
@@ -23,27 +22,7 @@ export default function Profile() {
   const [profSuccess, setProfSuccess] = useState(false);
 
   const isProfessional = user?.account_type === 'profesional';
-
-  const [profProfile, setProfProfile] = useState<ProfessionalProfile | null>(null);
-  const [profLoading, setProfLoading] = useState(false);
-
-  useEffect(() => {
-    if (isProfessional) {
-      setProfLoading(true);
-      getMyProfessionalProfile()
-        .then((data) => {
-          setProfProfile(data);
-          profForm.reset({
-            especialidad: data.especialidad || '',
-            grado_cientifico: data.grado_cientifico || '',
-            biografia: data.biografia || '',
-            cv_url: data.cv_url || '',
-          });
-        })
-        .catch(() => {})
-        .finally(() => setProfLoading(false));
-    }
-  }, [isProfessional]);
+  const { data: profProfile, isLoading: profLoading } = useMyProfessionalProfile();
 
   const userForm = useForm({ defaultValues: { full_name: '', phone: '', job_title: '' } });
   const profForm = useForm({
@@ -59,6 +38,17 @@ export default function Profile() {
       });
     }
   }, [user, userForm.reset]);
+
+  useEffect(() => {
+    if (profProfile) {
+      profForm.reset({
+        especialidad: profProfile.especialidad || '',
+        grado_cientifico: profProfile.grado_cientifico || '',
+        biografia: profProfile.biografia || '',
+        cv_url: profProfile.cv_url || '',
+      });
+    }
+  }, [profProfile, profForm.reset]);
 
   const userMutation = useMutation({
     mutationFn: async (data: { full_name: string; phone: string; job_title: string }) => {
@@ -81,23 +71,7 @@ export default function Profile() {
     },
   });
 
-  const profMutation = useMutation({
-    mutationFn: (data: { especialidad?: string; grado_cientifico?: string; biografia?: string; cv_url?: string }) =>
-      updateMyProfessionalProfile(data),
-    onSuccess: () => {
-      setProfSuccess(true);
-      setProfError(null);
-      queryClient.invalidateQueries({ queryKey: ['my-professional-profile'] });
-    },
-    onError: (error) => {
-      setProfSuccess(false);
-      if (error instanceof AxiosError && error.response?.data?.detail) {
-        setProfError(error.response.data.detail);
-      } else {
-        setProfError('Error al actualizar perfil profesional.');
-      }
-    },
-  });
+  const profMutation = useUpdateMyProfessionalProfile();
 
   const onUserSubmit = (data: { full_name: string; phone: string; job_title: string }) => {
     setUserSuccess(false);
@@ -113,7 +87,20 @@ export default function Profile() {
     if (data.grado_cientifico) payload.grado_cientifico = data.grado_cientifico;
     if (data.biografia) payload.biografia = data.biografia;
     if (data.cv_url) payload.cv_url = data.cv_url;
-    profMutation.mutate(payload);
+    profMutation.mutate(payload, {
+      onSuccess: () => {
+        setProfSuccess(true);
+        setProfError(null);
+      },
+      onError: (error) => {
+        setProfSuccess(false);
+        if (error instanceof AxiosError && error.response?.data?.detail) {
+          setProfError(error.response.data.detail);
+        } else {
+          setProfError('Error al actualizar perfil profesional.');
+        }
+      },
+    });
   };
 
   if (!user) return null;

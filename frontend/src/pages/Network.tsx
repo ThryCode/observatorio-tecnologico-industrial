@@ -1,26 +1,20 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { listProfessionals, listSpecialties } from '@/api/auth';
+import { useProfessionalList, useSpecialties } from '@/hooks/useProfessionals';
 import type { ProfessionalListItem } from '@/types';
 import PageHeader from '@/components/PageHeader';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Search, GraduationCap } from 'lucide-react';
 
 export default function Network() {
   const [page, setPage] = useState(1);
   const [specialty, setSpecialty] = useState<string>('');
 
-  const { data: specialtiesData } = useQuery({
-    queryKey: ['specialties'],
-    queryFn: listSpecialties,
-  });
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['professionals', page, specialty],
-    queryFn: () => listProfessionals(page, 20, specialty || undefined),
-  });
+  const { data: specialtiesData } = useSpecialties();
+  const { data, isLoading } = useProfessionalList(page, 20, specialty || undefined);
 
   const getInitials = (name: string) =>
     name
@@ -65,65 +59,55 @@ export default function Network() {
       </div>
 
       {isLoading ? (
-        <div className="bg-surface rounded-lg border border-border p-8 text-center text-muted-foreground">
-          Cargando profesionales...
-        </div>
+        <Skeleton className="h-96 w-full rounded-lg" />
       ) : !data?.items?.length ? (
         <div className="bg-surface rounded-lg border border-border p-8 text-center text-muted-foreground">
           No se encontraron profesionales{specialty ? ' para esta especialidad' : ''}.
         </div>
       ) : (
         <div className="bg-surface rounded-lg border border-border">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse text-base">
-              <thead>
-                <tr className="bg-background">
-                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-text-muted border-b border-border text-left rounded-tl-md">Nombre</th>
-                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-text-muted border-b border-border text-left">Especialidad</th>
-                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-text-muted border-b border-border text-left">Grado</th>
-                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-text-muted border-b border-border text-left">Cargo</th>
-                  <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-text-muted border-b border-border text-left rounded-tr-md">Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.items.map((person: ProfessionalListItem, i: number) => {
-                  const isLast = i === data.items.length - 1;
-                  return (
-                    <tr
-                      key={person.id}
-                      className={`transition-colors duration-150 hover:bg-accent-orange/[0.02] ${!isLast ? 'border-b border-border-subtle' : ''}`}
-                    >
-                      <td className={`px-4 py-4 ${isLast ? 'rounded-bl-md' : ''}`}>
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-md bg-gradient-to-br from-primary-light to-primary flex items-center justify-center text-white text-xs font-bold shadow-sm shrink-0">
-                            {getInitials(person.full_name)}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-base font-semibold text-foreground truncate">{person.full_name}</p>
-                            <p className="text-xs text-text-muted">@{person.username}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <span className="text-[11px] text-text-muted">{person.profile?.especialidad || '—'}</span>
-                      </td>
-                      <td className="px-4 py-4">
-                        <span className="text-[11px] text-text-muted">{person.profile?.grado_cientifico || '—'}</span>
-                      </td>
-                      <td className="px-4 py-4">
-                        <span className="text-[11px] text-text-muted">{person.job_title || '—'}</span>
-                      </td>
-                      <td className={`px-4 py-4 ${isLast ? 'rounded-br-md' : ''}`}>
-                        <Badge variant="success" dot className="text-xs">
-                          Activo
-                        </Badge>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Especialidad</TableHead>
+                <TableHead>Grado</TableHead>
+                <TableHead>Cargo</TableHead>
+                <TableHead>Estado</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.items.map((person: ProfessionalListItem) => (
+                <TableRow key={person.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-md bg-gradient-to-br from-primary-light to-primary flex items-center justify-center text-white text-xs font-bold shadow-sm shrink-0">
+                        {getInitials(person.full_name)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-base font-semibold text-foreground truncate">{person.full_name}</p>
+                        <p className="text-xs text-text-muted">@{person.username}</p>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-[11px] text-text-muted">{person.profile?.especialidad || '—'}</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-[11px] text-text-muted">{person.profile?.grado_cientifico || '—'}</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-[11px] text-text-muted">{person.job_title || '—'}</span>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="success" dot className="text-xs">
+                      Activo
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
 
           {data.total_pages > 1 && (
             <div className="flex items-center justify-between border-t border-border px-4 py-3">

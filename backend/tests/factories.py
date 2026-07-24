@@ -1,11 +1,14 @@
 from datetime import date
 
+from app.core.security import get_password_hash
 from app.models.indicator import Indicator, IndicatorPeriod
 from app.models.industrial_sector import IndustrialSector
 from app.models.organization import Organization
 from app.models.patent import Patent, PatentStatus
+from app.models.professional_profile import ProfessionalProfile
 from app.models.regulation import Regulation, RegulationCategory
 from app.models.technology import Technology
+from app.models.user import User
 
 
 async def make_sector(db, codigo="BIO", nombre="Biotecnologia", descripcion="Sector bio"):
@@ -73,3 +76,46 @@ async def make_indicator(db, name="Test Ind", code="TST-001", value=100.0,
     db.add(i)
     await db.flush()
     return i
+
+
+async def make_user(
+    db,
+    username: str = "testuser",
+    email: str | None = None,
+    role: str = "user",
+    status: str = "approved",
+    is_superuser: bool = False,
+) -> User:
+    if email is None:
+        email = f"{username}@test.com"
+    user = User(
+        username=username,
+        email=email,
+        hashed_password=get_password_hash("secret123"),
+        full_name=f"Test {username}",
+        role=role,
+        status=status,
+        is_superuser=is_superuser,
+    )
+    db.add(user)
+    await db.flush()
+    return user
+
+
+async def make_professional_profile(
+    db,
+    user: User | None = None,
+    especialidad: str = "Ingenieria Industrial",
+) -> ProfessionalProfile:
+    if user is None:
+        user = await make_user(db)
+    profile = ProfessionalProfile(
+        user_id=user.id,
+        especialidad=especialidad,
+        grado_cientifico="Master",
+        biografia="Perfil de prueba",
+        intereses=["investigacion", "innovacion"],
+    )
+    db.add(profile)
+    await db.flush()
+    return profile

@@ -10,6 +10,10 @@ from app.models.user import User, UserRole, UserStatus
 async def init_db(session: AsyncSession) -> None:
     await create_superuser_if_not_exists(session)
 
+    from app.core.seed_data import seed_all
+
+    await seed_all(session)
+
 
 async def create_superuser_if_not_exists(session: AsyncSession) -> None:
     result = await session.execute(

@@ -41,3 +41,10 @@ dump.rdb
 # Temp files
 backend/token.txt
 
+# Generated Vite files
+frontend/vite.config.d.ts
+frontend/vite.config.js
+
+# TypeScript build info
+*.tsbuildinfo
+
