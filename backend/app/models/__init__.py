@@ -1,3 +1,4 @@
+from app.models.alert import Alert
 from app.models.base import Base
 from app.models.follow import Follow
 from app.models.indicator import Indicator
@@ -10,6 +11,7 @@ from app.models.technology import Technology
 from app.models.user import User
 
 __all__ = [
+    "Alert",
     "Base",
     "User",
     "Patent",

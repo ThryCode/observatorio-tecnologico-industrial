@@ -9,6 +9,9 @@ import Timeline from '@/components/Timeline';
 import KnowledgeGraph from '@/components/KnowledgeGraph';
 import ProductCard from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
+import { useAlerts } from '@/hooks/useAlerts';
+import { useDashboardKPIs, useTimelineEvents } from '@/hooks/useDashboard';
+import type { Alert, DashboardKPI, TimelineEvent } from '@/types';
 
 const sectors = [
   { id: 'all', label: 'Todos', count: 2847 },
@@ -21,13 +24,6 @@ const sectors = [
   { id: 'bio', label: 'Biotecnología', count: 187 },
 ];
 
-const alerts = [
-  { id: '1', priority: 'high' as const, title: 'Nueva patente en soldadura por arco submarina', description: 'Siemens AG registró patente EP2026... para el sector siderúrgico con potencial aplicación en la industria naval cubana.', time: 'Hace 2h', tag: { label: 'Patente', variant: 'accent' as const } },
-  { id: '2', priority: 'medium' as const, title: 'Cambio regulatorio en importación de tecnología siderúrgica', description: 'Resolución MINDUS 45/2026 actualiza los requisitos de importación de equipos de colada continua.', time: 'Hace 5h', tag: { label: 'Normativa', variant: 'info' as const } },
-  { id: '3', priority: 'low' as const, title: 'Tendencia emergente: refrigeración por absorción en sector químico', description: 'Publicaciones científicas sobre refrigeración por absorción crecieron 40% en el último trimestre.', time: 'Hace 1d', tag: { label: 'Tecnología', variant: 'success' as const } },
-  { id: '4', priority: 'medium' as const, title: 'Oportunidad de colaboración detectada: UCLV + CIMAT en metalurgia', description: 'Solapamiento del 78% en capacidades de investigación en procesamiento de aleaciones no ferrosas.', time: 'Hace 1d', tag: { label: 'Mercado', variant: 'gold' as const } },
-];
-
 const entities = [
   { id: '1', name: 'Centro de Investigación de Materiales', initials: 'CIMAT', type: 'Centro de Investigación', status: 'active' as const, progress: 94 },
   { id: '2', name: 'Universidad Central de Las Villas', initials: 'UCLV', type: 'Universidad', status: 'active' as const, progress: 87 },
@@ -36,21 +32,79 @@ const entities = [
   { id: '5', name: 'Universidad de las Ciencias Informáticas', initials: 'UCI', type: 'Universidad', status: 'inactive' as const, progress: 12 },
 ];
 
-const timelineEvents = [
-  { id: '1', content: 'CIMAT cargó 23 nuevas patentes en el sector siderurgia', highlight: '23 nuevas patentes', time: 'Hace 35 min' },
-  { id: '2', content: 'Alerta automática generada: disrupción en soldadura láser', highlight: 'soldadura láser', time: 'Hace 2h' },
-  { id: '3', content: 'Boletín semanal enviado a 47 suscriptores', highlight: '47 suscriptores', time: 'Hace 5h' },
-  { id: '4', content: 'Nueva entidad CTI conectada: INIDT', highlight: 'INIDT', time: 'Hace 1d' },
-];
-
 const products = [
   { type: 'estudio' as const, title: 'Análisis de competitividad del sector metalúrgico cubano vs. Brasil 2026', excerpt: 'Estudio comparativo de indicadores de productividad, capacidad instalada y penetración de mercado del sector metalúrgico cubano frente al brasileño.', meta: [{ icon: <FileText className="h-3 w-3" />, text: '42 páginas' }, { icon: <Clock className="h-3 w-3" />, text: 'Hace 3d' }, { icon: <Users className="h-3 w-3" />, text: 'Dr. Méndez' }] },
   { type: 'boletin' as const, title: 'Boletín Tecnológico Quincenal — Sector Electrónica', excerpt: 'Compendio de novedades tecnológicas, patentes y publicaciones del sector electrónico con énfasis en semiconductores y sensores IoT.', meta: [{ icon: <FileText className="h-3 w-3" />, text: '156 lecturas' }, { icon: <Clock className="h-3 w-3" />, text: 'Hace 5d' }, { icon: <Users className="h-3 w-3" />, text: 'EDI' }] },
   { type: 'alerta' as const, title: 'Disrupción detectada: nuevos materiales en soldadura de aleaciones de aluminio', excerpt: 'Identificación temprana de una innovación disruptiva en procesos de soldadura por fricción-agitación para aleaciones de aluminio de alta resistencia.', meta: [{ icon: <FileText className="h-3 w-3" />, text: 'Prioridad alta' }, { icon: <Clock className="h-3 w-3" />, text: 'Hace 1d' }, { icon: <Users className="h-3 w-3" />, text: 'CIMAT' }] },
 ];
 
+function mapSeverityToPriority(severity: Alert['severidad']): 'high' | 'medium' | 'low' {
+  switch (severity) {
+    case 'alta':
+      return 'high';
+    case 'media':
+      return 'medium';
+    case 'baja':
+      return 'low';
+    default:
+      return 'medium';
+  }
+}
+
+function mapAlertToAlertItem(alert: Alert) {
+  return {
+    id: alert.id,
+    priority: mapSeverityToPriority(alert.severidad),
+    title: alert.titulo,
+    description: alert.descripcion,
+    time: alert.fecha,
+    tag: {
+      label: alert.sector || 'General',
+      variant: 'accent' as const,
+    },
+  };
+}
+
+function mapKPIToCardProps(kpi: DashboardKPI) {
+  const iconMap: Record<string, React.ReactNode> = {
+    FileText: <FileText className="h-4 w-4" />,
+    BookOpen: <BookOpen className="h-4 w-4" />,
+    Users: <Users className="h-4 w-4" />,
+    AlertTriangle: <AlertTriangle className="h-4 w-4" />,
+  };
+  const iconBgMap: Record<string, 'blue' | 'orange' | 'green' | 'gold'> = {
+    FileText: 'blue',
+    BookOpen: 'orange',
+    Users: 'green',
+    AlertTriangle: 'gold',
+  };
+  return {
+    label: kpi.label,
+    value: kpi.value.toLocaleString(),
+    change: `${kpi.change >= 0 ? '+' : ''}${kpi.change}%`,
+    changeType: kpi.change >= 0 ? 'positive' as const : 'negative' as const,
+    icon: iconMap[kpi.icon] || <FileText className="h-4 w-4" />,
+    iconBg: iconBgMap[kpi.icon] || 'blue',
+  };
+}
+
+function mapTimelineToEvent(event: TimelineEvent) {
+  return {
+    id: event.id,
+    content: event.titulo,
+    highlight: event.titulo.split(':')[0] || event.titulo,
+    time: new Date(event.fecha).toLocaleDateString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+  };
+}
+
 export default function Dashboard() {
   const [activeSector, setActiveSector] = useState('all');
+  const { data: rawAlerts, isLoading: alertsLoading } = useAlerts();
+  const { data: kpis, isLoading: kpisLoading } = useDashboardKPIs();
+  const { data: rawTimeline, isLoading: timelineLoading } = useTimelineEvents();
+
+  const alerts = rawAlerts?.map(mapAlertToAlertItem) || [];
+  const timelineEvents = rawTimeline?.map(mapTimelineToEvent) || [];
 
   return (
     <div className="space-y-10">
@@ -77,12 +131,15 @@ export default function Dashboard() {
 
       {/* Section 2 — KPIs */}
       <section>
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-          <KPICard label="Patentes Indexadas" value="12,847" change="+14.3%" changeType="positive" icon={<FileText className="h-4 w-4" />} iconBg="blue" />
-          <KPICard label="Publicaciones Científicas" value="3,421" change="+8.7%" changeType="positive" icon={<BookOpen className="h-4 w-4" />} iconBg="orange" />
-          <KPICard label="Entidades CTI Conectadas" value="47" change="+3" changeType="positive" icon={<Users className="h-4 w-4" />} iconBg="green" />
-          <KPICard label="Alertas Activas" value="7" change="-2" changeType="negative" icon={<AlertTriangle className="h-4 w-4" />} iconBg="gold" />
-        </div>
+        {kpisLoading ? (
+          <div className="text-center text-text-muted py-8">Cargando KPIs...</div>
+        ) : (
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+            {kpis?.map((kpi, i) => (
+              <KPICard key={i} {...mapKPIToCardProps(kpi)} />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Section 3 — Grafo + Alertas (2fr + 1fr) */}
@@ -94,7 +151,11 @@ export default function Dashboard() {
           </div>
           <div>
             <h3 className="text-base font-bold text-foreground mb-3">Alertas Recientes</h3>
-            <AlertList alerts={alerts} />
+            {alertsLoading ? (
+              <div className="text-center text-text-muted py-8">Cargando alertas...</div>
+            ) : (
+              <AlertList alerts={alerts} />
+            )}
           </div>
         </div>
       </section>
@@ -117,7 +178,11 @@ export default function Dashboard() {
           <div>
             <h3 className="text-base font-bold text-foreground mb-3">Actividad Reciente</h3>
             <div className="bg-surface rounded-lg border border-border p-5">
-              <Timeline events={timelineEvents} />
+              {timelineLoading ? (
+                <div className="text-center text-text-muted py-8">Cargando actividad reciente...</div>
+              ) : (
+                <Timeline events={timelineEvents} />
+              )}
             </div>
           </div>
         </div>

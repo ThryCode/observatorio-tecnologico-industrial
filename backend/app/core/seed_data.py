@@ -10,6 +10,7 @@ from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.alert import Alert
 from app.models.indicator import Indicator, IndicatorPeriod
 from app.models.organization import Organization
 from app.models.technology import Technology
@@ -244,6 +245,56 @@ async def seed_indicators(session: AsyncSession) -> int:
 # ---------------------------------------------------------------------------
 
 
+async def seed_alerts(session: AsyncSession) -> int:
+    """Insert sample alerts if none exist.
+
+    Returns:
+        Number of newly inserted records.
+    """
+    result = await session.execute(select(Alert.titulo).limit(1))
+    if result.scalar_one_or_none():
+        logger.info("Alerts already seeded, skipping")
+        return 0
+
+    alerts = [
+        Alert(
+            titulo="Nueva patente en biotecnología",
+            descripcion="Se ha registrado una patente clave para fermentación de precisión.",
+            severidad="alta",
+            leida=False,
+        ),
+        Alert(
+            titulo="Actualización regulatoria sector energético",
+            descripcion="Nueva normativa para eficiencia energética publicada por el MINEM.",
+            severidad="media",
+            leida=False,
+        ),
+        Alert(
+            titulo="Indicador de innovación en ascenso",
+            descripcion="El índice de innovación industrial subió 3 puntos este trimestre.",
+            severidad="baja",
+            leida=True,
+        ),
+        Alert(
+            titulo="Tendencia: Automatización en manufactura",
+            descripcion="La adopción de robots industriales crece un 15% anual en la región.",
+            severidad="media",
+            leida=False,
+        ),
+        Alert(
+            titulo="Fondo de innovación disponible",
+            descripcion="Nuevo fondo concursable para proyectos de I+D industrial.",
+            severidad="alta",
+            leida=False,
+        ),
+    ]
+    for alert in alerts:
+        session.add(alert)
+    await session.flush()
+    logger.info(f"Seeded {len(alerts)} alerts")
+    return len(alerts)
+
+
 async def seed_all(session: AsyncSession) -> None:
     """Run all seed functions in the correct order.
 
@@ -255,3 +306,4 @@ async def seed_all(session: AsyncSession) -> None:
     await seed_organizations(session)
     await seed_technologies(session)
     await seed_indicators(session)
+    await seed_alerts(session)

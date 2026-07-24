@@ -129,15 +129,6 @@ export interface KpiData {
   icon: string;
 }
 
-export interface Alert {
-  id: string;
-  title: string;
-  description: string;
-  severity: 'baja' | 'media' | 'alta' | 'critica';
-  date: string;
-  source: string;
-}
-
 export type IndicatorPeriod = 'monthly' | 'quarterly' | 'yearly';
 
 export interface Indicator {
@@ -212,4 +203,52 @@ export interface ProfessionalListItem {
   job_title?: string;
   organization_id?: string;
   profile?: ProfessionalProfile;
+}
+
+export interface Alert {
+  id: string;
+  titulo: string;
+  descripcion: string;
+  severidad: 'alta' | 'media' | 'baja';
+  fecha: string;
+  sector?: string;
+  leida: boolean;
+}
+
+export interface Bulletin {
+  id: string;
+  titulo: string;
+  resumen: string;
+  fecha: string;
+  categoria: string;
+  autor?: string;
+  url?: string;
+}
+
+export interface CompetitivenessData {
+  sector: string;
+  puntaje: number;
+  variacion: number;
+  indicadores: { nombre: string; valor: number }[];
+}
+
+export interface PatentMapSummary {
+  tecnologia: string;
+  cantidad: number;
+  tendencia: 'creciente' | 'estable' | 'decreciente';
+}
+
+export interface DashboardKPI {
+  label: string;
+  value: number;
+  unit: string;
+  change: number;
+  icon: string;
+}
+
+export interface TimelineEvent {
+  id: string;
+  fecha: string;
+  titulo: string;
+  tipo: 'patente' | 'regulacion' | 'indicador' | 'alerta';
 }

@@ -2,18 +2,40 @@ import PageHeader from '@/components/PageHeader';
 import AlertList from '@/components/AlertList';
 import { Button } from '@/components/ui/button';
 import { Plus, Filter } from 'lucide-react';
+import { useAlerts } from '@/hooks/useAlerts';
+import type { Alert } from '@/types';
 
-const alerts = [
-  { id: '1', priority: 'high' as const, title: 'Nueva patente en siderurgia detectada', description: 'Se registró una patente internacional en procesos de reducción directa.', time: 'Hace 2 horas', tag: { label: 'Patentes', variant: 'accent' as const } },
-  { id: '2', priority: 'high' as const, title: 'Vencimiento de patente estratégica', description: 'La patente CU2024/0001 del sector biotecnológico expira en 15 días.', time: 'Hace 30 min', tag: { label: 'Urgente', variant: 'accent' as const } },
-  { id: '3', priority: 'medium' as const, title: 'Actualización normativa sector químico', description: 'Nueva resolución sobre manejo de sustancias peligrosas publicada.', time: 'Hace 5 horas', tag: { label: 'Normativa', variant: 'info' as const } },
-  { id: '4', priority: 'high' as const, title: 'Indicador de producción supera umbral', description: 'Índice de producción metalúrgica superó en 15% la meta trimestral.', time: 'Ayer', tag: { label: 'Indicadores', variant: 'gold' as const } },
-  { id: '5', priority: 'low' as const, title: 'Nueva colaboración CTI identificada', description: 'Potencial sinergia entre ICT y EDI en desarrollo de sensores IoT.', time: 'Ayer', tag: { label: 'Red', variant: 'success' as const } },
-  { id: '6', priority: 'medium' as const, title: 'Publicación científica relevante', description: 'Nuevo estudio sobre materiales compuestos para la industria azucarera.', time: 'Hace 2 días', tag: { label: 'Publicaciones', variant: 'info' as const } },
-  { id: '7', priority: 'low' as const, title: 'Actualización de indicador económico', description: 'PIB del sector manufacturero presenta crecimiento moderado en Q2.', time: 'Hace 3 días', tag: { label: 'Economía', variant: 'success' as const } },
-];
+function mapSeverityToPriority(severity: Alert['severidad']): 'high' | 'medium' | 'low' {
+  switch (severity) {
+    case 'alta':
+      return 'high';
+    case 'media':
+      return 'medium';
+    case 'baja':
+      return 'low';
+    default:
+      return 'medium';
+  }
+}
+
+function mapAlertToAlertItem(alert: Alert) {
+  return {
+    id: alert.id,
+    priority: mapSeverityToPriority(alert.severidad),
+    title: alert.titulo,
+    description: alert.descripcion,
+    time: alert.fecha,
+    tag: {
+      label: alert.sector || 'General',
+      variant: 'accent' as const,
+    },
+  };
+}
 
 export default function AlertsPage() {
+  const { data: rawAlerts, isLoading } = useAlerts();
+  const alerts = rawAlerts?.map(mapAlertToAlertItem) || [];
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -33,7 +55,11 @@ export default function AlertsPage() {
           </div>
         }
       />
-      <AlertList alerts={alerts} />
+      {isLoading ? (
+        <div className="text-center text-text-muted py-8">Cargando alertas...</div>
+      ) : (
+        <AlertList alerts={alerts} />
+      )}
     </div>
   );
 }
