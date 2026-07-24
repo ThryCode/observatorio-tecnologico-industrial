@@ -1,4 +1,6 @@
-from sqlalchemy import ForeignKey, String
+from datetime import date
+
+from sqlalchemy import Date, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin, UUIDMixin
@@ -17,3 +19,5 @@ class Organization(Base, UUIDMixin, TimestampMixin):
     provincia: Mapped[str | None] = mapped_column(String(100), nullable=True)
     sitio_web: Mapped[str | None] = mapped_column(String(255), nullable=True)
     email_contacto: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    fecha_creacion: Mapped[date | None] = mapped_column(Date, nullable=True)
+    contacto: Mapped[str | None] = mapped_column(String(50), nullable=True)

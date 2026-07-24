@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -13,6 +13,8 @@ class OrganizationCreate(BaseModel):
     provincia: str | None = Field(None, max_length=100)
     sitio_web: str | None = Field(None, max_length=500)
     email_contacto: str | None = Field(None, max_length=255)
+    fecha_creacion: date | None = Field(None)
+    contacto: str | None = Field(None, max_length=50)
 
 
 class OrganizationUpdate(BaseModel):
@@ -24,6 +26,8 @@ class OrganizationUpdate(BaseModel):
     provincia: str | None = Field(None, max_length=100)
     sitio_web: str | None = Field(None, max_length=500)
     email_contacto: str | None = Field(None, max_length=255)
+    fecha_creacion: date | None = Field(None)
+    contacto: str | None = Field(None, max_length=50)
 
 
 class OrganizationResponse(BaseModel):
@@ -36,6 +40,8 @@ class OrganizationResponse(BaseModel):
     provincia: str | None
     sitio_web: str | None
     email_contacto: str | None
+    fecha_creacion: date | None
+    contacto: str | None
     created_at: datetime
     updated_at: datetime
 

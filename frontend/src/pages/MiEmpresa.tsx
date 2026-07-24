@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { AxiosError } from 'axios';
 import client from '@/api/client';
 import { getIndustrialSectors } from '@/api/industrialSectors';
+import { getOrganizationFollowStats } from '@/api/follows';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Building2, Globe, MapPin, Save, Plus, Edit3 } from 'lucide-react';
+import { Building2, Globe, MapPin, Save, Plus, Edit3, Calendar, Phone } from 'lucide-react';
 import type { Organization } from '@/types';
 
 export default function MiEmpresa() {
@@ -38,6 +39,12 @@ export default function MiEmpresa() {
     queryFn: () => getIndustrialSectors(1, 100),
   });
 
+  const { data: followStats } = useQuery({
+    queryKey: ['org-follow-stats', org?.id],
+    queryFn: () => getOrganizationFollowStats(org!.id),
+    enabled: !!org,
+  });
+
   const hasOrg = !!org;
 
   const createForm = useForm({
@@ -49,6 +56,8 @@ export default function MiEmpresa() {
       pais: 'Cuba',
       provincia: '',
       sitio_web: '',
+      fecha_creacion: '',
+      contacto: '',
     },
   });
 
@@ -58,6 +67,8 @@ export default function MiEmpresa() {
       pais: '',
       provincia: '',
       sector_codigo: '',
+      fecha_creacion: '',
+      contacto: '',
     },
   });
 
@@ -68,6 +79,8 @@ export default function MiEmpresa() {
         pais: org.pais || '',
         provincia: org.provincia || '',
         sector_codigo: org.sector_codigo || '',
+        fecha_creacion: org.fecha_creacion || '',
+        contacto: org.contacto || '',
       });
     }
   }, [org, editForm.reset]);
@@ -76,12 +89,15 @@ export default function MiEmpresa() {
     mutationFn: async (data: {
       nombre: string; siglas: string; tipo: string;
       sector_codigo: string; pais: string; provincia: string; sitio_web: string;
+      fecha_creacion: string; contacto: string;
     }) => {
       const payload: Record<string, string | undefined> = { ...data };
       if (!payload.sector_codigo) delete payload.sector_codigo;
       if (!payload.pais) delete payload.pais;
       if (!payload.provincia) delete payload.provincia;
       if (!payload.sitio_web) delete payload.sitio_web;
+      if (!payload.fecha_creacion) delete payload.fecha_creacion;
+      if (!payload.contacto) delete payload.contacto;
       const res = await client.post<Organization>('/auth/me/organization', payload);
       return res.data;
     },
@@ -102,7 +118,7 @@ export default function MiEmpresa() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (data: { sitio_web?: string; pais?: string; provincia?: string; sector_codigo?: string }) => {
+    mutationFn: async (data: { sitio_web?: string; pais?: string; provincia?: string; sector_codigo?: string; fecha_creacion?: string; contacto?: string }) => {
       const res = await client.put<Organization>('/auth/me/organization', data);
       return res.data;
     },
@@ -124,13 +140,14 @@ export default function MiEmpresa() {
   const onCreateSubmit = (data: {
     nombre: string; siglas: string; tipo: string;
     sector_codigo: string; pais: string; provincia: string; sitio_web: string;
+    fecha_creacion: string; contacto: string;
   }) => {
     setSuccess(false);
     setServerError(null);
     createMutation.mutate(data);
   };
 
-  const onEditSubmit = (data: { sitio_web: string; pais: string; provincia: string; sector_codigo: string }) => {
+  const onEditSubmit = (data: { sitio_web: string; pais: string; provincia: string; sector_codigo: string; fecha_creacion: string; contacto: string }) => {
     setSuccess(false);
     setServerError(null);
     const payload: Record<string, string | undefined> = {};
@@ -138,6 +155,8 @@ export default function MiEmpresa() {
     if (data.pais) payload.pais = data.pais;
     if (data.provincia) payload.provincia = data.provincia;
     if (data.sector_codigo) payload.sector_codigo = data.sector_codigo;
+    if (data.fecha_creacion) payload.fecha_creacion = data.fecha_creacion;
+    if (data.contacto) payload.contacto = data.contacto;
     updateMutation.mutate(payload);
   };
 
@@ -147,6 +166,11 @@ export default function MiEmpresa() {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Mi Empresa</h2>
           <p className="text-muted-foreground">Administra los datos de tu entidad.</p>
+          {hasOrg && (
+            <p className="text-base font-semibold mt-1 text-foreground">
+              {followStats?.followers_count ?? 0} seguidores · {followStats?.following_count ?? 0} seguidos
+            </p>
+          )}
         </div>
         {!hasOrg && !isLoading && !isCreating && (
           <Button onClick={() => setIsCreating(true)}>
@@ -255,6 +279,24 @@ export default function MiEmpresa() {
                 </div>
               </div>
 
+              <p className="text-sm font-medium pt-2">Datos adicionales</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="fecha_creacion">Fecha de creación</Label>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <Input id="fecha_creacion" type="date" {...createForm.register('fecha_creacion')} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contacto">Número de contacto</Label>
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <Input id="contacto" placeholder="+53 5 1234567" {...createForm.register('contacto')} />
+                  </div>
+                </div>
+              </div>
+
               {serverError && <p className="text-sm text-red-500">{serverError}</p>}
               {success && <p className="text-sm text-green-500">Empresa creada correctamente.</p>}
 
@@ -287,6 +329,8 @@ export default function MiEmpresa() {
                 <p><span className="font-medium">Sector:</span> {sectorsData?.items?.find(s => s.codigo === org.sector_codigo)?.nombre || org.sector_codigo || '-'}</p>
                 <p><span className="font-medium">Ubicación:</span> {[org.provincia, org.pais].filter(Boolean).join(', ') || '-'}</p>
                 <p><span className="font-medium">Sitio web:</span> {org.sitio_web || '-'}</p>
+                {org.fecha_creacion && <p><span className="font-medium">Fecha de creación:</span> {org.fecha_creacion}</p>}
+                {org.contacto && <p><span className="font-medium">Contacto:</span> {org.contacto}</p>}
               </div>
             </CardContent>
           </Card>
@@ -339,6 +383,24 @@ export default function MiEmpresa() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <p className="text-sm font-medium pt-2">Datos adicionales</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="fecha_creacion_edit">Fecha de creación</Label>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <Input id="fecha_creacion_edit" type="date" {...editForm.register('fecha_creacion')} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contacto_edit">Número de contacto</Label>
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <Input id="contacto_edit" placeholder="+53 5 1234567" {...editForm.register('contacto')} />
+                    </div>
+                  </div>
                 </div>
 
                 {serverError && <p className="text-sm text-red-500">{serverError}</p>}

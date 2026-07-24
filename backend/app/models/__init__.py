@@ -1,4 +1,5 @@
 from app.models.base import Base
+from app.models.follow import Follow
 from app.models.indicator import Indicator
 from app.models.industrial_sector import IndustrialSector
 from app.models.organization import Organization
@@ -18,4 +19,5 @@ __all__ = [
     "Organization",
     "Technology",
     "ProfessionalProfile",
+    "Follow",
 ]

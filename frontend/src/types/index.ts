@@ -32,6 +32,8 @@ export interface Organization {
   provincia?: string;
   sitio_web?: string;
   email_contacto?: string;
+  fecha_creacion?: string;
+  contacto?: string;
   created_at: string;
   updated_at: string;
 }
@@ -193,6 +195,12 @@ export interface IndustrialSector {
 export interface GraphStat {
   label: string;
   count: number;
+}
+
+export interface FollowCountResponse {
+  followers_count: number;
+  following_count: number;
+  is_following: boolean;
 }
 
 export interface ProfessionalListItem {
