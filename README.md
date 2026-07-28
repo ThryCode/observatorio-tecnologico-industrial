@@ -6,8 +6,33 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Python](https://img.shields.io/badge/Python_3.11-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
 [![CI](https://github.com/ThryCode/observatorio-tecnologico-industrial/actions/workflows/ci.yml/badge.svg)](https://github.com/ThryCode/observatorio-tecnologico-industrial/actions)
+[![License](https://img.shields.io/badge/License-MINDUS-blue)](LICENSE)
 
 > Plataforma de vigilancia tecnológica y competitividad industrial para el Ministerio de Industrias de Cuba (MINDUS).
+
+---
+
+## Tabla de contenidos
+
+- [Propósito](#propósito)
+- [Funcionalidades](#funcionalidades)
+- [Arquitectura](#arquitectura)
+- [Stack tecnológico](#stack-tecnológico)
+- [Decisiones técnicas clave](#decisiones-técnicas-clave)
+- [Requisitos del sistema](#requisitos-del-sistema)
+- [Inicio rápido](#inicio-rápido-windows-nativo)
+- [Servicios y puertos](#servicios-y-puertos)
+- [Endpoints principales](#endpoints-principales)
+- [Flujo de registro y aprobación](#flujo-de-registro-y-aprobación)
+- [Estructura del proyecto](#estructura-del-proyecto)
+- [Testing](#testing)
+- [Cómo contribuir](#cómo-contribuir)
+- [Integración Continua](#integración-continua)
+- [Documentación adicional](#documentación-adicional)
+- [Convenciones de código](#convenciones-de-código)
+- [Migraciones](#migraciones)
+- [Issues conocidos](#issues-conocidos-de-la-auditoría)
+- [Licencia](#licencia)
 
 ---
 
@@ -277,25 +302,25 @@ Usuario público                Sistema                    Administrador
 ## Testing
 
 ```bash
-# Backend (90 tests)
+# Backend (111 tests)
 cd backend
 pytest -v
 
-# Frontend (10 tests)
+# Frontend (18 tests)
 cd frontend
 npx vitest run
 
 # Lint backend
 ruff check backend/
 
-# Lint frontend (requiere eslint config — pendiente)
+# Lint frontend
 npx eslint src/
 ```
 
 ### Cobertura de tests
 
 | Suite | Tests | Framework | Archivos |
-|---|---|---|---|
+|---|---|---|---|---|
 | Auth | 10 | pytest | test_auth.py |
 | Users | 5 | pytest | test_users.py |
 | Technologies | 15 | pytest | test_technologies.py |
@@ -306,11 +331,23 @@ npx eslint src/
 | Industrial Sectors | 8 | pytest | test_industrial_sectors.py |
 | Validators | 10 | pytest | test_validators.py |
 | Health | 1 | pytest | test_health.py |
-| Graph | 3 | pytest | test_graph.py |
+| Graph | 8 | pytest | test_graph.py |
+| Follows | 6 | pytest | test_follows.py |
+| Alerts | 8 | pytest | test_alerts.py |
 | App render | 1 | Vitest | App.test.tsx |
 | Button | 3 | Vitest | Button.test.tsx |
 | Utils | 3 | Vitest | utils.test.tsx |
-| **Total** | **100** | | |
+| API clients | 2 | Vitest | api-clients.test.ts |
+| Hooks | 2 | Vitest | hooks.test.tsx |
+| **Total** | **129** | | |
+
+## Cómo contribuir
+
+Consulta [CONTRIBUTING.md](CONTRIBUTING.md) para guía completa de contribución.
+- Reporta bugs y solicita features en [GitHub Issues](https://github.com/ThryCode/observatorio-tecnologico-industrial/issues)
+- Revisa [SECURITY.md](SECURITY.md) para reportar vulnerabilidades
+- Sigue el [código de conducta](CODE_OF_CONDUCT.md)
+- Revisa [SUPPORT.md](SUPPORT.md) para recursos de ayuda
 
 ## Integración Continua
 
@@ -331,8 +368,18 @@ El badge de estado está en la parte superior del README.
 
 ## Documentación adicional
 
-- [`docs/production-guide.md`](docs/production-guide.md) — Guía de deploy en producción
-- [`docs/backup-recovery.md`](docs/backup-recovery.md) — Backup y recuperación de datos
+| Documento | Descripción |
+|---|---|
+| [`docs/architecture.md`](docs/architecture.md) | Arquitectura del sistema con diagrama Mermaid |
+| [`docs/instalacion-windows.md`](docs/instalacion-windows.md) | Instalación nativa en Windows paso a paso |
+| [`docs/production-guide.md`](docs/production-guide.md) | Guía de deploy en producción |
+| [`docs/backup-recovery.md`](docs/backup-recovery.md) | Backup y recuperación de datos |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Guía de contribución |
+| [`SECURITY.md`](SECURITY.md) | Política de seguridad |
+| [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) | Código de conducta |
+| [`SUPPORT.md`](SUPPORT.md) | Recursos de soporte |
+| [`CHANGELOG.md`](CHANGELOG.md) | Historial de cambios |
+| [`AGENTS.md`](AGENTS.md) | Instrucciones para desarrollo asistido por AI |
 
 ## Convenciones de código
 
@@ -375,7 +422,7 @@ alembic downgrade -1
 
 > **NUNCA** editar un archivo de migración ya commiteado.
 
-## Issues conocidos (de la auditoría)
+## Issues conocidos
 
 - ~~`.env` está commiteado~~ ✅ Resuelto (F0-01)
 - ~~`setup-env.ps1` tiene errores de sintaxis~~ ✅ Resuelto (F3-16)
@@ -383,8 +430,8 @@ alembic downgrade -1
 - ~~No hay health check endpoint~~ ✅ Resuelto
 - ~~No hay rate limiting~~ ✅ Resuelto
 - `alembic upgrade head` obligatorio antes de arrancar
-- No deployment strategy documented (ver `docs/production-guide.md`)
-- No backup procedures (ver `docs/backup-recovery.md`)
+- Frontend no tiene eslint config (`eslint.config.js`)
+- Branch protection no configurada (ver `.github/PULL_REQUEST_TEMPLATE.md`)
 - Frontend no tiene eslint config (`eslint.config.js`)
 - Branch protection no configurada (ver `.github/PULL_REQUEST_TEMPLATE.md`)
 

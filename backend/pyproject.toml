@@ -1,7 +1,20 @@
 [project]
 name = "observatorio-backend"
 version = "0.1.0"
+description = "Backend API for Observatorio Tecnológico Industrial — strategic intelligence platform for MINDUS"
 requires-python = ">=3.11"
+authors = [
+    {name = "MINDUS - Ministerio de Industrias de Cuba"},
+]
+license = {text = "Proprietary"}
+readme = "../README.md"
+
+[project.urls]
+Homepage = "https://github.com/ThryCode/observatorio-tecnologico-industrial"
+Repository = "https://github.com/ThryCode/observatorio-tecnologico-industrial"
+Documentation = "https://github.com/ThryCode/observatorio-tecnologico-industrial/tree/main/docs"
+Issues = "https://github.com/ThryCode/observatorio-tecnologico-industrial/issues"
+CI = "https://github.com/ThryCode/observatorio-tecnologico-industrial/actions"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

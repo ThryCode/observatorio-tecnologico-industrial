@@ -91,15 +91,15 @@ frontend/src/
 - Use string concatenation for Cypher queries
 - Import from `node_modules` directly in source
 
-## Known Issues (from audit #2)
-- `.env` file is committed (should be `.env.example` only)
-- `setup-env.ps1` has syntax errors (needs rewrite)
+## Known Issues
+- ~~`.env` file is committed~~ ✅ Fixed (F0-01)
+- ~~`setup-env.ps1` has syntax errors~~ ✅ Fixed (F3-16)
 - ~~No health check endpoint (`/api/v1/health`)~~ ✅ Fixed
 - ~~No rate limiting (slowapi not installed)~~ ✅ Fixed
-- ~~No frontend tests (Vitest/Playwright)~~ ✅ Vitest + happy-dom (10 tests)
+- ~~No frontend tests (Vitest/Playwright)~~ ✅ Vitest + happy-dom (18 tests)
+- ~~No deployment strategy documented~~ ✅ `docs/production-guide.md` expanded
+- ~~No backup procedures for PG/Neo4j~~ ✅ `docs/backup-recovery.md` expanded
 - No GitHub branch protection or PR reviews
-- No deployment strategy documented
-- No backup procedures for PG/Neo4j
 - `python3` needed in CI, not `python`
 - `pytest-timeout` not in requirements (don't use `--timeout` flag)
 

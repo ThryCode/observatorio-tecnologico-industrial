@@ -1,0 +1,12 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: Soporte MINDUS
+    url: https://mindus.gob.cu/contacto
+    about: Contactar al Ministerio de Industrias de Cuba para soporte institucional
+  - name: Documentación del proyecto
+    url: https://github.com/ThryCode/observatorio-tecnologico-industrial/blob/main/README.md
+    about: Revisar la documentación existente antes de crear un issue
+  - name: Seguridad
+    url: https://github.com/ThryCode/observatorio-tecnologico-industrial/security/policy
+    about: Reportar vulnerabilidades de seguridad de forma privada
