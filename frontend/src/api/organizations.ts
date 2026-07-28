@@ -65,6 +65,37 @@ const MOCK_ORGANIZATIONS: Organization[] = [
   },
 ];
 
+export async function createOrganization(data: Partial<Organization>): Promise<Organization> {
+  if (USE_MOCK) {
+    const newOrg: Organization = { ...data, id: String(Date.now()), created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as Organization;
+    MOCK_ORGANIZATIONS.unshift(newOrg);
+    return newOrg;
+  }
+  const res = await client.post<Organization>('/organizations', data);
+  return res.data;
+}
+
+export async function updateOrganization(id: string, data: Partial<Organization>): Promise<Organization> {
+  if (USE_MOCK) {
+    const idx = MOCK_ORGANIZATIONS.findIndex((o) => o.id === id);
+    if (idx === -1) throw new Error('Organization not found');
+    MOCK_ORGANIZATIONS[idx] = { ...MOCK_ORGANIZATIONS[idx], ...data, updated_at: new Date().toISOString() };
+    return MOCK_ORGANIZATIONS[idx];
+  }
+  const res = await client.put<Organization>(`/organizations/${id}`, data);
+  return res.data;
+}
+
+export async function deleteOrganization(id: string): Promise<void> {
+  if (USE_MOCK) {
+    const idx = MOCK_ORGANIZATIONS.findIndex((o) => o.id === id);
+    if (idx === -1) throw new Error('Organization not found');
+    MOCK_ORGANIZATIONS.splice(idx, 1);
+    return;
+  }
+  await client.delete(`/organizations/${id}`);
+}
+
 export async function getOrganizationRepresentative(orgId: string): Promise<User> {
   const res = await client.get<User>(`/organizations/${orgId}/representative`);
   return res.data;

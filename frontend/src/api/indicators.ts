@@ -38,3 +38,34 @@ export async function getIndicator(id: string): Promise<Indicator> {
   const res = await client.get<Indicator>(`/indicators/${id}`);
   return res.data;
 }
+
+export async function createIndicator(data: Partial<Indicator>): Promise<Indicator> {
+  if (USE_MOCK) {
+    const newInd: Indicator = { ...data, id: String(Date.now()), created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as Indicator;
+    MOCK_INDICATORS.unshift(newInd);
+    return newInd;
+  }
+  const res = await client.post<Indicator>('/indicators', data);
+  return res.data;
+}
+
+export async function updateIndicator(id: string, data: Partial<Indicator>): Promise<Indicator> {
+  if (USE_MOCK) {
+    const idx = MOCK_INDICATORS.findIndex((i) => i.id === id);
+    if (idx === -1) throw new Error('Indicator not found');
+    MOCK_INDICATORS[idx] = { ...MOCK_INDICATORS[idx], ...data, updated_at: new Date().toISOString() };
+    return MOCK_INDICATORS[idx];
+  }
+  const res = await client.put<Indicator>(`/indicators/${id}`, data);
+  return res.data;
+}
+
+export async function deleteIndicator(id: string): Promise<void> {
+  if (USE_MOCK) {
+    const idx = MOCK_INDICATORS.findIndex((i) => i.id === id);
+    if (idx === -1) throw new Error('Indicator not found');
+    MOCK_INDICATORS.splice(idx, 1);
+    return;
+  }
+  await client.delete(`/indicators/${id}`);
+}

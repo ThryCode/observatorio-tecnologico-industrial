@@ -6,6 +6,7 @@ import Login from '@/pages/Login';
 
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Organizations = lazy(() => import('@/pages/Organizations'));
+const Technologies = lazy(() => import('@/pages/Technologies'));
 const Patents = lazy(() => import('@/pages/Patents'));
 const Indicators = lazy(() => import('@/pages/Indicators'));
 const Regulations = lazy(() => import('@/pages/Regulations'));
@@ -40,6 +41,7 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/organizations" element={<Organizations />} />
             <Route path="/mi-empresa" element={<MiEmpresa />} />
+            <Route path="/technologies" element={<Technologies />} />
             <Route path="/patents" element={<Patents />} />
             <Route path="/indicators" element={<Indicators />} />
             <Route path="/regulations" element={<Regulations />} />

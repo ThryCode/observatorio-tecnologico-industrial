@@ -125,3 +125,34 @@ export async function getPatents(
   const res = await client.get<PaginatedResponse<Patent>>(`/patents?${params}`);
   return res.data;
 }
+
+export async function createPatent(data: Partial<Patent>): Promise<Patent> {
+  if (USE_MOCK) {
+    const newPatent: Patent = { ...data, id: String(Date.now()), created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as Patent;
+    MOCK_PATENTS.unshift(newPatent);
+    return newPatent;
+  }
+  const res = await client.post<Patent>('/patents', data);
+  return res.data;
+}
+
+export async function updatePatent(id: string, data: Partial<Patent>): Promise<Patent> {
+  if (USE_MOCK) {
+    const idx = MOCK_PATENTS.findIndex((p) => p.id === id);
+    if (idx === -1) throw new Error('Patent not found');
+    MOCK_PATENTS[idx] = { ...MOCK_PATENTS[idx], ...data, updated_at: new Date().toISOString() };
+    return MOCK_PATENTS[idx];
+  }
+  const res = await client.put<Patent>(`/patents/${id}`, data);
+  return res.data;
+}
+
+export async function deletePatent(id: string): Promise<void> {
+  if (USE_MOCK) {
+    const idx = MOCK_PATENTS.findIndex((p) => p.id === id);
+    if (idx === -1) throw new Error('Patent not found');
+    MOCK_PATENTS.splice(idx, 1);
+    return;
+  }
+  await client.delete(`/patents/${id}`);
+}

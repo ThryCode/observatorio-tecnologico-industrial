@@ -35,3 +35,34 @@ export async function getTechnology(id: string): Promise<Technology> {
   const res = await client.get<Technology>(`/technologies/${id}`);
   return res.data;
 }
+
+export async function createTechnology(data: Partial<Technology>): Promise<Technology> {
+  if (USE_MOCK) {
+    const newTech: Technology = { ...data, id: String(Date.now()), created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as Technology;
+    MOCK_TECHNOLOGIES.unshift(newTech);
+    return newTech;
+  }
+  const res = await client.post<Technology>('/technologies', data);
+  return res.data;
+}
+
+export async function updateTechnology(id: string, data: Partial<Technology>): Promise<Technology> {
+  if (USE_MOCK) {
+    const idx = MOCK_TECHNOLOGIES.findIndex((t) => t.id === id);
+    if (idx === -1) throw new Error('Technology not found');
+    MOCK_TECHNOLOGIES[idx] = { ...MOCK_TECHNOLOGIES[idx], ...data, updated_at: new Date().toISOString() };
+    return MOCK_TECHNOLOGIES[idx];
+  }
+  const res = await client.put<Technology>(`/technologies/${id}`, data);
+  return res.data;
+}
+
+export async function deleteTechnology(id: string): Promise<void> {
+  if (USE_MOCK) {
+    const idx = MOCK_TECHNOLOGIES.findIndex((t) => t.id === id);
+    if (idx === -1) throw new Error('Technology not found');
+    MOCK_TECHNOLOGIES.splice(idx, 1);
+    return;
+  }
+  await client.delete(`/technologies/${id}`);
+}

@@ -34,3 +34,34 @@ export async function getRegulation(id: string): Promise<Regulation> {
   const res = await client.get<Regulation>(`/regulations/${id}`);
   return res.data;
 }
+
+export async function createRegulation(data: Partial<Regulation>): Promise<Regulation> {
+  if (USE_MOCK) {
+    const newReg: Regulation = { ...data, id: String(Date.now()), created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as Regulation;
+    MOCK_REGULATIONS.unshift(newReg);
+    return newReg;
+  }
+  const res = await client.post<Regulation>('/regulations', data);
+  return res.data;
+}
+
+export async function updateRegulation(id: string, data: Partial<Regulation>): Promise<Regulation> {
+  if (USE_MOCK) {
+    const idx = MOCK_REGULATIONS.findIndex((r) => r.id === id);
+    if (idx === -1) throw new Error('Regulation not found');
+    MOCK_REGULATIONS[idx] = { ...MOCK_REGULATIONS[idx], ...data, updated_at: new Date().toISOString() };
+    return MOCK_REGULATIONS[idx];
+  }
+  const res = await client.put<Regulation>(`/regulations/${id}`, data);
+  return res.data;
+}
+
+export async function deleteRegulation(id: string): Promise<void> {
+  if (USE_MOCK) {
+    const idx = MOCK_REGULATIONS.findIndex((r) => r.id === id);
+    if (idx === -1) throw new Error('Regulation not found');
+    MOCK_REGULATIONS.splice(idx, 1);
+    return;
+  }
+  await client.delete(`/regulations/${id}`);
+}

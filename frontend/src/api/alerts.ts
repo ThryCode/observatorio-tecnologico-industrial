@@ -41,3 +41,34 @@ export async function markAlertRead(id: string): Promise<Alert> {
   const res = await client.patch<Alert>(`/alerts/${id}/read`);
   return res.data;
 }
+
+export async function createAlert(data: Partial<Alert>): Promise<Alert> {
+  if (USE_MOCK) {
+    const newAlert: Alert = { ...data, id: String(Date.now()), leida: false } as Alert;
+    MOCK_ALERTS.unshift(newAlert);
+    return newAlert;
+  }
+  const res = await client.post<Alert>('/alerts', data);
+  return res.data;
+}
+
+export async function updateAlert(id: string, data: Partial<Alert>): Promise<Alert> {
+  if (USE_MOCK) {
+    const idx = MOCK_ALERTS.findIndex((a) => a.id === id);
+    if (idx === -1) throw new Error('Alert not found');
+    MOCK_ALERTS[idx] = { ...MOCK_ALERTS[idx], ...data };
+    return MOCK_ALERTS[idx];
+  }
+  const res = await client.put<Alert>(`/alerts/${id}`, data);
+  return res.data;
+}
+
+export async function deleteAlert(id: string): Promise<void> {
+  if (USE_MOCK) {
+    const idx = MOCK_ALERTS.findIndex((a) => a.id === id);
+    if (idx === -1) throw new Error('Alert not found');
+    MOCK_ALERTS.splice(idx, 1);
+    return;
+  }
+  await client.delete(`/alerts/${id}`);
+}

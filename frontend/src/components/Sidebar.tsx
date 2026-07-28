@@ -25,6 +25,7 @@ import {
 const mainNav = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/graph', label: 'Grafo de Conocimiento', icon: Share2 },
+  { to: '/technologies', label: 'Tecnologías', icon: BookOpen },
   { to: '/patents', label: 'Patentes', icon: FileText, badge: '1.2k' },
   { to: '/publications', label: 'Publicaciones', icon: Newspaper },
 ];

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { usePatents } from '@/hooks/usePatents';
+import { usePatents, useCreatePatent, useUpdatePatent, useDeletePatent } from '@/hooks/usePatents';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import {
   Select,
@@ -19,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Calendar, User, FileText, Globe } from 'lucide-react';
+import { Search, Calendar, User, FileText, Globe, Plus, Pencil, Trash2 } from 'lucide-react';
 import { formatDate, getStatusColor, capitalize } from '@/utils/formatters';
 import type { Patent } from '@/types';
 
@@ -55,8 +56,68 @@ export default function Patents() {
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
   const [selectedPatent, setSelectedPatent] = useState<Patent | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editingPatent, setEditingPatent] = useState<Patent | null>(null);
+  const [patentToDelete, setPatentToDelete] = useState<Patent | null>(null);
+  const [formData, setFormData] = useState({
+    title: '', patent_number: '', applicant: '', inventor: '', filing_date: '',
+    publication_date: '', status: '', abstract: '', technological_sector: '', country: '',
+  });
 
-  const { data, isLoading, isError } = usePatents(page, 20, sector || undefined, status || undefined, search || undefined);
+  const createMutation = useCreatePatent();
+  const updateMutation = useUpdatePatent();
+  const deleteMutation = useDeletePatent();
+
+  const { data, isLoading, isError, refetch } = usePatents(page, 20, sector || undefined, status || undefined, search || undefined);
+
+  const resetForm = () => {
+    setFormData({ title: '', patent_number: '', applicant: '', inventor: '', filing_date: '', publication_date: '', status: '', abstract: '', technological_sector: '', country: '' });
+    setEditingPatent(null);
+  };
+
+  const openCreateDialog = () => {
+    resetForm();
+    setDialogOpen(true);
+  };
+
+  const openEditDialog = (patent: Patent) => {
+    setEditingPatent(patent);
+    setFormData({
+      title: patent.title, patent_number: patent.patent_number, applicant: patent.applicant,
+      inventor: patent.inventor, filing_date: patent.filing_date, publication_date: patent.publication_date || '',
+      status: patent.status, abstract: patent.abstract || '', technological_sector: patent.technological_sector || '',
+      country: patent.country,
+    });
+    setDialogOpen(true);
+  };
+
+  const handleSave = async () => {
+    const data: Partial<Patent> = {
+      ...formData,
+      status: formData.status as import('@/types').PatentStatus,
+      publication_date: formData.publication_date || undefined,
+      abstract: formData.abstract || undefined,
+      technological_sector: formData.technological_sector || undefined,
+    };
+    if (editingPatent) {
+      await updateMutation.mutateAsync({ id: editingPatent.id, data });
+    } else {
+      await createMutation.mutateAsync(data);
+    }
+    setDialogOpen(false);
+    resetForm();
+    refetch();
+  };
+
+  const handleDelete = async () => {
+    if (!patentToDelete) return;
+    await deleteMutation.mutateAsync(patentToDelete.id);
+    setDeleteDialogOpen(false);
+    setPatentToDelete(null);
+    if (selectedPatent?.id === patentToDelete.id) setSelectedPatent(null);
+    refetch();
+  };
 
   if (isError) {
     return (
@@ -76,11 +137,17 @@ export default function Patents() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Patentes</h2>
-        <p className="text-muted-foreground">
-          Registro de patentes nacionales e internacionales por sector tecnológico.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight">Patentes</h2>
+          <p className="text-muted-foreground">
+            Registro de patentes nacionales e internacionales por sector tecnológico.
+          </p>
+        </div>
+        <Button className="gap-2" onClick={openCreateDialog}>
+          <Plus className="h-4 w-4" />
+          Nueva Patente
+        </Button>
       </div>
 
       <div className="flex items-center gap-4">
@@ -90,16 +157,11 @@ export default function Patents() {
             placeholder="Buscar patentes (título, número, solicitante)..."
             className="pl-9"
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
         <Select value={sector} onValueChange={(v) => { setSector(v); setPage(1); }}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Sector" />
-          </SelectTrigger>
+          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Sector" /></SelectTrigger>
           <SelectContent>
             {sectorOptions.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -107,9 +169,7 @@ export default function Patents() {
           </SelectContent>
         </Select>
         <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1); }}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Estado" />
-          </SelectTrigger>
+          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Estado" /></SelectTrigger>
           <SelectContent>
             {statusOptions.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -133,15 +193,13 @@ export default function Patents() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {data?.items.map((patent) => (
-            <Card
-              key={patent.id}
-              className="cursor-pointer transition-colors hover:border-primary/50"
-              onClick={() => setSelectedPatent(patent)}
-            >
+            <Card key={patent.id} className="transition-colors hover:border-primary/50">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <CardTitle className="text-sm font-medium leading-tight">
-                    {patent.title}
+                    <button className="hover:underline text-left" onClick={() => setSelectedPatent(patent)}>
+                      {patent.title}
+                    </button>
                   </CardTitle>
                   <Badge className={getStatusColor(patent.status)}>
                     {statusLabels[patent.status] || capitalize(patent.status)}
@@ -165,19 +223,30 @@ export default function Patents() {
                   <Globe className="h-3.5 w-3.5" />
                   <span>{patent.country}</span>
                 </div>
+                <div className="flex gap-1 pt-2">
+                  <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openEditDialog(patent); }}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setPatentToDelete(patent); setDeleteDialogOpen(true); }}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
+          {data?.items.length === 0 && (
+            <div className="col-span-full text-center py-8 text-muted-foreground">
+              No hay patentes registradas aún.
+            </div>
+          )}
         </div>
       )}
 
-      <Dialog open={!!selectedPatent} onOpenChange={() => setSelectedPatent(null)}>
+      <Dialog open={!!selectedPatent && !dialogOpen && !deleteDialogOpen} onOpenChange={() => setSelectedPatent(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{selectedPatent?.title}</DialogTitle>
-            <DialogDescription>
-              Número: {selectedPatent?.patent_number}
-            </DialogDescription>
+            <DialogDescription>Número: {selectedPatent?.patent_number}</DialogDescription>
           </DialogHeader>
           {selectedPatent && (
             <div className="space-y-4">
@@ -190,14 +259,12 @@ export default function Patents() {
                   <Badge variant="secondary">{selectedPatent.technological_sector}</Badge>
                 )}
               </div>
-
               {selectedPatent.abstract && (
                 <div>
                   <h4 className="mb-1 text-sm font-medium">Resumen</h4>
                   <p className="text-sm text-muted-foreground">{selectedPatent.abstract}</p>
                 </div>
               )}
-
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="font-medium">Solicitante:</span>
@@ -213,15 +280,11 @@ export default function Patents() {
                 </div>
                 <div>
                   <span className="font-medium">Fecha de publicación:</span>
-                  <p className="text-muted-foreground">
-                    {selectedPatent.publication_date ? formatDate(selectedPatent.publication_date) : '-'}
-                  </p>
+                  <p className="text-muted-foreground">{selectedPatent.publication_date ? formatDate(selectedPatent.publication_date) : '-'}</p>
                 </div>
                 <div>
                   <span className="font-medium">Sector tecnológico:</span>
-                  <p className="text-muted-foreground">
-                    {selectedPatent.technological_sector || '-'}
-                  </p>
+                  <p className="text-muted-foreground">{selectedPatent.technological_sector || '-'}</p>
                 </div>
                 <div>
                   <span className="font-medium">País:</span>
@@ -233,18 +296,102 @@ export default function Patents() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) { setDialogOpen(false); resetForm(); } }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editingPatent ? 'Editar Patente' : 'Nueva Patente'}</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className="text-sm font-medium">Título *</label>
+              <Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Título de la patente" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Número de patente *</label>
+              <Input value={formData.patent_number} onChange={(e) => setFormData({ ...formData, patent_number: e.target.value })} placeholder="CU2024/0001" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Estado</label>
+              <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar estado" /></SelectTrigger>
+                <SelectContent>
+                  {statusOptions.filter((o) => o.value).map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Solicitante *</label>
+              <Input value={formData.applicant} onChange={(e) => setFormData({ ...formData, applicant: e.target.value })} placeholder="Solicitante" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Inventor(es)</label>
+              <Input value={formData.inventor} onChange={(e) => setFormData({ ...formData, inventor: e.target.value })} placeholder="Inventor(es)" />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Fecha de solicitud</label>
+              <Input type="date" value={formData.filing_date} onChange={(e) => setFormData({ ...formData, filing_date: e.target.value })} />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Fecha de publicación</label>
+              <Input type="date" value={formData.publication_date} onChange={(e) => setFormData({ ...formData, publication_date: e.target.value })} />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Sector tecnológico</label>
+              <Select value={formData.technological_sector} onValueChange={(v) => setFormData({ ...formData, technological_sector: v })}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar sector" /></SelectTrigger>
+                <SelectContent>
+                  {sectorOptions.filter((o) => o.value).map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">País</label>
+              <Input value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })} placeholder="Cuba" />
+            </div>
+            <div className="col-span-2">
+              <label className="text-sm font-medium">Resumen</label>
+              <textarea
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                value={formData.abstract}
+                onChange={(e) => setFormData({ ...formData, abstract: e.target.value })}
+                placeholder="Resumen de la patente"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>Cancelar</Button>
+            <Button onClick={handleSave} disabled={!formData.title || !formData.patent_number || !formData.applicant || createMutation.isPending || updateMutation.isPending}>
+              {editingPatent ? 'Actualizar' : 'Crear'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Confirmar eliminación</DialogTitle>
+            <DialogDescription>¿Está seguro de eliminar la patente "{patentToDelete?.title}"? Esta acción no se puede deshacer.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancelar</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>Eliminar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {data && data.total_pages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
             Página {page} de {data.total_pages} ({data.total} total)
           </p>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-              Anterior
-            </Button>
-            <Button variant="outline" size="sm" disabled={page >= data.total_pages} onClick={() => setPage((p) => p + 1)}>
-              Siguiente
-            </Button>
+            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Anterior</Button>
+            <Button variant="outline" size="sm" disabled={page >= data.total_pages} onClick={() => setPage((p) => p + 1)}>Siguiente</Button>
           </div>
         </div>
       )}
