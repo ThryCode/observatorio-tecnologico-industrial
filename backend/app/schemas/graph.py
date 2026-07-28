@@ -38,3 +38,23 @@ class ShortestPathResponse(BaseModel):
     node_ids: list[str] | None = None
     rel_types: list[str] | None = None
     weight: int | None = None
+
+
+class EnterpriseGraphNode(BaseModel):
+    id: str
+    type: str
+    label: str
+    role: str | None = None
+    org_id: str | None = None
+    siglas: str | None = None
+
+
+class EnterpriseGraphEdge(BaseModel):
+    source: str
+    target: str
+    type: str
+
+
+class EnterpriseGraphResponse(BaseModel):
+    nodes: list[EnterpriseGraphNode]
+    edges: list[EnterpriseGraphEdge]

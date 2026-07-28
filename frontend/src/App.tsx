@@ -11,6 +11,7 @@ const Patents = lazy(() => import('@/pages/Patents'));
 const Indicators = lazy(() => import('@/pages/Indicators'));
 const Regulations = lazy(() => import('@/pages/Regulations'));
 const GraphExplorer = lazy(() => import('@/pages/GraphExplorer'));
+const EnterpriseGraph = lazy(() => import('@/pages/EnterpriseGraph'));
 const Profile = lazy(() => import('@/pages/Profile'));
 const Register = lazy(() => import('@/pages/Register'));
 const PendingApprovals = lazy(() => import('@/pages/PendingApprovals'));
@@ -46,6 +47,11 @@ export default function App() {
             <Route path="/indicators" element={<Indicators />} />
             <Route path="/regulations" element={<Regulations />} />
             <Route path="/graph" element={<GraphExplorer />} />
+            <Route path="/enterprise-graph" element={
+              <ProtectedRoute requiredRoles={['admin_mindus']}>
+                <EnterpriseGraph />
+              </ProtectedRoute>
+            } />
             <Route path="/profile" element={<Profile />} />
             <Route path="/alerts" element={<AlertsPage />} />
             <Route path="/bulletins" element={<Bulletins />} />

@@ -20,6 +20,7 @@ import {
   Menu,
   X,
   AlertTriangle,
+  GitBranch,
 } from 'lucide-react';
 
 const mainNav = [
@@ -74,6 +75,7 @@ export default function Sidebar() {
 
   const adminNav = user?.role === 'admin_mindus'
     ? [
+        { to: '/enterprise-graph', label: 'Grafo Empresarial', icon: GitBranch },
         { to: '/admin/pending', label: 'Solicitudes', icon: ClipboardCheck },
         { to: '/settings', label: 'Configuración', icon: Settings },
       ]

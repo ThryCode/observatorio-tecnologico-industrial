@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { getGraphStats, searchGraphNodes, exploreNode } from '@/api/graph';
+import { getGraphStats, searchGraphNodes, exploreNode, getEnterpriseGraph } from '@/api/graph';
 
 export function useGraphStats() {
   return useQuery({
@@ -22,5 +22,12 @@ export function useGraphExplore(nodeId: string, depth = 2) {
     queryKey: ['graph', 'explore', nodeId, depth],
     queryFn: () => exploreNode(nodeId, depth),
     enabled: !!nodeId,
+  });
+}
+
+export function useEnterpriseGraph() {
+  return useQuery({
+    queryKey: ['graph', 'enterprise'],
+    queryFn: getEnterpriseGraph,
   });
 }

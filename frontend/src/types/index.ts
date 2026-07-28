@@ -188,6 +188,26 @@ export interface GraphStat {
   count: number;
 }
 
+export interface EnterpriseGraphNode {
+  id: string;
+  type: "person" | "organization";
+  label: string;
+  role?: string;
+  org_id?: string;
+  siglas?: string;
+}
+
+export interface EnterpriseGraphEdge {
+  source: string;
+  target: string;
+  type: string;
+}
+
+export interface EnterpriseGraphResponse {
+  nodes: EnterpriseGraphNode[];
+  edges: EnterpriseGraphEdge[];
+}
+
 export interface FollowCountResponse {
   followers_count: number;
   following_count: number;

@@ -1,5 +1,5 @@
 import client from './client';
-import type { GraphStat } from '@/types';
+import type { EnterpriseGraphResponse, GraphStat } from '@/types';
 
 export async function getGraphStats(): Promise<GraphStat[]> {
   const res = await client.get<{ items: GraphStat[] }>('/graph/stats');
@@ -16,5 +16,10 @@ export async function searchGraphNodes(q: string, labels?: string[], page = 1, p
 export async function exploreNode(nodeId: string, depth = 2): Promise<unknown> {
   const params = new URLSearchParams({ node_id: nodeId, depth: String(depth) });
   const res = await client.get(`/graph/explore?${params}`);
+  return res.data;
+}
+
+export async function getEnterpriseGraph(): Promise<EnterpriseGraphResponse> {
+  const res = await client.get<EnterpriseGraphResponse>('/graph/enterprise');
   return res.data;
 }
