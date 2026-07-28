@@ -21,7 +21,8 @@ async def test_list_professionals(client: AsyncClient, db_session):
 
 @pytest.mark.asyncio
 async def test_list_specialties(client: AsyncClient, db_session):
-    await make_professional_profile(db_session, especialidad="Nanotecnologia")
+    user = await make_user(db_session, username="spec_test")
+    await make_professional_profile(db_session, user=user, especialidad="Nanotecnologia")
     await db_session.commit()
 
     response = await client.get("/api/v1/professionals/specialties")

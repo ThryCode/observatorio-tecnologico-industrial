@@ -176,5 +176,5 @@ async def test_list_pending(client: AsyncClient, db_session):
 
     assert response.status_code == 200
     data = response.json()
-    assert isinstance(data, list)
-    assert len(data) >= 2
+    assert "items" in data
+    assert len(data["items"]) >= 2
