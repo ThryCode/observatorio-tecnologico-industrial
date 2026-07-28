@@ -3,8 +3,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_superuser, get_current_user, get_db
-from app.models.user import User
+from app.dependencies import get_db, get_current_user, require_role
+from app.models.user import User, UserRole
 from app.schemas.alert import AlertCreate, AlertResponse, AlertUpdate
 from app.schemas.common import Message, PaginatedResponse
 from app.services.alert_service import AlertService
@@ -62,7 +62,7 @@ async def update_alert(
 async def mark_alert_read(
     alert_id: UUID,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     return await AlertService(db).mark_read(alert_id)
 
@@ -71,7 +71,7 @@ async def mark_alert_read(
 async def delete_alert(
     alert_id: UUID,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     await AlertService(db).delete(alert_id)
     return Message(detail="Alert deleted")

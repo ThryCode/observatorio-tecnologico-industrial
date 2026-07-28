@@ -4,7 +4,8 @@ import AlertList from '@/components/AlertList';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Filter } from 'lucide-react';
-import { useAlerts, useCreateAlert, useDeleteAlert } from '@/hooks/useAlerts';
+import { usePermissions } from '@/hooks/usePermissions';
+import { useAlerts, useCreateAlert, useUpdateAlert, useDeleteAlert } from '@/hooks/useAlerts';
 import {
   Dialog,
   DialogContent,
@@ -45,11 +46,15 @@ function mapAlertToAlertItem(alert: Alert) {
 }
 
 export default function AlertsPage() {
+  const { can } = usePermissions();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingAlert, setEditingAlert] = useState<Alert | null>(null);
+  const [deleteAlertId, setDeleteAlertId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ titulo: '', descripcion: '', severidad: 'media', fecha: '', sector: '' });
 
   const { data: rawAlerts, isLoading, refetch } = useAlerts();
   const createMutation = useCreateAlert();
+  const updateMutation = useUpdateAlert();
   const deleteMutation = useDeleteAlert();
 
   const alerts = rawAlerts?.map(mapAlertToAlertItem) || [];
@@ -58,7 +63,27 @@ export default function AlertsPage() {
     setFormData({ titulo: '', descripcion: '', severidad: 'media', fecha: new Date().toISOString().slice(0, 10), sector: '' });
   };
 
-  const handleCreate = async () => {
+  const openCreate = () => {
+    setEditingAlert(null);
+    resetForm();
+    setDialogOpen(true);
+  };
+
+  const openEdit = (id: string) => {
+    const alert = rawAlerts?.find((a) => a.id === id);
+    if (!alert) return;
+    setEditingAlert(alert);
+    setFormData({
+      titulo: alert.titulo,
+      descripcion: alert.descripcion,
+      severidad: alert.severidad,
+      fecha: alert.fecha,
+      sector: alert.sector || '',
+    });
+    setDialogOpen(true);
+  };
+
+  const handleSave = async () => {
     const data: Partial<Alert> = {
       titulo: formData.titulo,
       descripcion: formData.descripcion,
@@ -66,11 +91,25 @@ export default function AlertsPage() {
       fecha: formData.fecha,
       sector: formData.sector || undefined,
     };
-    await createMutation.mutateAsync(data);
+    if (editingAlert) {
+      await updateMutation.mutateAsync({ id: editingAlert.id, data });
+    } else {
+      await createMutation.mutateAsync(data);
+    }
     setDialogOpen(false);
+    setEditingAlert(null);
     resetForm();
     refetch();
   };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteAlertId) return;
+    await deleteMutation.mutateAsync(deleteAlertId);
+    setDeleteAlertId(null);
+    refetch();
+  };
+
+  const isSaving = createMutation.isPending || updateMutation.isPending;
 
   return (
     <div className="space-y-6">
@@ -84,23 +123,30 @@ export default function AlertsPage() {
               <Filter className="h-4 w-4" />
               Filtros
             </Button>
-            <Button className="gap-2" onClick={() => { resetForm(); setDialogOpen(true); }}>
-              <Plus className="h-4 w-4" />
-              Nueva Alerta
-            </Button>
+            {can('alerts', 'create') && (
+              <Button className="gap-2" onClick={openCreate}>
+                <Plus className="h-4 w-4" />
+                Nueva Alerta
+              </Button>
+            )}
           </div>
         }
       />
       {isLoading ? (
         <div className="text-center text-text-muted py-8">Cargando alertas...</div>
       ) : (
-        <AlertList alerts={alerts} />
+        <AlertList
+          alerts={alerts}
+          onEdit={can('alerts', 'edit') ? openEdit : undefined}
+          onDelete={can('alerts', 'delete') ? (id) => setDeleteAlertId(id) : undefined}
+        />
       )}
 
-      <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) { setDialogOpen(false); resetForm(); } }}>
+      {/* Create / Edit Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) { setDialogOpen(false); setEditingAlert(null); resetForm(); } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Nueva Alerta</DialogTitle>
+            <DialogTitle>{editingAlert ? 'Editar Alerta' : 'Nueva Alerta'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -137,8 +183,24 @@ export default function AlertsPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>Cancelar</Button>
-            <Button onClick={handleCreate} disabled={!formData.titulo || createMutation.isPending}>Crear</Button>
+            <Button variant="outline" onClick={() => { setDialogOpen(false); setEditingAlert(null); resetForm(); }}>Cancelar</Button>
+            <Button onClick={handleSave} disabled={!formData.titulo || isSaving}>
+              {editingAlert ? 'Guardar' : 'Crear'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteAlertId} onOpenChange={() => setDeleteAlertId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Eliminar Alerta</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-text-muted">¿Estás seguro de que deseas eliminar esta alerta? Esta acción no se puede deshacer.</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteAlertId(null)}>Cancelar</Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm} disabled={deleteMutation.isPending}>Eliminar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

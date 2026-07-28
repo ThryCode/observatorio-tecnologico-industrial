@@ -20,7 +20,7 @@ def patent_payload():
 
 @pytest.mark.asyncio
 async def test_create_patent(client, patent_payload, auth_headers):
-    headers = await auth_headers("patuser")
+    headers = await auth_headers("patuser", role="admin_mindus")
     resp = await client.post("/api/v1/patents", json=patent_payload, headers=headers)
     assert resp.status_code == 201
     data = resp.json()
@@ -60,7 +60,7 @@ async def test_get_patent_not_found(client):
 @pytest.mark.asyncio
 async def test_update_patent(client, db_session, auth_headers):
     pat = await make_patent(db_session, patent_number="CU-2026-002")
-    headers = await auth_headers("patupd")
+    headers = await auth_headers("patupd", role="admin_mindus")
     resp = await client.put(f"/api/v1/patents/{pat.id}", json={"title": "Updated Title"}, headers=headers)
     assert resp.status_code == 200
     assert resp.json()["title"] == "Updated Title"

@@ -5,7 +5,7 @@ from tests.factories import make_regulation
 
 @pytest.mark.asyncio
 async def test_create_regulation(client, auth_headers):
-    headers = await auth_headers("reguser")
+    headers = await auth_headers("reguser", role="admin_mindus")
     payload = {
         "title": "Industrial Safety Regulation",
         "regulation_number": "RES-2025-001",
@@ -33,7 +33,7 @@ async def test_create_regulation_no_auth(client):
 
 @pytest.mark.asyncio
 async def test_create_regulation_invalid_date(client, auth_headers):
-    headers = await auth_headers("regdate")
+    headers = await auth_headers("regdate", role="admin_mindus")
     resp = await client.post("/api/v1/regulations", json={
         "title": "Bad Date", "regulation_number": "RES-2026-002",
         "issuing_body": "Test", "publication_date": "2026-06-01",
@@ -71,7 +71,7 @@ async def test_get_regulation_not_found(client):
 @pytest.mark.asyncio
 async def test_update_regulation(client, db_session, auth_headers):
     reg = await make_regulation(db_session, regulation_number="RES-2026-003")
-    headers = await auth_headers("regupd")
+    headers = await auth_headers("regupd", role="admin_mindus")
     resp = await client.put(f"/api/v1/regulations/{reg.id}", json={"title": "Updated"}, headers=headers)
     assert resp.status_code == 200
     assert resp.json()["title"] == "Updated"

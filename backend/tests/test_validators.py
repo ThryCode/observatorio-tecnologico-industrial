@@ -1,21 +1,21 @@
 import pytest
-from sqlalchemy import update
-
-from app.models.user import User
 
 
 @pytest.fixture
 def auth_headers(client, db_session, superuser_token_headers):
-    async def _register(username: str):
-        await client.post("/api/v1/auth/register", json={
-            "username": username,
-            "email": f"{username}@test.com",
-            "password": "secret123",
-            "full_name": "Validator User",
-        }, headers=superuser_token_headers)
-        await db_session.execute(
-            update(User).where(User.username == username).values(status="approved")
+    async def _make(username: str, role: str = "admin_mindus"):
+        from app.core.security import get_password_hash
+        from app.models.user import User
+        user = User(
+            username=username,
+            email=f"{username}@test.com",
+            hashed_password=get_password_hash("secret123"),
+            full_name="Validator User",
+            role=role,
+            is_superuser=role == "admin_mindus",
+            status="approved",
         )
+        db_session.add(user)
         await db_session.flush()
         login = await client.post("/api/v1/auth/login", json={
             "username": username,
@@ -23,7 +23,7 @@ def auth_headers(client, db_session, superuser_token_headers):
         })
         token = login.json()["access_token"]
         return {"Authorization": f"Bearer {token}"}
-    return _register
+    return _make
 
 
 @pytest.mark.asyncio
@@ -61,7 +61,7 @@ async def test_user_password_too_short(client, superuser_token_headers):
 
 @pytest.mark.asyncio
 async def test_patent_number_invalid_format(client, auth_headers):
-    headers = await auth_headers("patvaluser")
+    headers = await auth_headers("patvaluser", role="admin_mindus")
     resp = await client.post("/api/v1/patents", json={
         "title": "Test Patent",
         "patent_number": "INVALID-NUMBER",
@@ -75,7 +75,7 @@ async def test_patent_number_invalid_format(client, auth_headers):
 
 @pytest.mark.asyncio
 async def test_patent_country_invalid_length(client, auth_headers):
-    headers = await auth_headers("patcountry")
+    headers = await auth_headers("patcountry", role="admin_mindus")
     resp = await client.post("/api/v1/patents", json={
         "title": "Test Patent",
         "patent_number": "CU-2026-001",
@@ -89,7 +89,7 @@ async def test_patent_country_invalid_length(client, auth_headers):
 
 @pytest.mark.asyncio
 async def test_technology_trl_out_of_range(client, auth_headers):
-    headers = await auth_headers("trluser")
+    headers = await auth_headers("trluser", role="admin_mindus")
     resp = await client.post("/api/v1/technologies", json={
         "nombre": "Test Tech",
         "trl_nivel": 15,
@@ -120,7 +120,7 @@ async def test_industrial_sector_codigo_wrong_length(client):
 
 @pytest.mark.asyncio
 async def test_regulation_effective_before_publication(client, auth_headers):
-    headers = await auth_headers("regval")
+    headers = await auth_headers("regval", role="admin_mindus")
     resp = await client.post("/api/v1/regulations", json={
         "title": "Bad Date",
         "regulation_number": "RES-VAL-001",
@@ -134,7 +134,7 @@ async def test_regulation_effective_before_publication(client, auth_headers):
 
 @pytest.mark.asyncio
 async def test_indicator_code_uppercased(client, auth_headers):
-    headers = await auth_headers("indcode")
+    headers = await auth_headers("indcode", role="admin_mindus")
     resp = await client.post("/api/v1/indicators", json={
         "name": "Code Test",
         "code": "lower-code",
@@ -151,7 +151,7 @@ async def test_indicator_code_uppercased(client, auth_headers):
 async def test_org_unique_siglas(client, db_session, auth_headers):
     from tests.factories import make_org
     await make_org(db_session, siglas="UNQ")
-    headers = await auth_headers("orgsig")
+    headers = await auth_headers("orgsig", role="admin_mindus")
     resp = await client.post("/api/v1/organizations", json={
         "nombre": "Duplicate Siglas",
         "siglas": "UNQ",
@@ -162,7 +162,7 @@ async def test_org_unique_siglas(client, db_session, auth_headers):
 
 @pytest.mark.asyncio
 async def test_technology_palabras_clave_stripped(client, auth_headers):
-    headers = await auth_headers("techkey")
+    headers = await auth_headers("techkey", role="admin_mindus")
     resp = await client.post("/api/v1/technologies", json={
         "nombre": "Keyword Test",
         "palabras_clave": ["  IA  ", " MANUFACTURA "],

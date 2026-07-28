@@ -47,13 +47,21 @@ export default function App() {
             <Route path="/regulations" element={<Regulations />} />
             <Route path="/graph" element={<GraphExplorer />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/admin/pending" element={<PendingApprovals />} />
             <Route path="/alerts" element={<AlertsPage />} />
             <Route path="/bulletins" element={<Bulletins />} />
             <Route path="/competitiveness" element={<Competitiveness />} />
             <Route path="/patent-maps" element={<PatentMaps />} />
             <Route path="/network" element={<Network />} />
-            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/admin/pending" element={
+              <ProtectedRoute requiredRoles={['admin_mindus']}>
+                <PendingApprovals />
+              </ProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <ProtectedRoute requiredRoles={['admin_mindus']}>
+                <SettingsPage />
+              </ProtectedRoute>
+            } />
           </Route>
         </Route>
       </Routes>

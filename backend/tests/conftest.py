@@ -72,19 +72,19 @@ async def superuser_token_headers(client, db_session):
 
 @pytest.fixture
 def auth_headers(client, db_session, superuser_token_headers):
-    async def _make(username: str, is_superuser: bool = False):
-        await client.post("/api/v1/auth/register", json={
-            "username": username,
-            "email": f"{username}@test.com",
-            "password": "secret123",
-            "full_name": "Test User",
-        }, headers=superuser_token_headers)
-        await db_session.execute(
-            update(User).where(User.username == username).values(
-                is_superuser=is_superuser,
-                status="approved",
-            )
+    async def _make(username: str = "testuser", is_superuser: bool = False, role: str | None = None):
+        if role is None:
+            role = "admin_mindus" if is_superuser else "user"
+        user = User(
+            username=username,
+            email=f"{username}@test.com",
+            hashed_password=get_password_hash("secret123"),
+            full_name=f"Test {username}",
+            role=role,
+            is_superuser=is_superuser,
+            status="approved",
         )
+        db_session.add(user)
         await db_session.flush()
         login = await client.post("/api/v1/auth/login", json={
             "username": username,

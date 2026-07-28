@@ -47,6 +47,11 @@ React 18 + TypeScript SPA with Vite, Tailwind CSS, shadcn/ui, and TanStack Query
 - Zod schemas for validation
 - `@hookform/resolvers` for integration
 
+## Environment
+- **Node.js portable**: `G:\Proyects\Observatorio\tools\nodejs\node-v20.18.3-win-x64\node.exe`
+- Use portable Node for all build/typecheck commands (system `node` is v12 which is incompatible with TS 5.x)
+- TypeScript check: `tools\nodejs\node-v20.18.3-win-x64\node.exe node_modules\typescript\bin\tsc --noEmit`
+
 ## Component Structure
 ```
 components/

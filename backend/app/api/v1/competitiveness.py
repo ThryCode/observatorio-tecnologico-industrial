@@ -3,8 +3,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_superuser, get_current_user, get_db
-from app.models.user import User
+from app.dependencies import get_db, get_current_user, require_role
+from app.models.user import User, UserRole
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.competitiveness import CompetitivenessCreate, CompetitivenessResponse, CompetitivenessUpdate
 from app.services.competitiveness_service import CompetitivenessService
@@ -58,7 +58,7 @@ async def update_competitiveness(
 async def delete_competitiveness(
     index_id: UUID,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     await CompetitivenessService(db).delete(index_id)
     return Message(detail="Competitiveness index deleted")

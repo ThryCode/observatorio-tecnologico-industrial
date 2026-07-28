@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/select';
 import { Search, Building2, Globe, MapPin, ExternalLink, Phone, Calendar, Plus, Pencil, Trash2 } from 'lucide-react';
 import { formatDate } from '@/utils/formatters';
+import { usePermissions } from '@/hooks/usePermissions';
 import type { Organization } from '@/types';
 
 const tipoOptions = [
@@ -46,6 +47,7 @@ const tipoOptions = [
 ];
 
 export default function Organizations() {
+  const { can } = usePermissions();
   const [search, setSearch] = useState('');
   const [sector, setSector] = useState('all');
   const [page, setPage] = useState(1);
@@ -171,10 +173,12 @@ export default function Organizations() {
             Entidades de ciencia, tecnología e innovación del ecosistema industrial.
           </p>
         </div>
-        <Button className="gap-2" onClick={openCreateDialog}>
-          <Plus className="h-4 w-4" />
-          Nueva Organización
-        </Button>
+        {can('organizations', 'create') && (
+          <Button className="gap-2" onClick={openCreateDialog}>
+            <Plus className="h-4 w-4" />
+            Nueva Organización
+          </Button>
+        )}
       </div>
 
       <div className="flex items-center gap-4">
@@ -236,12 +240,16 @@ export default function Organizations() {
                         <TableCell>{org.provincia || '-'}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            <Button variant="ghost" size="sm" onClick={() => openEditDialog(org)}>
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => { setOrgToDelete(org); setDeleteDialogOpen(true); }}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
+                            {can('organizations', 'edit') && (
+                              <Button variant="ghost" size="sm" onClick={() => openEditDialog(org)}>
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {can('organizations', 'delete') && (
+                              <Button variant="ghost" size="sm" onClick={() => { setOrgToDelete(org); setDeleteDialogOpen(true); }}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            )}
                             <Button variant="ghost" size="sm" onClick={() => setSelectedOrg(org)}>
                               <ExternalLink className="h-4 w-4" />
                             </Button>

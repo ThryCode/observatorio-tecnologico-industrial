@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, Query
 
 from app.core.db import get_db
 from app.core.exceptions import AppException
-from app.dependencies import get_current_superuser, get_current_user, get_neo4j
-from app.models.user import User
+from app.dependencies import get_current_user, get_neo4j, require_role
+from app.models.user import User, UserRole
 from app.schemas.graph import (
     GraphExploreResponse,
     GraphSearchResponse,
@@ -64,7 +64,7 @@ async def graph_stats(
 async def sync_graph(
     neo4j=Depends(get_neo4j),
     db=Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     if not neo4j:
         raise AppException(503, "Neo4j is not available")

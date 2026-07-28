@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_superuser, get_db
-from app.models.user import User
+from app.dependencies import get_db, require_role
+from app.models.user import User, UserRole
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.industrial_sector import (
     IndustrialSectorCreate,
@@ -39,7 +39,7 @@ async def get_sector(codigo: str, db: AsyncSession = Depends(get_db)):
 async def create_sector(
     data: IndustrialSectorCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     return await IndustrialSectorService(db).create(data)
 
@@ -49,7 +49,7 @@ async def update_sector(
     codigo: str,
     data: IndustrialSectorUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     return await IndustrialSectorService(db).update(codigo, data)
 
@@ -58,7 +58,7 @@ async def update_sector(
 async def delete_sector(
     codigo: str,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     await IndustrialSectorService(db).delete(codigo)
     return Message(detail="Industrial sector deleted")

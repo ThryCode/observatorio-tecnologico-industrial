@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/table';
 import { Search, Plus, Pencil, Trash2, ExternalLink } from 'lucide-react';
 import { formatDate } from '@/utils/formatters';
+import { usePermissions } from '@/hooks/usePermissions';
 import type { Technology } from '@/types';
 
 const trlOptions = [
@@ -47,6 +48,7 @@ const trlOptions = [
 ];
 
 export default function Technologies() {
+  const { can } = usePermissions();
   const [search, setSearch] = useState('');
   const [sector, setSector] = useState('all');
   const [page, setPage] = useState(1);
@@ -152,10 +154,12 @@ export default function Technologies() {
             Catálogo de tecnologías del ecosistema industrial.
           </p>
         </div>
-        <Button className="gap-2" onClick={openCreateDialog}>
-          <Plus className="h-4 w-4" />
-          Nueva Tecnología
-        </Button>
+        {can('technologies', 'create') && (
+          <Button className="gap-2" onClick={openCreateDialog}>
+            <Plus className="h-4 w-4" />
+            Nueva Tecnología
+          </Button>
+        )}
       </div>
 
       <div className="flex items-center gap-4">
@@ -236,12 +240,16 @@ export default function Technologies() {
                         <TableCell className="text-muted-foreground">{formatDate(tech.created_at)}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            <Button variant="ghost" size="sm" onClick={() => openEditDialog(tech)}>
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="sm" onClick={() => { setSelectedTech(tech); setDeleteDialogOpen(true); }}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
+                            {can('technologies', 'edit') && (
+                              <Button variant="ghost" size="sm" onClick={() => openEditDialog(tech)}>
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {can('technologies', 'delete') && (
+                              <Button variant="ghost" size="sm" onClick={() => { setSelectedTech(tech); setDeleteDialogOpen(true); }}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            )}
                             <Button variant="ghost" size="sm" onClick={() => setSelectedTech(tech)}>
                               <ExternalLink className="h-4 w-4" />
                             </Button>

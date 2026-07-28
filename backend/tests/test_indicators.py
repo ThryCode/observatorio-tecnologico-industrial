@@ -5,7 +5,7 @@ from tests.factories import make_indicator
 
 @pytest.mark.asyncio
 async def test_create_indicator(client, auth_headers):
-    headers = await auth_headers("induser")
+    headers = await auth_headers("induser", role="admin_mindus")
     payload = {
         "name": "Industrial Production Index",
         "code": "IPI-2025",
@@ -33,7 +33,7 @@ async def test_create_indicator_no_auth(client):
 
 @pytest.mark.asyncio
 async def test_create_indicator_duplicate_code(client, auth_headers):
-    headers = await auth_headers("inddup")
+    headers = await auth_headers("inddup", role="admin_mindus")
     payload = {
         "name": "First", "code": "DUP-001", "unit": "pct",
         "value": 1, "source": "T", "period": "monthly",
@@ -71,7 +71,7 @@ async def test_get_indicator_not_found(client):
 @pytest.mark.asyncio
 async def test_update_indicator(client, db_session, auth_headers):
     ind = await make_indicator(db_session, code="UPD-001")
-    headers = await auth_headers("indupd")
+    headers = await auth_headers("indupd", role="admin_mindus")
     resp = await client.put(f"/api/v1/indicators/{ind.id}", json={"name": "Updated"}, headers=headers)
     assert resp.status_code == 200
     assert resp.json()["name"] == "Updated"

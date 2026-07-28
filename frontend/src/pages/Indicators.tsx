@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/select';
 import { Search, TrendingUp, ExternalLink, Plus, Pencil, Trash2 } from 'lucide-react';
 import { formatDate, formatNumber } from '@/utils/formatters';
+import { usePermissions } from '@/hooks/usePermissions';
 import type { Indicator } from '@/types';
 
 const periodLabels: Record<string, string> = {
@@ -37,6 +38,7 @@ const periodLabels: Record<string, string> = {
 };
 
 export default function Indicators() {
+  const { can } = usePermissions();
   const [search, setSearch] = useState('');
   const [period, setPeriod] = useState('');
   const [page, setPage] = useState(1);
@@ -108,10 +110,12 @@ export default function Indicators() {
           <h2 className="text-2xl font-bold tracking-tight">Indicadores</h2>
           <p className="text-muted-foreground">Indicadores de ciencia, tecnología e innovación del sector industrial.</p>
         </div>
-        <Button className="gap-2" onClick={openCreateDialog}>
-          <Plus className="h-4 w-4" />
-          Nuevo Indicador
-        </Button>
+        {can('indicators', 'create') && (
+          <Button className="gap-2" onClick={openCreateDialog}>
+            <Plus className="h-4 w-4" />
+            Nuevo Indicador
+          </Button>
+        )}
       </div>
 
       <div className="flex items-center gap-4">
@@ -165,8 +169,12 @@ export default function Indicators() {
                       <TableCell>{item.source}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => openEditDialog(item)}><Pencil className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="sm" onClick={() => { setIndToDelete(item); setDeleteDialogOpen(true); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                          {can('indicators', 'edit') && (
+                            <Button variant="ghost" size="sm" onClick={() => openEditDialog(item)}><Pencil className="h-4 w-4" /></Button>
+                          )}
+                          {can('indicators', 'delete') && (
+                            <Button variant="ghost" size="sm" onClick={() => { setIndToDelete(item); setDeleteDialogOpen(true); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                          )}
                           <Button variant="ghost" size="sm" onClick={() => setSelected(item)}><ExternalLink className="h-4 w-4" /></Button>
                         </div>
                       </TableCell>

@@ -3,8 +3,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_superuser, get_current_user, get_db, get_redis
-from app.models.user import User
+from app.dependencies import get_db, get_redis, require_role
+from app.models.user import User, UserRole
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.indicator import IndicatorCreate, IndicatorResponse, IndicatorUpdate
 from app.services.indicator_service import IndicatorService
@@ -45,7 +45,7 @@ async def create_indicator(
     data: IndicatorCreate,
     db: AsyncSession = Depends(get_db),
     redis=Depends(get_redis),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS, UserRole.ANALISTA)),
 ):
     return await _service(db, redis).create(data)
 
@@ -56,7 +56,7 @@ async def update_indicator(
     data: IndicatorUpdate,
     db: AsyncSession = Depends(get_db),
     redis=Depends(get_redis),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     return await _service(db, redis).update(indicator_id, data)
 
@@ -66,7 +66,7 @@ async def delete_indicator(
     indicator_id: UUID,
     db: AsyncSession = Depends(get_db),
     redis=Depends(get_redis),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     await _service(db, redis).delete(indicator_id)
     return Message(detail="Indicator deleted")

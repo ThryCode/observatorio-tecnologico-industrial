@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, AlertCircle, Info } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { AlertTriangle, AlertCircle, Info, Pencil, Trash2 } from 'lucide-react';
 
 interface AlertItem {
   id: string;
@@ -17,6 +18,8 @@ interface AlertItem {
 interface AlertListProps {
   alerts: AlertItem[];
   className?: string;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 const priorityConfig = {
@@ -37,7 +40,7 @@ const priorityConfig = {
   },
 };
 
-export default function AlertList({ alerts, className }: AlertListProps) {
+export default function AlertList({ alerts, className, onEdit, onDelete }: AlertListProps) {
   return (
     <div className={cn('flex flex-col gap-3', className)} role="list" aria-label="Alertas de vigilancia">
       {alerts.map((alert) => {
@@ -78,6 +81,22 @@ export default function AlertList({ alerts, className }: AlertListProps) {
                 <span className="text-[11px] text-text-muted">{alert.time}</span>
               </div>
             </div>
+
+            {/* Actions */}
+            {(onEdit || onDelete) && (
+              <div className="flex gap-1 items-start pt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                {onEdit && (
+                  <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onEdit(alert.id); }}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                )}
+                {onDelete && (
+                  <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onDelete(alert.id); }}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         );
       })}

@@ -40,7 +40,6 @@ const intelligenceNav = [
 const orgNav = [
   { to: '/organizations', label: 'Entidades CTI', icon: Building2 },
   { to: '/network', label: 'Red Profesional', icon: Users },
-  { to: '/settings', label: 'Configuración', icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -73,8 +72,11 @@ export default function Sidebar() {
     ? [{ to: '/mi-empresa', label: 'Mi Empresa', icon: Building2 }]
     : [];
 
-  const adminNav = user?.is_superuser
-    ? [{ to: '/admin/pending', label: 'Solicitudes', icon: ClipboardCheck }]
+  const adminNav = user?.role === 'admin_mindus'
+    ? [
+        { to: '/admin/pending', label: 'Solicitudes', icon: ClipboardCheck },
+        { to: '/settings', label: 'Configuración', icon: Settings },
+      ]
     : [];
 
   const sidebarContent = (

@@ -12,6 +12,7 @@ from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.security import get_password_hash
 from app.models.alert import Alert
 from app.models.bulletin import Bulletin
 from app.models.competitiveness import CompetitivenessIndex
@@ -19,6 +20,7 @@ from app.models.indicator import Indicator, IndicatorPeriod
 from app.models.organization import Organization
 from app.models.patent_map import PatentMapEntry
 from app.models.technology import Technology
+from app.models.user import User, UserStatus
 
 # ---------------------------------------------------------------------------
 # Organizations
@@ -406,6 +408,70 @@ async def seed_patent_maps(session: AsyncSession) -> int:
     return len(_PATENT_MAP_DATA)
 
 
+# ---------------------------------------------------------------------------
+# Demo users (non-admin)
+# ---------------------------------------------------------------------------
+
+_DEMO_USERS = [
+    {
+        "username": "usuario",
+        "email": "usuario@mindus.gob.cu",
+        "full_name": "Juan Perez Garcia",
+        "role": "rep_cti",
+        "account_type": "representante",
+        "password": "usuario123",
+    },
+    {
+        "username": "analista",
+        "email": "analista@mindus.gob.cu",
+        "full_name": "Ana analista",
+        "role": "analista",
+        "account_type": "analista",
+        "password": "analista123",
+    },
+    {
+        "username": "paco",
+        "email": "paco@gmail.com",
+        "full_name": "Paco Perez",
+        "role": "visitante",
+        "account_type": "profesional",
+        "password": "paco123",
+    },
+]
+
+
+async def seed_users(session: AsyncSession) -> int:
+    """Insert demo users (representante, analista, profesional) if not exist.
+
+    Returns:
+        Number of newly inserted records.
+    """
+    result = await session.execute(select(User.username))
+    existing = {row[0] for row in result.all()}
+
+    inserted = 0
+    for data in _DEMO_USERS:
+        if data["username"] not in existing:
+            session.add(User(
+                username=data["username"],
+                email=data["email"],
+                hashed_password=get_password_hash(data["password"]),
+                full_name=data["full_name"],
+                role=data["role"],
+                account_type=data["account_type"],
+                status=UserStatus.APPROVED.value,
+                is_superuser=False,
+                is_active=True,
+            ))
+            inserted += 1
+
+    if inserted:
+        await session.flush()
+        logger.info(f"Seeded {inserted} demo users")
+
+    return inserted
+
+
 async def seed_all(session: AsyncSession) -> None:
     """Run all seed functions in the correct order.
 
@@ -414,6 +480,7 @@ async def seed_all(session: AsyncSession) -> None:
     via foreign keys.  The industrial_sectores table is assumed to
     already contain the base sector rows (AUT, MET, SID, ELE, QUI).
     """
+    await seed_users(session)
     await seed_organizations(session)
     await seed_technologies(session)
     await seed_indicators(session)

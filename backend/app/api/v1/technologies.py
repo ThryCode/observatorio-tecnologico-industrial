@@ -3,8 +3,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_superuser, get_current_user, get_db
-from app.models.user import User
+from app.dependencies import get_db, require_role
+from app.models.user import User, UserRole
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.technology import TechnologyCreate, TechnologyResponse, TechnologyUpdate
 from app.services.technology_service import TechnologyService
@@ -38,7 +38,7 @@ async def get_technology(tech_id: UUID, db: AsyncSession = Depends(get_db)):
 async def create_technology(
     data: TechnologyCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     return await TechnologyService(db).create(data)
 
@@ -48,7 +48,7 @@ async def update_technology(
     tech_id: UUID,
     data: TechnologyUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     return await TechnologyService(db).update(tech_id, data)
 
@@ -57,7 +57,7 @@ async def update_technology(
 async def delete_technology(
     tech_id: UUID,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     await TechnologyService(db).delete(tech_id)
     return Message(detail="Technology deleted")

@@ -1,7 +1,4 @@
 import pytest
-from sqlalchemy import update
-
-from app.models.user import User
 
 
 @pytest.fixture
@@ -16,19 +13,19 @@ def tech_payload():
 
 @pytest.fixture
 def auth_headers(client, db_session, superuser_token_headers):
-    async def _register_and_login(username: str = "techuser", is_superuser: bool = False):
-        await client.post("/api/v1/auth/register", json={
-            "username": username,
-            "email": f"{username}@test.com",
-            "password": "secret123",
-            "full_name": "Tech User",
-        }, headers=superuser_token_headers)
-        await db_session.execute(
-            update(User).where(User.username == username).values(
-                is_superuser=is_superuser,
-                status="approved",
-            )
+    async def _make(username: str = "techuser", role: str = "admin_mindus"):
+        from app.core.security import get_password_hash
+        from app.models.user import User
+        user = User(
+            username=username,
+            email=f"{username}@test.com",
+            hashed_password=get_password_hash("secret123"),
+            full_name="Tech User",
+            role=role,
+            is_superuser=role == "admin_mindus",
+            status="approved",
         )
+        db_session.add(user)
         await db_session.flush()
         login = await client.post("/api/v1/auth/login", json={
             "username": username,
@@ -36,7 +33,7 @@ def auth_headers(client, db_session, superuser_token_headers):
         })
         token = login.json()["access_token"]
         return {"Authorization": f"Bearer {token}"}
-    return _register_and_login
+    return _make
 
 
 @pytest.mark.asyncio
@@ -150,9 +147,28 @@ async def test_update_technology_not_found(client, auth_headers):
 
 
 @pytest.mark.asyncio
-async def test_delete_technology(client, tech_payload, auth_headers):
-    headers = await auth_headers("deluser", is_superuser=True)
+async def test_delete_technology(client, tech_payload, db_session):
+    from app.core.security import get_password_hash
+    from app.models.user import User
+    user = User(
+        username="rbac_admin",
+        email="rbac_admin@test.com",
+        hashed_password=get_password_hash("secret123"),
+        full_name="RBAC Admin",
+        role="admin_mindus",
+        is_superuser=True,
+        status="approved",
+    )
+    db_session.add(user)
+    await db_session.flush()
+    from app.schemas.auth import LoginRequest
+    login_resp = await client.post("/api/v1/auth/login", json={"username": "rbac_admin", "password": "secret123"})
+    assert login_resp.status_code == 200, f"Login failed: {login_resp.text}"
+    token = login_resp.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
     create_resp = await client.post("/api/v1/technologies", json=tech_payload, headers=headers)
+    assert create_resp.status_code == 201, f"POST failed: {create_resp.status_code} {create_resp.text}"
     tech_id = create_resp.json()["id"]
 
     response = await client.delete(f"/api/v1/technologies/{tech_id}", headers=headers)
@@ -163,10 +179,39 @@ async def test_delete_technology(client, tech_payload, auth_headers):
 
 
 @pytest.mark.asyncio
-async def test_delete_technology_not_superuser(client, tech_payload, auth_headers):
-    headers = await auth_headers("normuser")
-    create_resp = await client.post("/api/v1/technologies", json=tech_payload, headers=headers)
+async def test_delete_technology_not_superuser(client, tech_payload, db_session):
+    from app.core.security import get_password_hash
+    from app.models.user import User
+    admin = User(
+        username="rbac_admin2",
+        email="rbac_admin2@test.com",
+        hashed_password=get_password_hash("secret123"),
+        full_name="RBAC Admin 2",
+        role="admin_mindus",
+        is_superuser=True,
+        status="approved",
+    )
+    db_session.add(admin)
+    await db_session.flush()
+    login_resp = await client.post("/api/v1/auth/login", json={"username": "rbac_admin2", "password": "secret123"})
+    assert login_resp.status_code == 200, f"Login failed: {login_resp.text}"
+    admin_headers = {"Authorization": f"Bearer {login_resp.json()['access_token']}"}
+
+    create_resp = await client.post("/api/v1/technologies", json=tech_payload, headers=admin_headers)
+    assert create_resp.status_code == 201, f"POST failed: {create_resp.status_code} {create_resp.text}"
     tech_id = create_resp.json()["id"]
 
+    user = User(
+        username="rbac_user",
+        email="rbac_user@test.com",
+        hashed_password=get_password_hash("secret123"),
+        full_name="RBAC User",
+        role="user",
+        status="approved",
+    )
+    db_session.add(user)
+    await db_session.flush()
+    login_resp2 = await client.post("/api/v1/auth/login", json={"username": "rbac_user", "password": "secret123"})
+    headers = {"Authorization": f"Bearer {login_resp2.json()['access_token']}"}
     response = await client.delete(f"/api/v1/technologies/{tech_id}", headers=headers)
     assert response.status_code == 403

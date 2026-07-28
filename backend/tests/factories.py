@@ -82,12 +82,14 @@ async def make_user(
     db,
     username: str = "testuser",
     email: str | None = None,
-    role: str = "user",
+    role: str | None = None,
     status: str = "approved",
     is_superuser: bool = False,
 ) -> User:
     if email is None:
         email = f"{username}@test.com"
+    if role is None:
+        role = "admin_mindus" if is_superuser else "user"
     user = User(
         username=username,
         email=email,
@@ -106,9 +108,10 @@ async def make_professional_profile(
     db,
     user: User | None = None,
     especialidad: str = "Ingenieria Industrial",
+    username: str = "pro_profile_user",
 ) -> ProfessionalProfile:
     if user is None:
-        user = await make_user(db)
+        user = await make_user(db, username=username)
     profile = ProfessionalProfile(
         user_id=user.id,
         especialidad=especialidad,

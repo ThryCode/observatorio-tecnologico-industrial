@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/select';
 import { Search, FileText, ExternalLink, Calendar, Plus, Pencil, Trash2 } from 'lucide-react';
 import { formatDate } from '@/utils/formatters';
+import { usePermissions } from '@/hooks/usePermissions';
 import type { Regulation } from '@/types';
 
 const categoryLabels: Record<string, string> = {
@@ -41,6 +42,7 @@ const categoryVariants: Record<string, string> = {
 };
 
 export default function Regulations() {
+  const { can } = usePermissions();
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
   const [page, setPage] = useState(1);
@@ -115,10 +117,12 @@ export default function Regulations() {
           <h2 className="text-2xl font-bold tracking-tight">Normativas</h2>
           <p className="text-muted-foreground">Marco legal y normativo del ecosistema industrial.</p>
         </div>
-        <Button className="gap-2" onClick={openCreateDialog}>
-          <Plus className="h-4 w-4" />
-          Nueva Normativa
-        </Button>
+        {can('regulations', 'create') && (
+          <Button className="gap-2" onClick={openCreateDialog}>
+            <Plus className="h-4 w-4" />
+            Nueva Normativa
+          </Button>
+        )}
       </div>
 
       <div className="flex items-center gap-4">
@@ -175,8 +179,12 @@ export default function Regulations() {
                       <TableCell className="text-muted-foreground">{formatDate(item.publication_date)}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => openEditDialog(item)}><Pencil className="h-4 w-4" /></Button>
-                          <Button variant="ghost" size="sm" onClick={() => { setRegToDelete(item); setDeleteDialogOpen(true); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                          {can('regulations', 'edit') && (
+                            <Button variant="ghost" size="sm" onClick={() => openEditDialog(item)}><Pencil className="h-4 w-4" /></Button>
+                          )}
+                          {can('regulations', 'delete') && (
+                            <Button variant="ghost" size="sm" onClick={() => { setRegToDelete(item); setDeleteDialogOpen(true); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                          )}
                           <Button variant="ghost" size="sm" onClick={() => setSelected(item)}><ExternalLink className="h-4 w-4" /></Button>
                         </div>
                       </TableCell>

@@ -1,7 +1,4 @@
 import pytest
-from sqlalchemy import update
-
-from app.models.user import User
 
 
 @pytest.fixture
@@ -14,26 +11,21 @@ def sector_payload():
 
 
 @pytest.fixture
-def superuser_headers(client, db_session, superuser_token_headers):
+def superuser_headers(client, db_session):
     async def _create_superuser(username: str = "superadmin"):
-        await client.post("/api/v1/auth/register", json={
-            "username": username,
-            "email": f"{username}@test.com",
-            "password": "secret123",
-            "full_name": "Super Admin",
-        }, headers=superuser_token_headers)
-
-        from sqlalchemy import update
-
+        from app.core.security import get_password_hash
         from app.models.user import User
-        await db_session.execute(
-            update(User).where(User.username == username).values(
-                is_superuser=True,
-                status="approved",
-            )
+        user = User(
+            username=username,
+            email=f"{username}@test.com",
+            hashed_password=get_password_hash("secret123"),
+            full_name="Super Admin",
+            role="admin_mindus",
+            is_superuser=True,
+            status="approved",
         )
+        db_session.add(user)
         await db_session.flush()
-
         login = await client.post("/api/v1/auth/login", json={
             "username": username,
             "password": "secret123",
@@ -44,17 +36,19 @@ def superuser_headers(client, db_session, superuser_token_headers):
 
 
 @pytest.fixture
-def normal_headers(client, db_session, superuser_token_headers):
+def normal_headers(client, db_session):
     async def _register(username: str = "normaluser"):
-        await client.post("/api/v1/auth/register", json={
-            "username": username,
-            "email": f"{username}@test.com",
-            "password": "secret123",
-            "full_name": "Normal User",
-        }, headers=superuser_token_headers)
-        await db_session.execute(
-            update(User).where(User.username == username).values(status="approved")
+        from app.core.security import get_password_hash
+        from app.models.user import User
+        user = User(
+            username=username,
+            email=f"{username}@test.com",
+            hashed_password=get_password_hash("secret123"),
+            full_name="Normal User",
+            role="user",
+            status="approved",
         )
+        db_session.add(user)
         await db_session.flush()
         login = await client.post("/api/v1/auth/login", json={
             "username": username,

@@ -3,8 +3,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_superuser, get_current_user, get_db
-from app.models.user import User
+from app.dependencies import get_db, require_role
+from app.models.user import User, UserRole
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.patent import PatentCreate, PatentResponse, PatentUpdate
 from app.services.patent_service import PatentService
@@ -40,7 +40,7 @@ async def get_patent(patent_id: UUID, db: AsyncSession = Depends(get_db)):
 async def create_patent(
     data: PatentCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS, UserRole.ANALISTA)),
 ):
     return await PatentService(db).create(data)
 
@@ -50,7 +50,7 @@ async def update_patent(
     patent_id: UUID,
     data: PatentUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     return await PatentService(db).update(patent_id, data)
 
@@ -59,7 +59,7 @@ async def update_patent(
 async def delete_patent(
     patent_id: UUID,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     await PatentService(db).delete(patent_id)
     return Message(detail="Patent deleted")

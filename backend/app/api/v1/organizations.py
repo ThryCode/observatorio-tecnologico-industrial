@@ -5,8 +5,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppException
-from app.dependencies import get_current_superuser, get_current_user, get_db
-from app.models.user import User
+from app.dependencies import get_db, require_role
+from app.models.user import User, UserRole
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.organization import OrganizationCreate, OrganizationResponse, OrganizationUpdate
 from app.schemas.user import UserResponse
@@ -51,7 +51,7 @@ async def get_organization_representative(org_id: UUID, db: AsyncSession = Depen
 async def create_organization(
     data: OrganizationCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS, UserRole.REP_CTI)),
 ):
     return await OrganizationService(db).create(data)
 
@@ -61,7 +61,7 @@ async def update_organization(
     org_id: UUID,
     data: OrganizationUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS, UserRole.REP_CTI)),
 ):
     return await OrganizationService(db).update(org_id, data)
 
@@ -70,7 +70,7 @@ async def update_organization(
 async def delete_organization(
     org_id: UUID,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     await OrganizationService(db).delete(org_id)
     return Message(detail="Organization deleted")

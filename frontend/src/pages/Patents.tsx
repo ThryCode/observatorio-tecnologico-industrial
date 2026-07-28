@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select';
 import { Search, Calendar, User, FileText, Globe, Plus, Pencil, Trash2 } from 'lucide-react';
 import { formatDate, getStatusColor, capitalize } from '@/utils/formatters';
+import { usePermissions } from '@/hooks/usePermissions';
 import type { Patent } from '@/types';
 
 const sectorOptions = [
@@ -51,6 +52,7 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function Patents() {
+  const { can } = usePermissions();
   const [search, setSearch] = useState('');
   const [sector, setSector] = useState('');
   const [status, setStatus] = useState('');
@@ -144,10 +146,12 @@ export default function Patents() {
             Registro de patentes nacionales e internacionales por sector tecnológico.
           </p>
         </div>
-        <Button className="gap-2" onClick={openCreateDialog}>
-          <Plus className="h-4 w-4" />
-          Nueva Patente
-        </Button>
+        {can('patents', 'create') && (
+          <Button className="gap-2" onClick={openCreateDialog}>
+            <Plus className="h-4 w-4" />
+            Nueva Patente
+          </Button>
+        )}
       </div>
 
       <div className="flex items-center gap-4">
@@ -224,12 +228,16 @@ export default function Patents() {
                   <span>{patent.country}</span>
                 </div>
                 <div className="flex gap-1 pt-2">
-                  <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openEditDialog(patent); }}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setPatentToDelete(patent); setDeleteDialogOpen(true); }}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  {can('patents', 'edit') && (
+                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openEditDialog(patent); }}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {can('patents', 'delete') && (
+                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setPatentToDelete(patent); setDeleteDialogOpen(true); }}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

@@ -3,8 +3,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_superuser, get_db
-from app.models.user import User
+from app.dependencies import get_db, require_role
+from app.models.user import User, UserRole
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.user import UserResponse, UserUpdate
 from app.services.user_service import UserService
@@ -17,7 +17,7 @@ async def list_users(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     items, total = await UserService(db).list(page, per_page)
     return PaginatedResponse(
@@ -33,7 +33,7 @@ async def list_users(
 async def get_user(
     user_id: UUID,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     return await UserService(db).get(user_id)
 
@@ -43,7 +43,7 @@ async def update_user(
     user_id: UUID,
     data: UserUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     return await UserService(db).update(user_id, data)
 
@@ -52,7 +52,7 @@ async def update_user(
 async def delete_user(
     user_id: UUID,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     await UserService(db).delete(user_id)
     return Message(detail="User deleted")

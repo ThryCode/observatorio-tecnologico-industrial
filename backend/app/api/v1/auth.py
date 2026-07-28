@@ -7,9 +7,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppException
-from app.dependencies import get_current_superuser, get_current_user, get_db
+from app.dependencies import get_current_user, get_db, require_role
 from app.models.organization import Organization
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.auth import LoginRequest, RegisterRequest, RejectRequest, TokenResponse
 from app.schemas.common import PaginatedResponse
 from app.schemas.organization import OrganizationCreate, OrganizationResponse, OrganizationUpdate
@@ -28,7 +28,7 @@ async def register(
     request: Request,
     data: UserCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     user = await AuthService(db).register(data)
     await db.refresh(user)
@@ -132,7 +132,7 @@ async def list_pending(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     users, total = await AuthService(db).list_pending(page, per_page)
     return PaginatedResponse(
@@ -148,7 +148,7 @@ async def list_pending(
 async def approve_user(
     user_id: str,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_superuser),
+    current_user: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     return await AuthService(db).approve_user(user_id, str(current_user.id))
 
@@ -158,6 +158,6 @@ async def reject_user(
     user_id: str,
     data: RejectRequest,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_superuser),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     return await AuthService(db).reject_user(user_id, data.reason)
