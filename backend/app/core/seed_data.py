@@ -4,15 +4,20 @@ All functions are idempotent: they check for existing records before inserting.
 Each function returns the number of inserted records.
 """
 
+from datetime import datetime
 from decimal import Decimal
+from uuid import uuid4
 
 from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.alert import Alert
+from app.models.bulletin import Bulletin
+from app.models.competitiveness import CompetitivenessIndex
 from app.models.indicator import Indicator, IndicatorPeriod
 from app.models.organization import Organization
+from app.models.patent_map import PatentMapEntry
 from app.models.technology import Technology
 
 # ---------------------------------------------------------------------------
@@ -295,6 +300,112 @@ async def seed_alerts(session: AsyncSession) -> int:
     return len(alerts)
 
 
+# ---------------------------------------------------------------------------
+# Bulletins
+# ---------------------------------------------------------------------------
+
+_BULLETINS = [
+    {
+        "titulo": "Boletin Trimestral de Ciencia y Tecnologia Q2 2026",
+        "resumen": "Tendencias tecnologicas emergentes en sectores siderurgico, metalurgico y quimico.",
+        "fecha_publicacion": datetime(2026, 7, 1),
+        "categoria": "boletin", "autor": "OCyT", "sector_codigo": "SID",
+    },
+    {
+        "titulo": "Estudio de Prospectiva: IA en Manufactura",
+        "resumen": "Potencial de adopcion de IA en procesos productivos del sector industrial cubano.",
+        "fecha_publicacion": datetime(2026, 6, 1),
+        "categoria": "estudio", "autor": "ICT", "sector_codigo": "ELE",
+    },
+    {
+        "titulo": "Alerta Tecnologica: Nuevos Materiales para Hidrogeno",
+        "resumen": "Innovaciones en materiales de hidruros metalicos para almacenamiento de energia.",
+        "fecha_publicacion": datetime(2026, 5, 15),
+        "categoria": "alerta", "autor": "CIB", "sector_codigo": None,
+    },
+    {
+        "titulo": "Mapa de Patentes: Tecnologias de Energia Renovable",
+        "resumen": "Actividad patentaria en energia solar, eolica y biomasa con relevancia para Cuba.",
+        "fecha_publicacion": datetime(2026, 4, 1),
+        "categoria": "mapa", "autor": "EDI", "sector_codigo": None,
+    },
+]
+
+
+async def seed_bulletins(session: AsyncSession) -> int:
+    result = await session.execute(select(Bulletin.titulo).limit(1))
+    if result.scalar_one_or_none():
+        return 0
+    for data in _BULLETINS:
+        session.add(Bulletin(id=uuid4(), **data))
+    await session.flush()
+    logger.info(f"Seeded {len(_BULLETINS)} bulletins")
+    return len(_BULLETINS)
+
+
+# ---------------------------------------------------------------------------
+# Competitiveness Indices
+# ---------------------------------------------------------------------------
+
+_COMPETITIVENESS_DATA = [
+    ("Siderurgia", "SID", 42, 78, 65, 91),
+    ("Metalurgia", "MET", 38, 72, 58, 85),
+    ("Quimica", "QUI", 55, 60, 70, 88),
+    ("Electronica", "ELE", 28, 55, 62, 70),
+]
+
+_COMPETITIVENESS_PAISES = ["Cuba", "Chile", "Mexico", "Brasil"]
+
+
+async def seed_competitiveness(session: AsyncSession) -> int:
+    result = await session.execute(select(CompetitivenessIndex).limit(1))
+    if result.scalar_one_or_none():
+        return 0
+    count = 0
+    for sector, codigo, *valores in _COMPETITIVENESS_DATA:
+        for i, pais in enumerate(_COMPETITIVENESS_PAISES):
+            session.add(CompetitivenessIndex(
+                id=uuid4(), sector=sector, sector_codigo=codigo,
+                indicador="Indice de competitividad", valor=valores[i],
+                pais=pais, periodo="2026-Q2", fuente="BCG",
+            ))
+            count += 1
+    await session.flush()
+    logger.info(f"Seeded {count} competitiveness indices")
+    return count
+
+
+# ---------------------------------------------------------------------------
+# Patent Map Entries
+# ---------------------------------------------------------------------------
+
+_PATENT_MAP_DATA = [
+    ("Reduccion Directa", "SID", 34, "creciente"),
+    ("Sensores IoT", "ELE", 28, "creciente"),
+    ("Bioprocesos", None, 22, "estable"),
+    ("Energia Solar", None, 19, "creciente"),
+    ("Materiales Compuestos", "MET", 15, "estable"),
+    ("Hidrogeno Verde", None, 12, "creciente"),
+    ("Automatizacion", "AUT", 10, "estable"),
+    ("Nanomateriales", "MET", 8, "decreciente"),
+]
+
+
+async def seed_patent_maps(session: AsyncSession) -> int:
+    result = await session.execute(select(PatentMapEntry).limit(1))
+    if result.scalar_one_or_none():
+        return 0
+    for tecnologia, codigo, patentes, tendencia in _PATENT_MAP_DATA:
+        session.add(PatentMapEntry(
+            id=uuid4(), tecnologia=tecnologia, pais="Cuba",
+            sector_codigo=codigo, total_patentes=patentes,
+            periodo="2026-Q2", tendencia=tendencia,
+        ))
+    await session.flush()
+    logger.info(f"Seeded {len(_PATENT_MAP_DATA)} patent map entries")
+    return len(_PATENT_MAP_DATA)
+
+
 async def seed_all(session: AsyncSession) -> None:
     """Run all seed functions in the correct order.
 
@@ -307,3 +418,6 @@ async def seed_all(session: AsyncSession) -> None:
     await seed_technologies(session)
     await seed_indicators(session)
     await seed_alerts(session)
+    await seed_bulletins(session)
+    await seed_competitiveness(session)
+    await seed_patent_maps(session)
