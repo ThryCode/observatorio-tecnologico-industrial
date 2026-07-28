@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useOrganizations, useCreateOrganization, useUpdateOrganization, useDeleteOrganization } from '@/hooks/useOrganizations';
+import { useOrganizations, useCreateOrganization, useDeleteOrganization } from '@/hooks/useOrganizations';
 import { useAuth } from '@/contexts/AuthContext';
 import { getIndustrialSectors } from '@/api/industrialSectors';
 import { followOrganization, unfollowOrganization, getFollowStatus } from '@/api/follows';
@@ -32,7 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Building2, Globe, MapPin, ExternalLink, Phone, Calendar, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Search, Building2, Globe, MapPin, ExternalLink, Phone, Calendar, Plus, Trash2 } from 'lucide-react';
 import { formatDate } from '@/utils/formatters';
 import { usePermissions } from '@/hooks/usePermissions';
 import type { Organization } from '@/types';
@@ -56,7 +56,6 @@ export default function Organizations() {
   const [followStatus, setFollowStatus] = useState<{ is_following: boolean; followers_count: number } | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
   const [orgToDelete, setOrgToDelete] = useState<Organization | null>(null);
   const [formData, setFormData] = useState({
     nombre: '', siglas: '', tipo: '', sector_codigo: '', pais: '', provincia: '',
@@ -64,7 +63,6 @@ export default function Organizations() {
   });
 
   const createMutation = useCreateOrganization();
-  const updateMutation = useUpdateOrganization();
   const deleteMutation = useDeleteOrganization();
 
   useEffect(() => {
@@ -102,7 +100,6 @@ export default function Organizations() {
 
   const resetForm = () => {
     setFormData({ nombre: '', siglas: '', tipo: '', sector_codigo: '', pais: '', provincia: '', sitio_web: '', email_contacto: '', fecha_creacion: '', contacto: '' });
-    setEditingOrg(null);
   };
 
   const openCreateDialog = () => {
@@ -110,23 +107,9 @@ export default function Organizations() {
     setDialogOpen(true);
   };
 
-  const openEditDialog = (org: Organization) => {
-    setEditingOrg(org);
-    setFormData({
-      nombre: org.nombre, siglas: org.siglas, tipo: org.tipo, sector_codigo: org.sector_codigo || '', pais: org.pais || '',
-      provincia: org.provincia || '', sitio_web: org.sitio_web || '', email_contacto: org.email_contacto || '',
-      fecha_creacion: org.fecha_creacion || '', contacto: org.contacto || '',
-    });
-    setDialogOpen(true);
-  };
-
   const handleSave = async () => {
     const data: Partial<Organization> = { ...formData, sector_codigo: formData.sector_codigo || undefined };
-    if (editingOrg) {
-      await updateMutation.mutateAsync({ id: editingOrg.id, data });
-    } else {
-      await createMutation.mutateAsync(data);
-    }
+    await createMutation.mutateAsync(data);
     setDialogOpen(false);
     resetForm();
     refetch();
@@ -240,11 +223,6 @@ export default function Organizations() {
                         <TableCell>{org.provincia || '-'}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            {can('organizations', 'edit') && currentUser?.organization_id === org.id && (
-                              <Button variant="ghost" size="sm" onClick={() => openEditDialog(org)}>
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                            )}
                             {can('organizations', 'delete') && (
                               <Button variant="ghost" size="sm" onClick={() => { setOrgToDelete(org); setDeleteDialogOpen(true); }}>
                                 <Trash2 className="h-4 w-4 text-destructive" />
@@ -329,7 +307,7 @@ export default function Organizations() {
       <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) { setDialogOpen(false); resetForm(); } }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingOrg ? 'Editar Organización' : 'Nueva Organización'}</DialogTitle>
+            <DialogTitle>Nueva Organización</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
@@ -389,8 +367,8 @@ export default function Organizations() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>Cancelar</Button>
-            <Button onClick={handleSave} disabled={!formData.nombre || !formData.siglas || createMutation.isPending || updateMutation.isPending}>
-              {editingOrg ? 'Actualizar' : 'Crear'}
+            <Button onClick={handleSave} disabled={!formData.nombre || !formData.siglas || createMutation.isPending}>
+              Crear
             </Button>
           </DialogFooter>
         </DialogContent>
