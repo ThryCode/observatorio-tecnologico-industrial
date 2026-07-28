@@ -38,8 +38,3 @@ class ShortestPathResponse(BaseModel):
     node_ids: list[str] | None = None
     rel_types: list[str] | None = None
     weight: int | None = None
-
-
-class SyncStatusResponse(BaseModel):
-    total_nodes: int
-    node_counts: dict[str, int]

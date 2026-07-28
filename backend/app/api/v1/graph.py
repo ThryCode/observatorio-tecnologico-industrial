@@ -10,7 +10,6 @@ from app.schemas.graph import (
     GraphStatsResponse,
     ShortestPathResponse,
     SyncResponse,
-    SyncStatusResponse,
 )
 
 router = APIRouter(prefix="/graph", tags=["graph"])
@@ -88,15 +87,3 @@ async def find_shortest_path(
     repo = GraphRepository(neo4j)
     result = await repo.shortest_path(from_id, to_id, max_depth)
     return result or ShortestPathResponse()
-
-
-@router.get("/sync/status", response_model=SyncStatusResponse)
-async def sync_graph_status(
-    neo4j=Depends(get_neo4j),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
-):
-    if not neo4j:
-        raise AppException(503, "Neo4j is not available")
-    from app.graph.repository import GraphRepository
-    repo = GraphRepository(neo4j)
-    return await repo.sync_status()
