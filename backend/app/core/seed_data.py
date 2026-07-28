@@ -20,7 +20,7 @@ from app.models.indicator import Indicator, IndicatorPeriod
 from app.models.organization import Organization
 from app.models.patent_map import PatentMapEntry
 from app.models.technology import Technology
-from app.models.user import User, UserStatus
+from app.models.user import User, UserRole, UserStatus
 
 # ---------------------------------------------------------------------------
 # Organizations
@@ -67,6 +67,38 @@ _ORGANIZATIONS = [
         "provincia": "La Habana",
         "pais": "Cuba",
     },
+    {
+        "nombre": "BioNova Cuba",
+        "siglas": "BNC",
+        "tipo": "BIO",
+        "sector_codigo": "BIO",
+        "provincia": "La Habana",
+        "pais": "Cuba",
+    },
+    {
+        "nombre": "AutoTech Solutions",
+        "siglas": "ATS",
+        "tipo": "AUT",
+        "sector_codigo": "AUT",
+        "provincia": "La Habana",
+        "pais": "Cuba",
+    },
+    {
+        "nombre": "QuimiCuba Industrial",
+        "siglas": "QCI",
+        "tipo": "QUI",
+        "sector_codigo": "QUI",
+        "provincia": "La Habana",
+        "pais": "Cuba",
+    },
+    {
+        "nombre": "EmpresaNEW",
+        "siglas": "ENW",
+        "tipo": "empresa",
+        "sector_codigo": "AUT",
+        "provincia": "Villa Clara",
+        "pais": "Cuba",
+    },
 ]
 
 
@@ -90,6 +122,130 @@ async def seed_organizations(session: AsyncSession) -> int:
     if inserted:
         await session.flush()
         logger.info(f"Seeded {inserted} organizations")
+
+    return inserted
+
+
+# ---------------------------------------------------------------------------
+# Users (test representatives)
+# ---------------------------------------------------------------------------
+
+_USERS = [
+    {
+        "email": "carlos@bionova.cu",
+        "username": "carlos",
+        "full_name": "Carlos Mendez",
+        "password": "test12345",
+        "role": UserRole.VISITANTE,
+        "account_type": "representante",
+        "status": UserStatus.APPROVED,
+        "org_siglas": "BNC",
+    },
+    {
+        "email": "ana@autotech.cu",
+        "username": "ana",
+        "full_name": "Ana Rodriguez",
+        "password": "test12345",
+        "role": UserRole.VISITANTE,
+        "account_type": "representante",
+        "status": UserStatus.APPROVED,
+        "org_siglas": "ATS",
+    },
+    {
+        "email": "pedro@quimicuba.cu",
+        "username": "pedro",
+        "full_name": "Pedro Castillo",
+        "password": "test12345",
+        "role": UserRole.VISITANTE,
+        "account_type": "representante",
+        "status": UserStatus.APPROVED,
+        "org_siglas": "QCI",
+    },
+    {
+        "email": "prueba@gmail.com",
+        "username": "enmanuel",
+        "full_name": "Enmanuel Perez",
+        "password": "12345678",
+        "role": UserRole.VISITANTE,
+        "account_type": "representante",
+        "status": UserStatus.APPROVED,
+        "org_siglas": "ENW",
+    },
+    # Functional demo users (no org link)
+    {
+        "username": "usuario",
+        "email": "usuario@mindus.gob.cu",
+        "full_name": "Juan Perez Garcia",
+        "role": "rep_cti",
+        "account_type": "representante",
+        "password": "usuario123",
+        "status": UserStatus.APPROVED,
+    },
+    {
+        "username": "analista",
+        "email": "analista@mindus.gob.cu",
+        "full_name": "Ana analista",
+        "role": "analista",
+        "account_type": "analista",
+        "password": "analista123",
+        "status": UserStatus.APPROVED,
+    },
+    {
+        "username": "paco",
+        "email": "paco@gmail.com",
+        "full_name": "Paco Perez",
+        "role": "visitante",
+        "account_type": "profesional",
+        "password": "paco123",
+        "status": UserStatus.APPROVED,
+    },
+]
+
+
+async def seed_users(session: AsyncSession) -> int:
+    """Insert test users if they do not already exist.
+
+    Handles both org-linked users (representatives) and functional
+    demo users (rep_cti, analista, visitante).  Users without
+    ``org_siglas`` are created without an organization link.
+
+    Returns:
+        Number of newly inserted records.
+    """
+    result = await session.execute(select(User.email))
+    existing = {row[0] for row in result.all()}
+
+    result = await session.execute(
+        select(Organization.id, Organization.siglas)
+    )
+    org_by_siglas = dict(result.all())
+
+    inserted = 0
+    for data in _USERS:
+        if data["email"] in existing:
+            continue
+
+        role_val = data["role"].value if hasattr(data["role"], "value") else data["role"]
+        status_val = data["status"].value if hasattr(data["status"], "value") else data["status"]
+        org_id = org_by_siglas.get(data.get("org_siglas")) if "org_siglas" in data else None
+
+        user = User(
+            email=data["email"],
+            username=data["username"],
+            full_name=data["full_name"],
+            hashed_password=get_password_hash(data["password"]),
+            role=role_val,
+            account_type=data["account_type"],
+            status=status_val,
+            is_active=True,
+            organization_id=org_id,
+        )
+        session.add(user)
+        inserted += 1
+
+    if inserted:
+        await session.flush()
+        logger.info(f"Seeded {inserted} users")
 
     return inserted
 
@@ -408,80 +564,19 @@ async def seed_patent_maps(session: AsyncSession) -> int:
     return len(_PATENT_MAP_DATA)
 
 
-# ---------------------------------------------------------------------------
-# Demo users (non-admin)
-# ---------------------------------------------------------------------------
-
-_DEMO_USERS = [
-    {
-        "username": "usuario",
-        "email": "usuario@mindus.gob.cu",
-        "full_name": "Juan Perez Garcia",
-        "role": "rep_cti",
-        "account_type": "representante",
-        "password": "usuario123",
-    },
-    {
-        "username": "analista",
-        "email": "analista@mindus.gob.cu",
-        "full_name": "Ana analista",
-        "role": "analista",
-        "account_type": "analista",
-        "password": "analista123",
-    },
-    {
-        "username": "paco",
-        "email": "paco@gmail.com",
-        "full_name": "Paco Perez",
-        "role": "visitante",
-        "account_type": "profesional",
-        "password": "paco123",
-    },
-]
-
-
-async def seed_users(session: AsyncSession) -> int:
-    """Insert demo users (representante, analista, profesional) if not exist.
-
-    Returns:
-        Number of newly inserted records.
-    """
-    result = await session.execute(select(User.username))
-    existing = {row[0] for row in result.all()}
-
-    inserted = 0
-    for data in _DEMO_USERS:
-        if data["username"] not in existing:
-            session.add(User(
-                username=data["username"],
-                email=data["email"],
-                hashed_password=get_password_hash(data["password"]),
-                full_name=data["full_name"],
-                role=data["role"],
-                account_type=data["account_type"],
-                status=UserStatus.APPROVED.value,
-                is_superuser=False,
-                is_active=True,
-            ))
-            inserted += 1
-
-    if inserted:
-        await session.flush()
-        logger.info(f"Seeded {inserted} demo users")
-
-    return inserted
-
-
 async def seed_all(session: AsyncSession) -> None:
     """Run all seed functions in the correct order.
 
     Organizations must be seeded before technologies and indicators
     because the latter two reference ``industrial_sectores.codigo``
-    via foreign keys.  The industrial_sectores table is assumed to
-    already contain the base sector rows (AUT, MET, SID, ELE, QUI).
+    via foreign keys.  Users are seeded after organizations so that
+    org-linked users can find their organization.
+
+    The industrial_sectores table is assumed to already contain the
+    base sector rows (AUT, MET, SID, ELE, QUI).
     """
-    await seed_users(session)
     await seed_organizations(session)
+    await seed_users(session)
     await seed_technologies(session)
     await seed_indicators(session)
     await seed_alerts(session)

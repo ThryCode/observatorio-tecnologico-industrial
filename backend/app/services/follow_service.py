@@ -119,13 +119,18 @@ class FollowService:
             .where(Follow.organization_id == org_id)
         )
 
+        user_ids = await self.db.scalars(
+            select(User.id).where(User.organization_id == org_id)
+        )
+        user_ids_list = list(user_ids.all())
+
         following_count = await self.db.scalar(
             select(func.count())
             .select_from(Follow)
             .where(
-                Follow.follower_id == org_id,
-                Follow.follower_type == "organization",
+                Follow.follower_id.in_(user_ids_list),
+                Follow.follower_type == "user",
             )
-        )
+        ) if user_ids_list else 0
 
         return {"followers_count": followers_count or 0, "following_count": following_count or 0}
