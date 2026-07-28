@@ -383,7 +383,7 @@ export default function Patents() {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Confirmar eliminación</DialogTitle>
-            <DialogDescription>¿Está seguro de eliminar la patente "{patentToDelete?.title}"? Esta acción no se puede deshacer.</DialogDescription>
+            <DialogDescription>¿Está seguro de eliminar la patente &quot;{patentToDelete?.title}&quot;? Esta acción no se puede deshacer.</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancelar</Button>

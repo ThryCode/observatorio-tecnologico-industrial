@@ -287,7 +287,7 @@ export default function Regulations() {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Confirmar eliminación</DialogTitle>
-            <DialogDescription>¿Está seguro de eliminar "{regToDelete?.title}"? Esta acción no se puede deshacer.</DialogDescription>
+            <DialogDescription>¿Está seguro de eliminar &quot;{regToDelete?.title}&quot;? Esta acción no se puede deshacer.</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancelar</Button>

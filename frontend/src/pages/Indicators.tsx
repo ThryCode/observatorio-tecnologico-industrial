@@ -269,7 +269,7 @@ export default function Indicators() {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Confirmar eliminación</DialogTitle>
-            <DialogDescription>¿Está seguro de eliminar el indicador "{indToDelete?.name}"? Esta acción no se puede deshacer.</DialogDescription>
+            <DialogDescription>¿Está seguro de eliminar el indicador &quot;{indToDelete?.name}&quot;? Esta acción no se puede deshacer.</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancelar</Button>

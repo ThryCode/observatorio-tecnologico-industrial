@@ -378,7 +378,7 @@ export default function Organizations() {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Confirmar eliminación</DialogTitle>
-            <DialogDescription>¿Está seguro de eliminar "{orgToDelete?.nombre}"? Esta acción no se puede deshacer.</DialogDescription>
+            <DialogDescription>¿Está seguro de eliminar &quot;{orgToDelete?.nombre}&quot;? Esta acción no se puede deshacer.</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancelar</Button>

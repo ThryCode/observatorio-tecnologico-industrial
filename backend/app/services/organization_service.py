@@ -12,7 +12,10 @@ class OrganizationService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def list(self, page: int, per_page: int, tipo: str | None = None, sector_codigo: str | None = None) -> tuple[list[Organization], int]:
+    async def list(
+        self, page: int, per_page: int, tipo: str | None = None,
+        sector_codigo: str | None = None,
+    ) -> tuple[list[Organization], int]:
         query = select(Organization)
         count_query = select(func.count(Organization.id))
 

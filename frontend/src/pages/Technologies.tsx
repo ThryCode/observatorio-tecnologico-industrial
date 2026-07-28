@@ -372,7 +372,7 @@ export default function Technologies() {
           <DialogHeader>
             <DialogTitle>Confirmar eliminación</DialogTitle>
             <DialogDescription>
-              ¿Está seguro de eliminar "{selectedTech?.nombre}"? Esta acción no se puede deshacer.
+              ¿Está seguro de eliminar &quot;{selectedTech?.nombre}&quot;? Esta acción no se puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
