@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppException
@@ -127,10 +127,12 @@ class AuthService:
         await self.db.refresh(user)
         return user
 
-    async def list_pending(self) -> list[User]:
+    async def list_pending(self, page: int, per_page: int) -> tuple[list[User], int]:
+        base = select(User).where(User.status == UserStatus.PENDING.value)
+        count_q = select(func.count(User.id)).where(User.status == UserStatus.PENDING.value)
+        total = (await self.db.execute(count_q)).scalar()
+        offset = (page - 1) * per_page
         result = await self.db.execute(
-            select(User)
-            .where(User.status == UserStatus.PENDING.value)
-            .order_by(User.created_at.desc())
+            base.order_by(User.created_at.desc()).offset(offset).limit(per_page)
         )
-        return list(result.scalars().all())
+        return list(result.scalars().all()), total

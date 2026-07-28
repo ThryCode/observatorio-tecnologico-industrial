@@ -1,6 +1,6 @@
 import os
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy import select
@@ -129,16 +129,18 @@ async def update_my_organization(
 
 @router.get("/pending", response_model=PaginatedResponse[UserResponse])
 async def list_pending(
+    page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_superuser),
 ):
-    users = await AuthService(db).list_pending()
+    users, total = await AuthService(db).list_pending(page, per_page)
     return PaginatedResponse(
         items=users,
-        total=len(users),
-        page=1,
-        per_page=len(users) or 1,
-        total_pages=1,
+        total=total,
+        page=page,
+        per_page=per_page,
+        total_pages=(total + per_page - 1) // per_page,
     )
 
 

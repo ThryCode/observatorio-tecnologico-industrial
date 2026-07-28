@@ -15,7 +15,9 @@ class UserService:
     async def list(self, page: int, per_page: int) -> tuple[list[User], int]:
         total = (await self.db.execute(select(func.count(User.id)))).scalar()
         offset = (page - 1) * per_page
-        result = await self.db.execute(select(User).offset(offset).limit(per_page))
+        result = await self.db.execute(
+            select(User).order_by(User.created_at.desc()).offset(offset).limit(per_page)
+        )
         items = result.scalars().all()
         return items, total
 

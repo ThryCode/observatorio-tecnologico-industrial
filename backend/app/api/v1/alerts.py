@@ -62,7 +62,7 @@ async def update_alert(
 async def mark_alert_read(
     alert_id: UUID,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(get_current_superuser),
 ):
     return await AlertService(db).mark_read(alert_id)
 
