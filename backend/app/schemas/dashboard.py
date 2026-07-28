@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 
@@ -10,3 +12,10 @@ class KPIItem(BaseModel):
 
 class DashboardSummary(BaseModel):
     kpis: list[KPIItem]
+
+
+class TimelineEvent(BaseModel):
+    id: str
+    fecha: datetime
+    titulo: str
+    tipo: str
