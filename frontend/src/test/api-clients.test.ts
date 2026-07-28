@@ -8,6 +8,7 @@ vi.mock('@/api/client', () => ({
     patch: vi.fn().mockResolvedValue({ data: {} }),
     delete: vi.fn().mockResolvedValue({ data: {} }),
   },
+  USE_MOCK: false,
 }));
 
 describe('professionals API client', () => {

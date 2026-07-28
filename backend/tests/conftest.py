@@ -3,7 +3,6 @@ import os
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import update
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -72,7 +71,7 @@ async def superuser_token_headers(client, db_session):
 
 @pytest.fixture
 def auth_headers(client, db_session, superuser_token_headers):
-    async def _make(username: str = "testuser", is_superuser: bool = False, role: str | None = None):
+    async def _make(username: str = "testuser", is_superuser: bool = False, role: str | None = None, organization_id = None):
         if role is None:
             role = "admin_mindus" if is_superuser else "user"
         user = User(
@@ -83,6 +82,7 @@ def auth_headers(client, db_session, superuser_token_headers):
             role=role,
             is_superuser=is_superuser,
             status="approved",
+            organization_id=organization_id,
         )
         db_session.add(user)
         await db_session.flush()

@@ -161,7 +161,6 @@ async def test_delete_technology(client, tech_payload, db_session):
     )
     db_session.add(user)
     await db_session.flush()
-    from app.schemas.auth import LoginRequest
     login_resp = await client.post("/api/v1/auth/login", json={"username": "rbac_admin", "password": "secret123"})
     assert login_resp.status_code == 200, f"Login failed: {login_resp.text}"
     token = login_resp.json()["access_token"]

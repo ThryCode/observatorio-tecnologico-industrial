@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_db, get_current_user, require_role
+from app.dependencies import get_current_user, get_db, require_role
 from app.models.user import User, UserRole
 from app.schemas.alert import AlertCreate, AlertResponse, AlertUpdate
 from app.schemas.common import Message, PaginatedResponse

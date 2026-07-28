@@ -45,12 +45,16 @@ describe('useSpecialties', () => {
   });
 });
 
+const MOCK_ALERTS = [
+  { id: '1', titulo: 'Nueva patente en biotecnología', descripcion: 'Se ha registrado una patente clave en el sector biotecnológico.', severidad: 'alta', fecha: '2026-07-20', sector: 'BIO', leida: false },
+  { id: '2', titulo: 'Actualización regulatoria sector energético', descripcion: 'Nueva normativa para eficiencia energética publicada.', severidad: 'media', fecha: '2026-07-19', sector: 'ENE', leida: false },
+  { id: '3', titulo: 'Indicador de innovación en ascenso', descripcion: 'El índice de innovación industrial subió 3 puntos este trimestre.', severidad: 'baja', fecha: '2026-07-18', leida: true },
+];
+
 vi.mock('@/api/alerts', () => ({
-  listAlerts: vi.fn().mockResolvedValue([
-    { id: '1', titulo: 'Nueva patente en biotecnología', descripcion: 'Se ha registrado una patente clave en el sector biotecnológico.', severidad: 'alta', fecha: '2026-07-20', sector: 'BIO', leida: false },
-    { id: '2', titulo: 'Actualización regulatoria sector energético', descripcion: 'Nueva normativa para eficiencia energética publicada.', severidad: 'media', fecha: '2026-07-19', sector: 'ENE', leida: false },
-    { id: '3', titulo: 'Indicador de innovación en ascenso', descripcion: 'El índice de innovación industrial subió 3 puntos este trimestre.', severidad: 'baja', fecha: '2026-07-18', leida: true },
-  ]),
+  listAlerts: vi.fn((unreadOnly: boolean) =>
+    Promise.resolve(unreadOnly ? MOCK_ALERTS.filter(a => !a.leida) : MOCK_ALERTS),
+  ),
   getAlert: vi.fn().mockResolvedValue(null),
   markAlertRead: vi.fn().mockResolvedValue({}),
 }));
