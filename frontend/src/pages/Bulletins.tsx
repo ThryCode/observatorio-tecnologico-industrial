@@ -19,7 +19,7 @@ function mapBulletinToProductCard(bulletin: Bulletin) {
 
 export default function Bulletins() {
   const { data: rawBulletins, isLoading } = useBulletins();
-  const bulletins = rawBulletins?.map(mapBulletinToProductCard) || [];
+  const bulletins = rawBulletins?.items.map(mapBulletinToProductCard) || [];
 
   return (
     <div className="space-y-6">

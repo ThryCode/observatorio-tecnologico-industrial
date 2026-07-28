@@ -3,6 +3,8 @@ from fastapi import APIRouter
 from app.api.v1 import (
     alerts,
     auth,
+    bulletins,
+    competitiveness,
     dashboard,
     follows,
     graph,
@@ -10,6 +12,7 @@ from app.api.v1 import (
     indicators,
     industrial_sectors,
     organizations,
+    patent_maps,
     patents,
     professionals,
     regulations,
@@ -19,11 +22,14 @@ from app.api.v1 import (
 
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(alerts.router)
+api_router.include_router(bulletins.router)
+api_router.include_router(competitiveness.router)
 api_router.include_router(dashboard.router)
 api_router.include_router(health.router)
 api_router.include_router(auth.router)
 api_router.include_router(users.router)
 api_router.include_router(follows.router)
+api_router.include_router(patent_maps.router)
 api_router.include_router(patents.router)
 api_router.include_router(regulations.router)
 api_router.include_router(indicators.router)

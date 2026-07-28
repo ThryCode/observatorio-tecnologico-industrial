@@ -1,27 +1,39 @@
-import client, { USE_MOCK } from './client';
-import type { CompetitivenessData } from '@/types';
+import client from './client';
+import type { PaginatedResponse } from '@/types';
 
-interface CompetitivenessApiResponse {
+interface CompetitivenessApiItem {
+  id: string;
   sector: string;
-  Cuba: number;
-  Chile: number;
-  México: number;
-  Brasil: number;
+  sector_codigo: string | null;
+  indicador: string;
+  valor: number;
+  pais: string;
+  periodo: string;
+  fuente: string | null;
 }
 
-const MOCK_COMPETITIVENESS: CompetitivenessApiResponse[] = [
-  { sector: 'Siderurgia', Cuba: 42, Chile: 78, México: 65, Brasil: 91 },
-  { sector: 'Metalurgia', Cuba: 38, Chile: 72, México: 58, Brasil: 85 },
-  { sector: 'Química', Cuba: 55, Chile: 60, México: 70, Brasil: 88 },
-  { sector: 'Electrónica', Cuba: 28, Chile: 55, México: 62, Brasil: 70 },
-  { sector: 'Biotecnología', Cuba: 72, Chile: 45, México: 50, Brasil: 68 },
-  { sector: 'Energía', Cuba: 35, Chile: 68, México: 55, Brasil: 80 },
-];
+interface CompetitivenessChartRow {
+  sector: string;
+  [pais: string]: string | number;
+}
 
-export async function getCompetitivenessData(): Promise<CompetitivenessApiResponse[]> {
-  if (USE_MOCK) {
-    return MOCK_COMPETITIVENESS;
-  }
-  const res = await client.get<CompetitivenessApiResponse[]>('/competitiveness');
-  return res.data;
+export async function getCompetitivenessData(periodo?: string) {
+  const params: Record<string, string> = {};
+  if (periodo) params.periodo = periodo;
+  const res = await client.get<PaginatedResponse<CompetitivenessApiItem>>('/competitiveness', { params });
+  const items = res.data.items;
+
+  const paises = [...new Set(items.map(i => i.pais))];
+  const sectores = [...new Set(items.map(i => i.sector))];
+
+  const chartData: CompetitivenessChartRow[] = sectores.map(sector => {
+    const row: CompetitivenessChartRow = { sector };
+    paises.forEach(pais => {
+      const match = items.find(i => i.sector === sector && i.pais === pais);
+      row[pais] = match ? match.valor : 0;
+    });
+    return row;
+  });
+
+  return chartData;
 }

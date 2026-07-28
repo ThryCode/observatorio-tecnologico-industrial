@@ -1,26 +1,27 @@
-import client, { USE_MOCK } from './client';
-import type { PatentMapSummary } from '@/types';
+import client from './client';
 
-interface PatentMapApiResponse {
+interface PatentMapApiItem {
+  id: string;
+  tecnologia: string;
+  pais: string;
+  sector_codigo: string | null;
+  total_patentes: number;
+  periodo: string;
+  tendencia: string;
+}
+
+export interface PatentMapChartRow {
   tecnologia: string;
   patentes: number;
 }
 
-const MOCK_PATENT_MAPS: PatentMapApiResponse[] = [
-  { tecnologia: 'Reducción Directa', patentes: 34 },
-  { tecnologia: 'Sensores IoT', patentes: 28 },
-  { tecnologia: 'Bioprocesos', patentes: 22 },
-  { tecnologia: 'Energía Solar', patentes: 19 },
-  { tecnologia: 'Materiales Compuestos', patentes: 15 },
-  { tecnologia: 'Hidrógeno Verde', patentes: 12 },
-  { tecnologia: 'Automatización', patentes: 10 },
-  { tecnologia: 'Nanomateriales', patentes: 8 },
-];
-
-export async function getPatentMapSummary(): Promise<PatentMapApiResponse[]> {
-  if (USE_MOCK) {
-    return MOCK_PATENT_MAPS;
-  }
-  const res = await client.get<PatentMapApiResponse[]>('/patent-maps/summary');
-  return res.data;
+export async function getPatentMapSummary(pais?: string, sectorCodigo?: string) {
+  const params: Record<string, string> = {};
+  if (pais) params.pais = pais;
+  if (sectorCodigo) params.sector_codigo = sectorCodigo;
+  const res = await client.get<PatentMapApiItem[]>('/patent-maps/summary', { params });
+  return res.data.map(item => ({
+    tecnologia: item.tecnologia,
+    patentes: item.total_patentes,
+  }));
 }
