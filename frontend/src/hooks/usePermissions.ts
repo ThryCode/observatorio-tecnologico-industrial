@@ -16,7 +16,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Entity, Action[]>>> = {
     settings: ['view'],
   },
   rep_cti: {
-    organizations: ['create', 'edit'],
+    organizations: ['edit'],
   },
   analista: {
     patents: ['create'],

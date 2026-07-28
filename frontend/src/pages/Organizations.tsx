@@ -240,7 +240,7 @@ export default function Organizations() {
                         <TableCell>{org.provincia || '-'}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            {can('organizations', 'edit') && (
+                            {can('organizations', 'edit') && currentUser?.organization_id === org.id && (
                               <Button variant="ghost" size="sm" onClick={() => openEditDialog(org)}>
                                 <Pencil className="h-4 w-4" />
                               </Button>
