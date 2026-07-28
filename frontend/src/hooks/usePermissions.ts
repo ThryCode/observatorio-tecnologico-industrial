@@ -7,7 +7,7 @@ type Action = 'create' | 'edit' | 'delete' | 'approve' | 'reject' | 'view';
 const PERMISSIONS: Record<UserRole, Partial<Record<Entity, Action[]>>> = {
   admin_mindus: {
     technologies: ['create', 'edit', 'delete'],
-    organizations: ['create', 'edit', 'delete'],
+    organizations: ['delete'],
     patents: ['create', 'edit', 'delete'],
     regulations: ['create', 'edit', 'delete'],
     indicators: ['create', 'edit', 'delete'],

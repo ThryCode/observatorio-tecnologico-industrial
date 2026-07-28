@@ -51,7 +51,7 @@ async def get_organization_representative(org_id: UUID, db: AsyncSession = Depen
 async def create_organization(
     data: OrganizationCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS, UserRole.REP_CTI)),
+    _: User = Depends(require_role(UserRole.REP_CTI)),
 ):
     return await OrganizationService(db).create(data)
 
@@ -61,8 +61,10 @@ async def update_organization(
     org_id: UUID,
     data: OrganizationUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS, UserRole.REP_CTI)),
+    current_user: User = Depends(require_role(UserRole.REP_CTI)),
 ):
+    if current_user.organization_id != org_id:
+        raise AppException(403, "Solo puedes editar tu propia empresa")
     return await OrganizationService(db).update(org_id, data)
 
 

@@ -68,7 +68,7 @@ export default function Sidebar() {
     visitante: 'Visitante',
   };
 
-  const repNav = user?.account_type === 'representante'
+  const repNav = user?.role === 'rep_cti'
     ? [{ to: '/mi-empresa', label: 'Mi Empresa', icon: Building2 }]
     : [];
 
