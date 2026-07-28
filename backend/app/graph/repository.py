@@ -148,12 +148,14 @@ class GraphRepository:
             return record.data() if record else None
 
     async def sync_all(self, db: AsyncSession):
+        from app.models.follow import Follow
         from app.models.indicator import Indicator
         from app.models.industrial_sector import IndustrialSector
         from app.models.organization import Organization
         from app.models.patent import Patent
         from app.models.regulation import Regulation
         from app.models.technology import Technology
+        from app.models.user import User
 
         async with self.driver.session() as session:
             await self._ensure_constraints(session)
@@ -161,15 +163,22 @@ class GraphRepository:
             rels_merged = 0
 
             # IndustrialSector
+            synced_sectores = set()
             for sector in (await db.execute(select(IndustrialSector))).scalars().all():
                 await session.run(
                     "MERGE (n:IndustrialSector {codigo: $codigo}) SET n += $props",
                     codigo=sector.codigo,
                     props={"nombre": sector.nombre, "descripcion": sector.descripcion},
                 )
+                synced_sectores.add(sector.codigo)
                 nodes_merged += 1
+            await session.run(
+                "MATCH (n:IndustrialSector) WHERE NOT n.codigo IN $ids DETACH DELETE n",
+                ids=list(synced_sectores),
+            )
 
             # Organization
+            synced_orgs = set()
             org_query = select(Organization)
             for org in (await db.execute(org_query)).scalars().all():
                 props = {
@@ -186,6 +195,7 @@ class GraphRepository:
                     "MERGE (n:Organization {id: $id}) SET n += $props",
                     id=str(org.id), props=props,
                 )
+                synced_orgs.add(str(org.id))
                 nodes_merged += 1
                 if org.sector_codigo:
                     await session.run(
@@ -196,8 +206,13 @@ class GraphRepository:
                         org_id=str(org.id), codigo=org.sector_codigo,
                     )
                     rels_merged += 1
+            await session.run(
+                "MATCH (n:Organization) WHERE NOT n.id IN $ids DETACH DELETE n",
+                ids=synced_orgs,
+            )
 
             # Technology
+            synced_techs = set()
             for tech in (await db.execute(select(Technology))).scalars().all():
                 props = {
                     "nombre": tech.nombre,
@@ -211,6 +226,7 @@ class GraphRepository:
                     "MERGE (n:Technology {id: $id}) SET n += $props",
                     id=str(tech.id), props=props,
                 )
+                synced_techs.add(str(tech.id))
                 nodes_merged += 1
                 if tech.sector_codigo:
                     await session.run(
@@ -221,8 +237,13 @@ class GraphRepository:
                         tech_id=str(tech.id), codigo=tech.sector_codigo,
                     )
                     rels_merged += 1
+            await session.run(
+                "MATCH (n:Technology) WHERE NOT n.id IN $ids DETACH DELETE n",
+                ids=synced_techs,
+            )
 
             # Patent
+            synced_pats = set()
             patent_query = select(Patent)
             for pat in (await db.execute(patent_query)).scalars().all():
                 props = {
@@ -243,6 +264,7 @@ class GraphRepository:
                     "MERGE (n:Patent {id: $id}) SET n += $props",
                     id=str(pat.id), props=props,
                 )
+                synced_pats.add(str(pat.id))
                 nodes_merged += 1
                 if pat.organization_id:
                     await session.run(
@@ -268,7 +290,7 @@ class GraphRepository:
                 for inv_name in inventors:
                     person_id = f"person-{inv_name.lower().replace(' ', '-')}"
                     await session.run(
-                        "MERGE (n:Person {id: $person_id}) SET n.name = $name",
+                        "MERGE (n:Person {id: $person_id}) SET n.name = $name, n.source = 'patent_inventor'",
                         person_id=person_id, name=inv_name,
                     )
                     nodes_merged += 1
@@ -280,8 +302,13 @@ class GraphRepository:
                         person_id=person_id, pat_id=str(pat.id),
                     )
                     rels_merged += 1
+            await session.run(
+                "MATCH (n:Patent) WHERE NOT n.id IN $ids DETACH DELETE n",
+                ids=synced_pats,
+            )
 
             # Regulation
+            synced_regs = set()
             for reg in (await db.execute(select(Regulation))).scalars().all():
                 props = {
                     "title": reg.title,
@@ -297,6 +324,7 @@ class GraphRepository:
                     "MERGE (n:Regulation {id: $id}) SET n += $props",
                     id=str(reg.id), props=props,
                 )
+                synced_regs.add(str(reg.id))
                 nodes_merged += 1
                 if reg.sector_codigo:
                     await session.run(
@@ -307,8 +335,13 @@ class GraphRepository:
                         reg_id=str(reg.id), codigo=reg.sector_codigo,
                     )
                     rels_merged += 1
+            await session.run(
+                "MATCH (n:Regulation) WHERE NOT n.id IN $ids DETACH DELETE n",
+                ids=synced_regs,
+            )
 
             # Indicator
+            synced_inds = set()
             for ind in (await db.execute(select(Indicator))).scalars().all():
                 props = {
                     "name": ind.name,
@@ -325,6 +358,7 @@ class GraphRepository:
                     "MERGE (n:Indicator {id: $id}) SET n += $props",
                     id=str(ind.id), props=props,
                 )
+                synced_inds.add(str(ind.id))
                 nodes_merged += 1
                 if ind.sector_codigo:
                     await session.run(
@@ -335,6 +369,57 @@ class GraphRepository:
                         ind_id=str(ind.id), codigo=ind.sector_codigo,
                     )
                     rels_merged += 1
+            await session.run(
+                "MATCH (n:Indicator) WHERE NOT n.id IN $ids DETACH DELETE n",
+                ids=synced_inds,
+            )
+
+            # User (as Person nodes with role info)
+            synced_users = set()
+            for user in (await db.execute(select(User))).scalars().all():
+                person_id = f"user-{user.id}"
+                props = {
+                    "name": user.full_name,
+                    "email": user.email,
+                    "username": user.username,
+                    "role": user.role,
+                    "account_type": user.account_type,
+                    "source": "user",
+                }
+                await session.run(
+                    "MERGE (n:Person {id: $person_id}) SET n += $props",
+                    person_id=person_id, props=props,
+                )
+                synced_users.add(person_id)
+                nodes_merged += 1
+
+                # Link user to their organization
+                if user.organization_id:
+                    await session.run(
+                        """
+                        MATCH (per:Person {id: $person_id}), (org:Organization {id: $org_id})
+                        MERGE (per)-[:REPRESENTS]->(org)
+                        """,
+                        person_id=person_id, org_id=str(user.organization_id),
+                    )
+                    rels_merged += 1
+            # Clean stale Person nodes that came from user sync
+            await session.run(
+                "MATCH (n:Person {source: 'user'}) WHERE NOT n.id IN $ids DETACH DELETE n",
+                ids=synced_users,
+            )
+
+            # Follow relationships
+            for follow in (await db.execute(select(Follow))).scalars().all():
+                person_id = f"user-{follow.follower_id}"
+                await session.run(
+                    """
+                    MATCH (per:Person {id: $person_id}), (org:Organization {id: $org_id})
+                    MERGE (per)-[:FOLLOWS]->(org)
+                    """,
+                    person_id=person_id, org_id=str(follow.organization_id),
+                )
+                rels_merged += 1
 
             return {"nodes_merged": nodes_merged, "relationships_merged": rels_merged}
 
@@ -353,3 +438,19 @@ class GraphRepository:
                 await session.run(cql)
             except Exception:
                 pass
+
+    async def sync_status(self) -> dict:
+        async with self.driver.session() as session:
+            result = await session.run(
+                """
+                MATCH (n)
+                UNWIND labels(n) AS label
+                RETURN label, count(*) AS count
+                ORDER BY label
+                """
+            )
+            counts = {record["label"]: record["count"] async for record in result}
+            return {
+                "total_nodes": sum(counts.values()),
+                "node_counts": counts,
+            }
