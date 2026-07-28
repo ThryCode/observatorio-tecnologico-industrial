@@ -92,16 +92,7 @@ frontend/src/
 - Import from `node_modules` directly in source
 
 ## Known Issues
-- ~~`.env` file is committed~~ ✅ Fixed (F0-01)
-- ~~`setup-env.ps1` has syntax errors~~ ✅ Fixed (F3-16)
-- ~~No health check endpoint (`/api/v1/health`)~~ ✅ Fixed
-- ~~No rate limiting (slowapi not installed)~~ ✅ Fixed
-- ~~No frontend tests (Vitest/Playwright)~~ ✅ Vitest + happy-dom (18 tests)
-- ~~No deployment strategy documented~~ ✅ `docs/production-guide.md` expanded
-- ~~No backup procedures for PG/Neo4j~~ ✅ `docs/backup-recovery.md` expanded
 - No GitHub branch protection or PR reviews
-- `python3` needed in CI, not `python`
-- `pytest-timeout` not in requirements (don't use `--timeout` flag)
 
 ## User Registration Workflow
 - **Public registration:** `POST /api/v1/auth/register/public` — creates user with `status=pending`

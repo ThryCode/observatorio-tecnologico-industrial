@@ -185,7 +185,24 @@ npm run dev                    # Requiere Node 20 LTS
 | `GET/POST` | `/api/v1/indicators` | Si | CRUD indicadores |
 | `GET/POST` | `/api/v1/regulations` | Si | CRUD normativas |
 | `GET/POST` | `/api/v1/industrial-sectors` | Si | CRUD sectores industriales |
+| `GET/POST` | `/api/v1/alerts` | Si | CRUD alertas |
+| `DELETE` | `/api/v1/alerts/{id}` | Si | Eliminar alerta |
+| `PATCH` | `/api/v1/alerts/{id}/read` | Si | Marcar alerta como leída |
+| `GET/POST` | `/api/v1/bulletins` | Si | CRUD boletines |
+| `GET` | `/api/v1/competitiveness` | Si | Índices de competitividad |
+| `GET` | `/api/v1/dashboard/summary` | Si | Resumen del dashboard |
+| `GET` | `/api/v1/dashboard/timeline` | Si | Línea de tiempo del dashboard |
+| `POST` | `/api/v1/follows/organizations/{id}` | Si | Seguir organización |
+| `DELETE` | `/api/v1/follows/organizations/{id}` | Si | Dejar de seguir |
+| `GET` | `/api/v1/follows/status/{org_id}` | Si | Estado de seguimiento |
+| `GET` | `/api/v1/patent-maps` | Si | Mapas de patentes |
+| `GET` | `/api/v1/professionals` | Si | Listar profesionales |
+| `GET` | `/api/v1/professionals/specialties` | Si | Listar especialidades |
+| `GET/PUT` | `/api/v1/professionals/me` | Si | Perfil propio |
+| `GET/PUT/DELETE` | `/api/v1/users/{id}` | Superuser | CRUD usuarios |
 | `POST` | `/api/v1/graph/sync` | Superuser | Sincronizar grafo Neo4j |
+| `GET` | `/api/v1/graph/search` | Si | Buscar en el grafo |
+| `GET` | `/api/v1/graph/stats` | Si | Estadísticas del grafo |
 
 ## Flujo de registro y aprobación
 
@@ -229,7 +246,14 @@ Usuario público                Sistema                    Administrador
 │   │   │   ├── regulations.py   # CRUD normativas
 │   │   │   ├── industrial_sectors.py
 │   │   │   ├── graph.py         # Explorador de grafo
-│   │   │   └── users.py         # Gestión de usuarios
+│   │   │   ├── users.py         # Gestión de usuarios
+│   │   │   ├── alerts.py        # Alertas tempranas
+│   │   │   ├── bulletins.py     # Boletines informativos
+│   │   │   ├── competitiveness.py # Competitividad
+│   │   │   ├── dashboard.py     # Dashboard endpoints
+│   │   │   ├── follows.py       # Seguir organizaciones
+│   │   │   ├── patent_maps.py   # Mapas de patentes
+│   │   │   └── professionals.py # Perfiles profesionales
 │   │   ├── core/
 │   │   │   ├── config.py        # Pydantic BaseSettings
 │   │   │   ├── db.py            # Async SQLAlchemy engine
@@ -424,16 +448,7 @@ alembic downgrade -1
 
 ## Issues conocidos
 
-- ~~`.env` está commiteado~~ ✅ Resuelto (F0-01)
-- ~~`setup-env.ps1` tiene errores de sintaxis~~ ✅ Resuelto (F3-16)
-- ~~No hay frontend tests~~ ✅ Resuelto (F3-13, Vitest + happy-dom)
-- ~~No hay health check endpoint~~ ✅ Resuelto
-- ~~No hay rate limiting~~ ✅ Resuelto
-- `alembic upgrade head` obligatorio antes de arrancar
-- Frontend no tiene eslint config (`eslint.config.js`)
-- Branch protection no configurada (ver `.github/PULL_REQUEST_TEMPLATE.md`)
-- Frontend no tiene eslint config (`eslint.config.js`)
-- Branch protection no configurada (ver `.github/PULL_REQUEST_TEMPLATE.md`)
+- Sin branch protection en GitHub (ver `.github/PULL_REQUEST_TEMPLATE.md`)
 
 ## Licencia
 
