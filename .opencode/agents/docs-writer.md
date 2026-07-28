@@ -1,7 +1,7 @@
 ---
 description: Writes and maintains project documentation
 mode: subagent
-model: opencode/north-mini-code-free
+model: opencode/deepseek-v4-flash-free
 temperature: 0.4
 steps: 15
 permission:

@@ -1,7 +1,7 @@
 ---
 description: Frontend React/TypeScript developer for UI components and pages
 mode: subagent
-model: opencode/mimo-v2.5-free
+model: opencode/deepseek-v4-flash-free
 temperature: 0.3
 steps: 25
 permission:

@@ -1,7 +1,7 @@
 ---
 description: Database migration and schema management specialist
 mode: subagent
-model: opencode/north-mini-code-free
+model: opencode/deepseek-v4-flash-free
 temperature: 0.2
 steps: 20
 permission:

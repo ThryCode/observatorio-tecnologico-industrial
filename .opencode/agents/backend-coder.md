@@ -1,7 +1,7 @@
 ---
 description: Backend Python/FastAPI developer for API endpoints, services, and models
 mode: subagent
-model: opencode/mimo-v2.5-free
+model: opencode/deepseek-v4-flash-free
 temperature: 0.3
 steps: 25
 permission:

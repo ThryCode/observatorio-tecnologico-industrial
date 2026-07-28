@@ -1,7 +1,7 @@
 ---
 description: UI/UX specialist for React components and styling
 mode: subagent
-model: opencode/mimo-v2.5-free
+model: opencode/deepseek-v4-flash-free
 temperature: 0.4
 steps: 20
 permission:

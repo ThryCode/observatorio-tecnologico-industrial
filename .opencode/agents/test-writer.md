@@ -1,7 +1,7 @@
 ---
 description: Writes comprehensive tests for backend and frontend
 mode: subagent
-model: opencode/north-mini-code-free
+model: opencode/deepseek-v4-flash-free
 temperature: 0.2
 steps: 30
 permission:
