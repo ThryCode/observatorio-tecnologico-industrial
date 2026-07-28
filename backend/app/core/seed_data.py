@@ -91,6 +91,14 @@ _ORGANIZATIONS = [
         "provincia": "La Habana",
         "pais": "Cuba",
     },
+    {
+        "nombre": "EmpresaNEW",
+        "siglas": "ENW",
+        "tipo": "empresa",
+        "sector_codigo": "AUT",
+        "provincia": "Villa Clara",
+        "pais": "Cuba",
+    },
 ]
 
 
@@ -152,6 +160,16 @@ _USERS = [
         "account_type": "representante",
         "status": UserStatus.APPROVED,
         "org_siglas": "QCI",
+    },
+    {
+        "email": "prueba@gmail.com",
+        "username": "enmanuel",
+        "full_name": "Enmanuel Perez",
+        "password": "12345678",
+        "role": UserRole.VISITANTE,
+        "account_type": "representante",
+        "status": UserStatus.APPROVED,
+        "org_siglas": "ENW",
     },
 ]
 
