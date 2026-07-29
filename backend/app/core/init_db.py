@@ -31,9 +31,14 @@ async def create_superuser_if_not_exists(session: AsyncSession) -> None:
         return
 
     raw = settings.first_superuser
-    email = raw if "@" in raw else f"{raw}@mindus.gob.cu"
+    if "@" in raw:
+        email = raw
+        username = raw.split("@")[0]
+    else:
+        email = f"{raw}@mindus.gob.cu"
+        username = raw
     superuser = User(
-        username=raw,
+        username=username,
         email=email,
         hashed_password=get_password_hash(settings.first_superuser_password),
         full_name="Administrador MINDUS",
