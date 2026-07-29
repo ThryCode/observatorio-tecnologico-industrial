@@ -100,44 +100,50 @@ async def enterprise_graph(
     db=Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    orgs_result = await db.execute(select(Organization))
-    orgs = orgs_result.scalars().all()
-
     users_result = await db.execute(select(User))
     users = users_result.scalars().all()
+
+    orgs_result = await db.execute(select(Organization))
+    orgs = orgs_result.scalars().all()
 
     follows_result = await db.execute(select(Follow))
     follows = follows_result.scalars().all()
 
-    user_org_map = {}
-    for u in users:
-        if u.organization_id:
-            user_org_map[str(u.id)] = str(u.organization_id)
-
     nodes: list[EnterpriseGraphNode] = []
     edges: list[EnterpriseGraphEdge] = []
-    seen_nodes = set()
+    seen = set()
 
-    for o in orgs:
-        oid = str(o.id)
-        seen_nodes.add(oid)
+    for u in users:
+        nid = f"user-{u.id}"
+        seen.add(nid)
         nodes.append(EnterpriseGraphNode(
-            id=oid,
+            id=nid,
+            type="person",
+            label=u.full_name,
+            role=u.role,
+            org_id=str(u.organization_id) if u.organization_id else None,
+        ))
+    for o in orgs:
+        nid = f"org-{o.id}"
+        seen.add(nid)
+        nodes.append(EnterpriseGraphNode(
+            id=nid,
             type="organization",
             label=f"{o.nombre} ({o.siglas})",
             siglas=o.siglas,
         ))
 
-    added_edges = set()
     for f in follows:
-        follower_org = user_org_map.get(str(f.follower_id))
-        followed_org = str(f.organization_id)
-        if follower_org and follower_org in seen_nodes and followed_org in seen_nodes:
-            key = (follower_org, followed_org)
-            if key not in added_edges:
-                added_edges.add(key)
-                edges.append(EnterpriseGraphEdge(
-                    source=follower_org, target=followed_org, type="FOLLOWS"
-                ))
+        source = f"user-{f.follower_id}"
+        target = f"org-{f.organization_id}"
+        if source in seen and target in seen:
+            edges.append(EnterpriseGraphEdge(source=source, target=target, type="FOLLOWS"))
+
+    for u in users:
+        if u.organization_id:
+            source = f"user-{u.id}"
+            target = f"org-{u.organization_id}"
+            if source in seen and target in seen:
+                edges.append(EnterpriseGraphEdge(source=source, target=target, type="REPRESENTS"))
 
     return EnterpriseGraphResponse(nodes=nodes, edges=edges)
