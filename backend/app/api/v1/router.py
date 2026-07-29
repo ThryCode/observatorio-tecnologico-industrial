@@ -16,6 +16,7 @@ from app.api.v1 import (
     patents,
     professionals,
     regulations,
+    research_publications,
     technologies,
     users,
 )
@@ -38,3 +39,4 @@ api_router.include_router(organizations.router)
 api_router.include_router(technologies.router)
 api_router.include_router(industrial_sectors.router)
 api_router.include_router(professionals.router)
+api_router.include_router(research_publications.router)

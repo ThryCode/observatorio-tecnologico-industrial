@@ -17,9 +17,10 @@ from app.models.alert import Alert
 from app.models.bulletin import Bulletin
 from app.models.competitiveness import CompetitivenessIndex
 from app.models.indicator import Indicator, IndicatorPeriod
+from app.models.industrial_sector import IndustrialSector
 from app.models.organization import Organization
 from app.models.patent_map import PatentMapEntry
-from app.models.industrial_sector import IndustrialSector
+from app.models.research_publication import ResearchPublication
 from app.models.technology import Technology
 from app.models.user import User, UserRole, UserStatus
 
@@ -496,7 +497,7 @@ async def seed_bulletins(session: AsyncSession) -> int:
     if result.scalar_one_or_none():
         return 0
     for data in _BULLETINS:
-        session.add(Bulletin(id=str(uuid4()), **data))
+        session.add(Bulletin(id=uuid4(), **data))
     await session.flush()
     logger.info(f"Seeded {len(_BULLETINS)} bulletins")
     return len(_BULLETINS)
@@ -524,7 +525,7 @@ async def seed_competitiveness(session: AsyncSession) -> int:
     for sector, codigo, *valores in _COMPETITIVENESS_DATA:
         for i, pais in enumerate(_COMPETITIVENESS_PAISES):
             session.add(CompetitivenessIndex(
-                id=str(uuid4()), sector=sector, sector_codigo=codigo,
+                id=uuid4(), sector=sector, sector_codigo=codigo,
                 indicador="Indice de competitividad", valor=valores[i],
                 pais=pais, periodo="2026-Q2", fuente="BCG",
             ))
@@ -556,7 +557,7 @@ async def seed_patent_maps(session: AsyncSession) -> int:
         return 0
     for tecnologia, codigo, patentes, tendencia in _PATENT_MAP_DATA:
         session.add(PatentMapEntry(
-            id=str(uuid4()), tecnologia=tecnologia, pais="Cuba",
+            id=uuid4(), tecnologia=tecnologia, pais="Cuba",
             sector_codigo=codigo, total_patentes=patentes,
             periodo="2026-Q2", tendencia=tendencia,
         ))
@@ -595,6 +596,115 @@ async def seed_industrial_sectors(session: AsyncSession) -> int:
     return count
 
 
+# ---------------------------------------------------------------------------
+# Research Publications
+# ---------------------------------------------------------------------------
+
+_RESEARCH_PUBLICATIONS = [
+    {
+        "titulo": "Modelo de optimización energética en procesos siderúrgicos mediante redes neuronales",
+        "autores": "Rodríguez, C.; Pérez, M.; González, L.",
+        "resumen": (
+            "Se propone un modelo basado en redes neuronales artificiales para optimizar el consumo "
+            "energético en hornos de arco eléctrico de la industria siderúrgica cubana. Los resultados "
+            "muestran una reducción del 12% en el consumo específico de energía."
+        ),
+        "doi": "10.1234/steel.2026.001",
+        "journal": "Revista Cubana de Ingeniería Industrial",
+        "fecha_publicacion": datetime(2026, 3, 15),
+        "palabras_clave": ["redes neuronales", "optimización energética", "siderurgia", "IA"],
+        "sector_codigo": "SID",
+        "url": "https://doi.org/10.1234/steel.2026.001",
+    },
+    {
+        "titulo": "Bioprospección de microorganismos para biorremediación de efluentes metalúrgicos",
+        "autores": "Martínez, A.; Fernández, R.; Díaz, T.",
+        "resumen": (
+            "Se aislaron y caracterizaron cepas bacterianas nativas con capacidad de remover metales "
+            "pesados en efluentes de la industria metalúrgica. La cepa Bacillus sp. MET-23 mostró "
+            "una eficiencia de remoción del 87% para cromo hexavalente."
+        ),
+        "doi": "10.1234/met.2026.008",
+        "journal": "Biotecnología Aplicada",
+        "fecha_publicacion": datetime(2026, 5, 20),
+        "palabras_clave": ["biorremediación", "metales pesados", "microorganismos", "metalurgia"],
+        "sector_codigo": "MET",
+        "url": "https://doi.org/10.1234/met.2026.008",
+    },
+    {
+        "titulo": "Desarrollo de un recubrimiento cerámico nanoestructurado para prótesis ortopédicas",
+        "autores": "Sánchez, P.; Herrera, J.; Cruz, E.",
+        "resumen": (
+            "Se sintetizaron recubrimientos de hidroxiapatita nanoestructurada mediante deposición "
+            "electroforética sobre sustratos de Ti-6Al-4V. Las pruebas in vitro demostraron "
+            "excelente biocompatibilidad y resistencia a la corrosión."
+        ),
+        "doi": "10.1234/bio.2026.003",
+        "journal": "Materiales y Biomateriales",
+        "fecha_publicacion": datetime(2026, 2, 10),
+        "palabras_clave": ["nanotecnología", "biomateriales", "recubrimientos", "implantes"],
+        "sector_codigo": "BIO",
+        "url": None,
+    },
+    {
+        "titulo": "Sistema de control predictivo para microrredes eléctricas con penetración renovable",
+        "autores": "García, D.; López, S.; Torres, R.",
+        "resumen": (
+            "Se implementó un controlador predictivo basado en modelo (MPC) para la gestión óptima "
+            "de microrredes eléctricas con alta penetración de fuentes renovables. El sistema "
+            "logró mantener la estabilidad de frecuencia con un error máximo del 0.5%."
+        ),
+        "doi": "10.1234/ele.2026.012",
+        "journal": "Ingeniería Eléctrica y Automática",
+        "fecha_publicacion": datetime(2026, 7, 5),
+        "palabras_clave": ["microrredes", "control predictivo", "energía renovable", "MPC"],
+        "sector_codigo": "ELE",
+        "url": "https://doi.org/10.1234/ele.2026.012",
+    },
+    {
+        "titulo": "Evaluación de la huella de carbono del biodiésel a partir de aceite de jatropha en Cuba",
+        "autores": "Torres, M.; Ramírez, O.; Medina, J.",
+        "resumen": (
+            "Mediante análisis de ciclo de vida (LCA) se evaluó la huella de carbono de la "
+            "producción de biodiésel a partir de Jatropha curcas en condiciones cubanas. Se "
+            "obtuvo una reducción del 62% respecto al diésel fósil."
+        ),
+        "doi": "10.1234/qui.2026.005",
+        "journal": "Revista Cubana de Química",
+        "fecha_publicacion": datetime(2026, 4, 28),
+        "palabras_clave": ["biodiésel", "huella de carbono", "LCA", "jatropha", "sostenibilidad"],
+        "sector_codigo": "QUI",
+        "url": "https://doi.org/10.1234/qui.2026.005",
+    },
+    {
+        "titulo": "Arquitectura de control descentralizado para líneas de ensamblaje automotriz basada en ROS 2",
+        "autores": "Díaz, L.; Fernández, A.; Pérez, G.",
+        "resumen": (
+            "Se propone una arquitectura modular de control descentralizado utilizando ROS 2 para "
+            "líneas de ensamblaje en la industria automotriz. La implementación redujo el tiempo "
+            "de ciclo en un 18% y mejoró la flexibilidad del sistema."
+        ),
+        "doi": "10.1234/aut.2026.009",
+        "journal": "Automatización Industrial",
+        "fecha_publicacion": datetime(2026, 6, 15),
+        "palabras_clave": ["ROS 2", "control descentralizado", "automotriz", "línea de ensamblaje"],
+        "sector_codigo": "AUT",
+        "url": None,
+    },
+]
+
+
+async def seed_research_publications(session: AsyncSession) -> int:
+    result = await session.execute(select(ResearchPublication.titulo).limit(1))
+    if result.scalar_one_or_none():
+        return 0
+    for data in _RESEARCH_PUBLICATIONS:
+        session.add(ResearchPublication(id=uuid4(), **data))
+    await session.flush()
+    logger.info(f"Seeded {len(_RESEARCH_PUBLICATIONS)} research publications")
+    return len(_RESEARCH_PUBLICATIONS)
+
+
 async def seed_all(session: AsyncSession) -> None:
     """Run all seed functions in the correct order."""
     await seed_industrial_sectors(session)
@@ -606,3 +716,4 @@ async def seed_all(session: AsyncSession) -> None:
     await seed_bulletins(session)
     await seed_competitiveness(session)
     await seed_patent_maps(session)
+    await seed_research_publications(session)

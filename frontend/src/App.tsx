@@ -21,6 +21,7 @@ const Competitiveness = lazy(() => import('@/pages/Competitiveness'));
 const PatentMaps = lazy(() => import('@/pages/PatentMaps'));
 const MiEmpresa = lazy(() => import('@/pages/MiEmpresa'));
 const Network = lazy(() => import('@/pages/Network'));
+const PublicationsPage = lazy(() => import('@/pages/PublicationsPage'));
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
 
 function PageLoader() {
@@ -57,6 +58,7 @@ export default function App() {
             <Route path="/bulletins" element={<Bulletins />} />
             <Route path="/competitiveness" element={<Competitiveness />} />
             <Route path="/patent-maps" element={<PatentMaps />} />
+            <Route path="/publications" element={<PublicationsPage />} />
             <Route path="/network" element={<Network />} />
             <Route path="/admin/pending" element={
               <ProtectedRoute requiredRoles={['admin_mindus']}>

@@ -10,6 +10,7 @@ from app.models.patent import Patent
 from app.models.patent_map import PatentMapEntry
 from app.models.professional_profile import ProfessionalProfile
 from app.models.regulation import Regulation
+from app.models.research_publication import ResearchPublication
 from app.models.technology import Technology
 from app.models.user import User
 
@@ -19,6 +20,7 @@ __all__ = [
     "Bulletin",
     "CompetitivenessIndex",
     "PatentMapEntry",
+    "ResearchPublication",
     "User",
     "Patent",
     "Regulation",

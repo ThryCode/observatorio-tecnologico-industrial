@@ -252,6 +252,21 @@ export interface CompetitivenessData {
   indicadores: { nombre: string; valor: number }[];
 }
 
+export interface ResearchPublication {
+  id: string;
+  titulo: string;
+  autores: string;
+  resumen?: string;
+  doi?: string;
+  journal?: string;
+  fecha_publicacion: string;
+  palabras_clave?: string[];
+  sector_codigo?: string;
+  url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface PatentMapSummary {
   tecnologia: string;
   cantidad: number;
