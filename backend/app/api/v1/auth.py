@@ -15,6 +15,7 @@ from app.schemas.common import PaginatedResponse
 from app.schemas.organization import OrganizationCreate, OrganizationResponse, OrganizationUpdate
 from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.services.auth_service import AuthService
+from app.services.email_service import notify_approval, notify_rejection
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -150,7 +151,9 @@ async def approve_user(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
-    return await AuthService(db).approve_user(user_id, str(current_user.id))
+    user = await AuthService(db).approve_user(user_id, str(current_user.id))
+    await notify_approval(user.email, user.full_name)
+    return user
 
 
 @router.post("/{user_id}/reject", response_model=UserResponse)
@@ -160,4 +163,6 @@ async def reject_user(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
-    return await AuthService(db).reject_user(user_id, data.reason)
+    user = await AuthService(db).reject_user(user_id, data.reason)
+    await notify_rejection(user.email, user.full_name, data.reason)
+    return user

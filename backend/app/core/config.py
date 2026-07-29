@@ -22,6 +22,14 @@ class Settings(BaseSettings):
     first_superuser: str = "admin@mindus.gob.cu"
     first_superuser_password: str
 
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_use_tls: bool = True
+    email_from: str = "Observatorio Tecnologico Industrial <noreply@mindus.gob.cu>"
+    frontend_url: str = "http://localhost:5173"
+
     upload_dir: str = "./uploads"
     max_upload_size: int = 10_485_760  # 10MB
     allowed_extensions: str = ".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"

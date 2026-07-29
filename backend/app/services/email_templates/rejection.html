@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><title>Cuenta rechazada</title></head>
+<body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+  <h2 style="color:#1a5c8a;">Observatorio Tecnol&oacute;gico Industrial</h2>
+  <p>Estimado/a <strong>{{ nombre }}</strong>,</p>
+  <p>Su solicitud de registro no ha sido aprobada.</p>
+  {% if razon %}
+  <p><strong>Motivo:</strong> {{ razon }}</p>
+  {% endif %}
+  <p>Si considera que esto es un error, por favor contacte al administrador del sistema.</p>
+  <hr style="margin-top:30px;">
+  <p style="font-size:12px;color:#888;">Ministerio de Industrias &mdash; MINDUS</p>
+</body>
+</html>
