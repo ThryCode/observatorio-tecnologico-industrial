@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,7 @@ const routeNames: Record<string, string> = {
 export default function Topbar() {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
@@ -117,7 +118,7 @@ export default function Topbar() {
           </div>
 
           {/* Notifications */}
-          <button className="relative w-10 h-10 rounded-full border border-border bg-surface text-text-secondary hover:bg-background hover:border-accent-orange hover:text-accent-orange hover:-translate-y-0.5 transition-all duration-150 flex items-center justify-center" aria-label="Notificaciones" title="Notificaciones">
+          <button onClick={() => navigate('/alerts')} className="relative w-10 h-10 rounded-full border border-border bg-surface text-text-secondary hover:bg-background hover:border-accent-orange hover:text-accent-orange hover:-translate-y-0.5 transition-all duration-150 flex items-center justify-center" aria-label="Notificaciones" title="Notificaciones">
             <Bell className="h-4 w-4" />
             {notifCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] rounded-full bg-accent-orange text-white text-[10px] font-bold flex items-center justify-center border-2 border-surface">
@@ -127,7 +128,7 @@ export default function Topbar() {
           </button>
 
           {/* Settings */}
-          <button className="w-10 h-10 rounded-full border border-border bg-surface text-text-secondary hover:bg-background hover:border-accent-orange hover:text-accent-orange hover:-translate-y-0.5 transition-all duration-150 flex items-center justify-center" aria-label="Configuración" title="Configuración">
+          <button onClick={() => navigate('/settings')} className="w-10 h-10 rounded-full border border-border bg-surface text-text-secondary hover:bg-background hover:border-accent-orange hover:text-accent-orange hover:-translate-y-0.5 transition-all duration-150 flex items-center justify-center" aria-label="Configuración" title="Configuración">
             <Settings className="h-4 w-4" />
           </button>
 
