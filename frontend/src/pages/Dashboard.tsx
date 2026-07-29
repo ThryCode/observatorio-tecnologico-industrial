@@ -227,7 +227,7 @@ export default function Dashboard() {
           <div className="flex flex-col">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-bold text-foreground">Entidades CTI</h3>
-              <Button variant="link" size="sm" className="text-accent-orange gap-1">
+              <Button variant="link" size="sm" className="text-accent-orange gap-1" onClick={() => navigate('/organizations')}>
                 <Eye className="h-3.5 w-3.5" />
                 Ver todas
               </Button>
@@ -255,7 +255,7 @@ export default function Dashboard() {
       <section>
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-base font-bold text-foreground">Productos de Inteligencia</h3>
-          <Button variant="link" size="sm" className="text-accent-orange gap-1">
+          <Button variant="link" size="sm" className="text-accent-orange gap-1" onClick={() => navigate('/bulletins')}>
             <Eye className="h-3.5 w-3.5" />
             Ver todos
           </Button>
