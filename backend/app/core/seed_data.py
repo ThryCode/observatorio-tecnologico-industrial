@@ -495,7 +495,7 @@ async def seed_bulletins(session: AsyncSession) -> int:
     if result.scalar_one_or_none():
         return 0
     for data in _BULLETINS:
-        session.add(Bulletin(id=uuid4(), **data))
+        session.add(Bulletin(id=str(uuid4()), **data))
     await session.flush()
     logger.info(f"Seeded {len(_BULLETINS)} bulletins")
     return len(_BULLETINS)
@@ -523,7 +523,7 @@ async def seed_competitiveness(session: AsyncSession) -> int:
     for sector, codigo, *valores in _COMPETITIVENESS_DATA:
         for i, pais in enumerate(_COMPETITIVENESS_PAISES):
             session.add(CompetitivenessIndex(
-                id=uuid4(), sector=sector, sector_codigo=codigo,
+                id=str(uuid4()), sector=sector, sector_codigo=codigo,
                 indicador="Indice de competitividad", valor=valores[i],
                 pais=pais, periodo="2026-Q2", fuente="BCG",
             ))
@@ -555,7 +555,7 @@ async def seed_patent_maps(session: AsyncSession) -> int:
         return 0
     for tecnologia, codigo, patentes, tendencia in _PATENT_MAP_DATA:
         session.add(PatentMapEntry(
-            id=uuid4(), tecnologia=tecnologia, pais="Cuba",
+            id=str(uuid4()), tecnologia=tecnologia, pais="Cuba",
             sector_codigo=codigo, total_patentes=patentes,
             periodo="2026-Q2", tendencia=tendencia,
         ))

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import enum
-import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -44,7 +43,7 @@ class User(Base, UUIDMixin, TimestampMixin):
     role: Mapped[str] = mapped_column(String(20), default=UserRole.VISITANTE.value)
     phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
     job_title: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    organization_id: Mapped[uuid.UUID | None] = mapped_column(
+    organization_id: Mapped[str | None] = mapped_column(
         ForeignKey("organizations.id"), nullable=True
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -54,7 +53,7 @@ class User(Base, UUIDMixin, TimestampMixin):
     account_type: Mapped[str | None] = mapped_column(String(20), nullable=True)
     status: Mapped[str] = mapped_column(String(20), default=UserStatus.PENDING.value)
     rejection_reason: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    approved_by: Mapped[uuid.UUID | None] = mapped_column(
+    approved_by: Mapped[str | None] = mapped_column(
         ForeignKey("users.id"), nullable=True
     )
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

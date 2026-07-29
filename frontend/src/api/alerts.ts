@@ -17,8 +17,8 @@ export async function listAlerts(unreadOnly = false): Promise<Alert[]> {
     return MOCK_ALERTS;
   }
   const params = unreadOnly ? '?unread_only=true' : '';
-  const res = await client.get<Alert[]>(`/alerts${params}`);
-  return res.data;
+  const res = await client.get<{ items: Alert[] }>(`/alerts${params}`);
+  return res.data.items;
 }
 
 export async function getAlert(id: string): Promise<Alert> {

@@ -123,9 +123,9 @@ export default function KnowledgeGraph({ className, height = 400 }: KnowledgeGra
         <rect width="100" height="100" fill="url(#grid)" />
 
         {/* Concentric ring guides */}
-        <circle cx={50} cy={50} r={15} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.3" strokeDasharray="1.5 1.5" />
-        <circle cx={50} cy={50} r={28} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.3" strokeDasharray="1.5 1.5" />
-        <circle cx={50} cy={50} r={40} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="0.3" strokeDasharray="1.5 1.5" />
+        <circle cx={50} cy={50} r={15} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="0.4" strokeDasharray="1.5 1.5" />
+        <circle cx={50} cy={50} r={28} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="0.4" strokeDasharray="1.5 1.5" />
+        <circle cx={50} cy={50} r={40} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="0.4" strokeDasharray="1.5 1.5" />
 
         {/* Links */}
         {links.map((link, i) => {
@@ -140,10 +140,9 @@ export default function KnowledgeGraph({ className, height = 400 }: KnowledgeGra
               y1={source.y}
               x2={target.x}
               y2={target.y}
-              stroke={link.active ? '#E86A33' : 'rgba(255,255,255,0.08)'}
-              strokeWidth={link.active ? 0.6 : 0.4}
+              stroke={link.active ? '#E86A33' : 'rgba(255,255,255,0.2)'}
+              strokeWidth={link.active ? 0.6 : 0.5}
               strokeOpacity={connected ? 1 : 0.15}
-              className="transition-all duration-150"
             />
           );
         })}
@@ -151,23 +150,21 @@ export default function KnowledgeGraph({ className, height = 400 }: KnowledgeGra
         {/* Nodes */}
         {allNodes.map((node) => {
           const connected = isConnected(node.id);
+          const isHovered = hoveredId === node.id;
           return (
             <g
               key={node.id}
-              className="transition-all duration-150 cursor-pointer"
-              style={{ transformOrigin: `${node.x}px ${node.y}px` }}
+              className="cursor-pointer"
               onMouseEnter={() => setHoveredId(node.id)}
               onMouseLeave={() => setHoveredId(null)}
             >
               <circle
                 cx={node.x}
                 cy={node.y}
-                r={node.radius}
+                r={isHovered ? node.radius * 1.3 : node.radius}
                 fill={node.color}
                 opacity={connected ? 0.9 : 0.2}
-                className="transition-all duration-150"
-                filter={hoveredId === node.id ? 'url(#glow-orange)' : undefined}
-                style={hoveredId === node.id ? { transform: 'scale(1.2)' } : undefined}
+                filter={isHovered ? 'url(#glow-orange)' : undefined}
               />
               <text
                 x={node.x}
@@ -176,7 +173,7 @@ export default function KnowledgeGraph({ className, height = 400 }: KnowledgeGra
                 fill={connected ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.2)'}
                 fontSize={1.8}
                 fontWeight="500"
-                className="pointer-events-none transition-all duration-150"
+                className="pointer-events-none"
               >
                 {node.label}
               </text>
