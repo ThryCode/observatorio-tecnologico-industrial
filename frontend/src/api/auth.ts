@@ -1,4 +1,4 @@
-import client from './client';
+import client, { USE_MOCK } from './client';
 import type {
   LoginRequest,
   TokenResponse,
@@ -10,12 +10,31 @@ import type {
   Organization,
 } from '@/types';
 
+const MOCK_USER: User = {
+  id: 'mock-admin',
+  username: 'admin',
+  email: 'admin@mindus.gob.cu',
+  full_name: 'Administrador MINDUS',
+  role: 'admin_mindus',
+  is_active: true,
+  is_superuser: true,
+  account_type: 'admin',
+  status: 'approved',
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+};
+
 export async function login(data: LoginRequest): Promise<TokenResponse> {
+  if (USE_MOCK) {
+    if (data.username !== 'admin') throw new Error('Invalid credentials');
+    return { access_token: 'mock-token-admin', token_type: 'bearer' };
+  }
   const res = await client.post<TokenResponse>('/auth/login', data);
   return res.data;
 }
 
 export async function getMe(): Promise<User> {
+  if (USE_MOCK) return MOCK_USER;
   const res = await client.get<User>('/auth/me');
   return res.data;
 }
