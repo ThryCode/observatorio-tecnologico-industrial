@@ -52,6 +52,7 @@ export interface Patent {
   country: string;
   technology_id?: string;
   organization_id?: string;
+  file_url?: string;
   created_at: string;
   updated_at: string;
 }

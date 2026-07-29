@@ -1,7 +1,9 @@
 import client, { USE_MOCK } from './client';
 import type { Patent, PaginatedResponse } from '@/types';
 
-const MOCK_PATENTS: Patent[] = [
+const STORAGE_KEY = 'mock_patents';
+
+const DEFAULT_PATENTS: Patent[] = [
   {
     id: '1',
     title: 'Sistema de monitoreo de eficiencia energética industrial',
@@ -90,6 +92,21 @@ const MOCK_PATENTS: Patent[] = [
   },
 ];
 
+function loadMockPatents(): Patent[] {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PATENTS));
+  return [...DEFAULT_PATENTS];
+}
+
+function saveMockPatents(patents: Patent[]) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(patents));
+}
+
+let MOCK_PATENTS = loadMockPatents();
+
 export async function getPatents(
   page = 1,
   perPage = 20,
@@ -140,6 +157,7 @@ export async function createPatent(data: Partial<Patent>): Promise<Patent> {
   if (USE_MOCK) {
     const newPatent: Patent = { ...data, id: String(Date.now()), created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as Patent;
     MOCK_PATENTS.unshift(newPatent);
+    saveMockPatents(MOCK_PATENTS);
     return newPatent;
   }
   const res = await client.post<Patent>('/patents', data);
@@ -151,6 +169,7 @@ export async function updatePatent(id: string, data: Partial<Patent>): Promise<P
     const idx = MOCK_PATENTS.findIndex((p) => p.id === id);
     if (idx === -1) throw new Error('Patent not found');
     MOCK_PATENTS[idx] = { ...MOCK_PATENTS[idx], ...data, updated_at: new Date().toISOString() };
+    saveMockPatents(MOCK_PATENTS);
     return MOCK_PATENTS[idx];
   }
   const res = await client.put<Patent>(`/patents/${id}`, data);
@@ -162,6 +181,7 @@ export async function deletePatent(id: string): Promise<void> {
     const idx = MOCK_PATENTS.findIndex((p) => p.id === id);
     if (idx === -1) throw new Error('Patent not found');
     MOCK_PATENTS.splice(idx, 1);
+    saveMockPatents(MOCK_PATENTS);
     return;
   }
   await client.delete(`/patents/${id}`);

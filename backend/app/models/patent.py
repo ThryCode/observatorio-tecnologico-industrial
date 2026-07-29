@@ -36,3 +36,4 @@ class Patent(Base, UUIDMixin, TimestampMixin):
     organization_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("organizations.id"), nullable=True
     )
+    file_url: Mapped[str | None] = mapped_column(String(500), nullable=True)

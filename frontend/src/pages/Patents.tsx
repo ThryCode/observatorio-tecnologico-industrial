@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { usePatents, useCreatePatent, useUpdatePatent, useDeletePatent } from '@/hooks/usePatents';
+import FileUpload from '@/components/FileUpload';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Calendar, User, FileText, Globe, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Search, Calendar, User, FileText, Globe, Plus, Pencil, Trash2, AlertCircle, Download } from 'lucide-react';
 import { formatDate, getStatusColor, capitalize } from '@/utils/formatters';
 import { usePermissions } from '@/hooks/usePermissions';
 import type { Patent } from '@/types';
@@ -62,9 +63,11 @@ export default function Patents() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingPatent, setEditingPatent] = useState<Patent | null>(null);
   const [patentToDelete, setPatentToDelete] = useState<Patent | null>(null);
+  const [saveError, setSaveError] = useState('');
   const [formData, setFormData] = useState({
     title: '', patent_number: '', applicant: '', inventor: '', filing_date: '',
     publication_date: '', status: '', abstract: '', technological_sector: '', country: '',
+    file_url: '',
   });
 
   const createMutation = useCreatePatent();
@@ -74,7 +77,7 @@ export default function Patents() {
   const { data, isLoading, isError, refetch } = usePatents(page, 20, sector || undefined, status || undefined, search || undefined);
 
   const resetForm = () => {
-    setFormData({ title: '', patent_number: '', applicant: '', inventor: '', filing_date: '', publication_date: '', status: '', abstract: '', technological_sector: '', country: '' });
+    setFormData({ title: '', patent_number: '', applicant: '', inventor: '', filing_date: '', publication_date: '', status: '', abstract: '', technological_sector: '', country: '', file_url: '' });
     setEditingPatent(null);
   };
 
@@ -89,27 +92,33 @@ export default function Patents() {
       title: patent.title, patent_number: patent.patent_number, applicant: patent.applicant,
       inventor: patent.inventor, filing_date: patent.filing_date, publication_date: patent.publication_date || '',
       status: patent.status, abstract: patent.abstract || '', technological_sector: patent.technological_sector || '',
-      country: patent.country,
+      country: patent.country, file_url: patent.file_url || '',
     });
     setDialogOpen(true);
   };
 
   const handleSave = async () => {
-    const data: Partial<Patent> = {
+    setSaveError('');
+    const data: Partial<Patent> & { file_url?: string } = {
       ...formData,
       status: formData.status as import('@/types').PatentStatus,
       publication_date: formData.publication_date || undefined,
       abstract: formData.abstract || undefined,
       technological_sector: formData.technological_sector || undefined,
+      file_url: formData.file_url || undefined,
     };
-    if (editingPatent) {
-      await updateMutation.mutateAsync({ id: editingPatent.id, data });
-    } else {
-      await createMutation.mutateAsync(data);
+    try {
+      if (editingPatent) {
+        await updateMutation.mutateAsync({ id: editingPatent.id, data });
+      } else {
+        await createMutation.mutateAsync(data);
+      }
+      setDialogOpen(false);
+      resetForm();
+      refetch();
+    } catch {
+      setSaveError('Error al guardar la patente. Verifica los datos.');
     }
-    setDialogOpen(false);
-    resetForm();
-    refetch();
   };
 
   const handleDelete = async () => {
@@ -228,6 +237,13 @@ export default function Patents() {
                   <span>{patent.country}</span>
                 </div>
                 <div className="flex gap-1 pt-2">
+                  {patent.file_url && (
+                    <a href={patent.file_url} download onClick={(e) => e.stopPropagation()}>
+                      <Button variant="ghost" size="sm" type="button">
+                        <Download className="h-4 w-4 text-blue-500" />
+                      </Button>
+                    </a>
+                  )}
                   {can('patents', 'edit') && (
                     <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openEditDialog(patent); }}>
                       <Pencil className="h-4 w-4" />
@@ -299,6 +315,15 @@ export default function Patents() {
                   <p className="text-muted-foreground">{selectedPatent.country}</p>
                 </div>
               </div>
+              {selectedPatent.file_url && (
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="font-medium">Archivo adjunto:</span>
+                  <a href={selectedPatent.file_url} download className="flex items-center gap-1 text-primary hover:underline">
+                    <Download className="h-3.5 w-3.5" />
+                    Descargar archivo
+                  </a>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
@@ -369,7 +394,21 @@ export default function Patents() {
                 placeholder="Resumen de la patente"
               />
             </div>
+            <div className="col-span-2">
+              <label className="text-sm font-medium">Archivo adjunto</label>
+              <FileUpload
+                onUpload={(url) => setFormData({ ...formData, file_url: url })}
+                currentUrl={formData.file_url}
+                accept=".pdf,.doc,.docx"
+              />
+            </div>
           </div>
+          {saveError && (
+            <div className="flex items-center gap-2 text-sm text-red-500">
+              <AlertCircle className="h-4 w-4" />
+              <span>{saveError}</span>
+            </div>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>Cancelar</Button>
             <Button onClick={handleSave} disabled={!formData.title || !formData.patent_number || !formData.applicant || createMutation.isPending || updateMutation.isPending}>

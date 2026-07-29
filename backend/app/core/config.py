@@ -22,9 +22,17 @@ class Settings(BaseSettings):
     first_superuser: str = "admin@mindus.gob.cu"
     first_superuser_password: str
 
+    upload_dir: str = "./uploads"
+    max_upload_size: int = 10_485_760  # 10MB
+    allowed_extensions: str = ".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+
     @property
     def cors_origins(self) -> list[str]:
         return json.loads(self.backend_cors_origins)
+
+    @property
+    def allowed_extensions_list(self) -> list[str]:
+        return [ext.strip().lower() for ext in self.allowed_extensions.split(",")]
 
 
 settings = Settings()

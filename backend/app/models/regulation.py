@@ -29,3 +29,4 @@ class Regulation(Base, UUIDMixin, TimestampMixin):
     sector_codigo: Mapped[str | None] = mapped_column(
         ForeignKey("industrial_sectores.codigo"), nullable=True
     )
+    file_url: Mapped[str | None] = mapped_column(String(500), nullable=True)

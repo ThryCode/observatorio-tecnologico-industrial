@@ -15,6 +15,7 @@ class RegulationCreate(BaseModel):
     category: RegulationCategory
     summary: str | None = None
     sector_codigo: str | None = Field(None, min_length=3, max_length=3)
+    file_url: str | None = None
 
     @field_validator("effective_date")
     @classmethod
@@ -32,6 +33,7 @@ class RegulationUpdate(BaseModel):
     category: RegulationCategory | None = None
     summary: str | None = None
     sector_codigo: str | None = Field(None, min_length=3, max_length=3)
+    file_url: str | None = None
 
 
 class RegulationResponse(BaseModel):
@@ -44,6 +46,7 @@ class RegulationResponse(BaseModel):
     category: RegulationCategory
     summary: str | None
     sector_codigo: str | None
+    file_url: str | None
     created_at: datetime
     updated_at: datetime
 

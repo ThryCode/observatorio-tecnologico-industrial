@@ -20,6 +20,7 @@ class PatentCreate(BaseModel):
     country: str = Field(..., min_length=2, max_length=2)
     technology_id: UUID | None = None
     organization_id: UUID | None = None
+    file_url: str | None = None
 
     @field_validator("patent_number")
     @classmethod
@@ -45,6 +46,7 @@ class PatentUpdate(BaseModel):
     country: str | None = Field(None, min_length=2, max_length=2)
     technology_id: UUID | None = None
     organization_id: UUID | None = None
+    file_url: str | None = None
 
     @field_validator("country")
     @classmethod
@@ -66,6 +68,7 @@ class PatentResponse(BaseModel):
     country: str
     technology_id: UUID | None
     organization_id: UUID | None
+    file_url: str | None
     created_at: datetime
     updated_at: datetime
 
