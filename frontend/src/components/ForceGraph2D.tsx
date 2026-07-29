@@ -17,7 +17,6 @@ const REPULSION = 8000;
 const ATTRACTION = 0.005;
 const DAMPING = 0.85;
 const MIN_VELOCITY = 0.1;
-const RADIUS = 24;
 const RADIUS_ORG = 32;
 
 export default function ForceGraph2D({ nodes, edges }: Props) {
@@ -124,9 +123,8 @@ export default function ForceGraph2D({ nodes, edges }: Props) {
       const dx = tgt.x - src.x;
       const dy = tgt.y - src.y;
       const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-      const r = tgt.type === 'organization' ? RADIUS_ORG : RADIUS;
-      const ax = tgt.x - (dx / dist) * (r + 8);
-      const ay = tgt.y - (dy / dist) * (r + 8);
+      const ax = tgt.x - (dx / dist) * (RADIUS_ORG + 8);
+      const ay = tgt.y - (dy / dist) * (RADIUS_ORG + 8);
       const angle = Math.atan2(dy, dx);
       ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
       ctx.beginPath();
@@ -138,19 +136,12 @@ export default function ForceGraph2D({ nodes, edges }: Props) {
     }
 
     for (const n of sim) {
-      const r = n.type === 'organization' ? RADIUS_ORG : RADIUS;
       ctx.beginPath();
-      ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+      ctx.arc(n.x, n.y, RADIUS_ORG, 0, Math.PI * 2);
 
-      if (n.type === 'organization') {
-        ctx.fillStyle = '#f97316';
-        ctx.shadowColor = '#f9731680';
-        ctx.shadowBlur = 16;
-      } else {
-        ctx.fillStyle = '#3b82f6';
-        ctx.shadowColor = '#3b82f680';
-        ctx.shadowBlur = 10;
-      }
+      ctx.fillStyle = '#f97316';
+      ctx.shadowColor = '#f9731680';
+      ctx.shadowBlur = 16;
       ctx.fill();
       ctx.shadowBlur = 0;
 
@@ -158,8 +149,7 @@ export default function ForceGraph2D({ nodes, edges }: Props) {
       ctx.font = '11px Inter, system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
-      const label = n.type === 'organization' ? (n.siglas || n.label) : n.label.split(' ')[0];
-      ctx.fillText(label, n.x, n.y + r + 4);
+      ctx.fillText(n.siglas || n.label, n.x, n.y + r + 4);
     }
 
     const avgV = sim.reduce((a, n) => a + Math.abs(n.vx) + Math.abs(n.vy), 0) / sim.length;
@@ -195,10 +185,9 @@ export default function ForceGraph2D({ nodes, edges }: Props) {
 
   const getNodeAt = useCallback((x: number, y: number): ForceNode | null => {
     for (const n of simRef.current) {
-      const r = n.type === 'organization' ? RADIUS_ORG : RADIUS;
       const dx = n.x - x;
       const dy = n.y - y;
-      if (dx * dx + dy * dy <= r * r) return n;
+      if (dx * dx + dy * dy <= RADIUS_ORG * RADIUS_ORG) return n;
     }
     return null;
   }, []);

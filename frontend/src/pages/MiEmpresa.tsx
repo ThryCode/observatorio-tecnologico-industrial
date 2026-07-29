@@ -63,12 +63,12 @@ export default function MiEmpresa() {
 
   const editForm = useForm({
     defaultValues: {
-      sitio_web: '',
-      pais: '',
-      provincia: '',
-      sector_codigo: '',
-      fecha_creacion: '',
-      contacto: '',
+      sitio_web: org?.sitio_web || '',
+      pais: org?.pais || '',
+      provincia: org?.provincia || '',
+      sector_codigo: org?.sector_codigo || '',
+      fecha_creacion: org?.fecha_creacion || '',
+      contacto: org?.contacto || '',
     },
   });
 
@@ -83,7 +83,7 @@ export default function MiEmpresa() {
         contacto: org.contacto || '',
       });
     }
-  }, [org, editForm.reset]);
+  }, [org]);
 
   const createMutation = useMutation({
     mutationFn: async (data: {

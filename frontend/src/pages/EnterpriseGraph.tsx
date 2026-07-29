@@ -9,11 +9,15 @@ export default function EnterpriseGraph() {
 
   const stats = useMemo(() => {
     if (!data) return null;
-    const persons = data.nodes.filter((n) => n.type === 'person').length;
-    const orgs = data.nodes.filter((n) => n.type === 'organization').length;
-    const follows = data.edges.filter((e) => e.type === 'FOLLOWS').length;
-    const represents = data.edges.filter((e) => e.type === 'REPRESENTS').length;
-    return { persons, orgs, follows, represents };
+    const total = data.nodes.length;
+    const nodeIds = new Set(data.nodes.map((n) => n.id));
+    const connected = new Set<string>();
+    for (const e of data.edges) {
+      connected.add(e.source);
+      connected.add(e.target);
+    }
+    const aisladas = total - connected.size;
+    return { total, conectadas: connected.size, aisladas, conexiones: data.edges.length };
   }, [data]);
 
   if (isLoading) {
@@ -41,26 +45,26 @@ export default function EnterpriseGraph() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Grafo Empresarial</h2>
         <p className="text-muted-foreground">
-          Visualización de empresas, representantes y relaciones de seguimiento.
+          Relaciones de seguimiento entre empresas. Una empresa sigue a otra cuando su representante sigue a esa empresa.
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Representantes</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold">{stats?.persons ?? 0}</div></CardContent>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total Empresas</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold">{stats?.total ?? 0}</div></CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Empresas</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold">{stats?.orgs ?? 0}</div></CardContent>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Con Conexiones</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold">{stats?.conectadas ?? 0}</div></CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Seguimientos</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold">{stats?.follows ?? 0}</div></CardContent>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Aisladas</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold">{stats?.aisladas ?? 0}</div></CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Representaciones</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold">{stats?.represents ?? 0}</div></CardContent>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Conexiones</CardTitle></CardHeader>
+          <CardContent><div className="text-2xl font-bold">{stats?.conexiones ?? 0}</div></CardContent>
         </Card>
       </div>
 
