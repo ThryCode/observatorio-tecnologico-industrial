@@ -1,8 +1,16 @@
+import { useState } from 'react';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
-import { Save } from 'lucide-react';
+import { Save, Key, Monitor, FileText } from 'lucide-react';
 
 export default function SettingsPage() {
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = () => {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -10,9 +18,9 @@ export default function SettingsPage() {
         highlight="Configuración"
         description="Administración de preferencias, usuarios, fuentes de datos y parámetros del observatorio."
         actions={
-          <Button className="gap-2">
+          <Button className="gap-2" onClick={handleSave}>
             <Save className="h-4 w-4" />
-            Guardar Cambios
+            {saved ? 'Guardado' : 'Guardar Cambios'}
           </Button>
         }
       />
@@ -87,9 +95,15 @@ export default function SettingsPage() {
             <h3 className="text-base font-bold text-foreground mb-1">Seguridad</h3>
             <p className="text-sm text-text-muted mb-4">Gestión de acceso y autenticación.</p>
             <div className="space-y-3">
-              <Button variant="secondary" size="sm" className="w-full justify-start">Cambiar contraseña</Button>
-              <Button variant="secondary" size="sm" className="w-full justify-start">Gestión de sesiones</Button>
-              <Button variant="secondary" size="sm" className="w-full justify-start">Logs de acceso</Button>
+              <Button variant="secondary" size="sm" className="w-full justify-start gap-2" onClick={() => alert('Funcionalidad en desarrollo — Cambiar contraseña')}>
+                <Key className="h-4 w-4" /> Cambiar contraseña
+              </Button>
+              <Button variant="secondary" size="sm" className="w-full justify-start gap-2" onClick={() => alert('Funcionalidad en desarrollo — Gestión de sesiones')}>
+                <Monitor className="h-4 w-4" /> Gestión de sesiones
+              </Button>
+              <Button variant="secondary" size="sm" className="w-full justify-start gap-2" onClick={() => alert('Funcionalidad en desarrollo — Logs de acceso')}>
+                <FileText className="h-4 w-4" /> Logs de acceso
+              </Button>
             </div>
           </div>
         </div>

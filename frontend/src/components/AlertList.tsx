@@ -52,6 +52,7 @@ export default function AlertList({ alerts, className, onEdit, onDelete }: Alert
             key={alert.id}
             className="group relative flex gap-3 p-4 rounded-md border border-border-subtle bg-surface cursor-pointer transition-all duration-150 hover:border-border hover:shadow-sm hover:translate-x-0.5"
             role="listitem"
+            onClick={() => onEdit?.(alert.id)}
           >
             {/* Priority bar */}
             <div className={cn(

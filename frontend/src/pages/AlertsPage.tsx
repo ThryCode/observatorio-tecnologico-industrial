@@ -51,6 +51,9 @@ export default function AlertsPage() {
   const [editingAlert, setEditingAlert] = useState<Alert | null>(null);
   const [deleteAlertId, setDeleteAlertId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ titulo: '', descripcion: '', severidad: 'media', fecha: '', sector: '' });
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filterSeveridad, setFilterSeveridad] = useState('');
+  const [filterSector, setFilterSector] = useState('');
 
   const { data: rawAlerts, isLoading, refetch } = useAlerts();
   const createMutation = useCreateAlert();
@@ -119,7 +122,7 @@ export default function AlertsPage() {
         description="Monitoreo automatizado de patentes, normativas, publicaciones y cambios en el ecosistema CTI."
         actions={
           <div className="flex gap-2">
-            <Button variant="secondary" className="gap-2">
+            <Button variant="secondary" className="gap-2" onClick={() => setFiltersOpen(!filtersOpen)}>
               <Filter className="h-4 w-4" />
               Filtros
             </Button>
@@ -132,6 +135,28 @@ export default function AlertsPage() {
           </div>
         }
       />
+      {filtersOpen && (
+        <div className="flex gap-4 p-4 bg-surface rounded-lg border border-border">
+          <Select value={filterSeveridad} onValueChange={setFilterSeveridad}>
+            <SelectTrigger className="w-40"><SelectValue placeholder="Severidad" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Todas</SelectItem>
+              <SelectItem value="alta">Alta</SelectItem>
+              <SelectItem value="media">Media</SelectItem>
+              <SelectItem value="baja">Baja</SelectItem>
+            </SelectContent>
+          </Select>
+          <Input
+            placeholder="Sector"
+            value={filterSector}
+            onChange={(e) => setFilterSector(e.target.value)}
+            className="w-40"
+          />
+          <Button variant="ghost" size="sm" onClick={() => { setFilterSeveridad(''); setFilterSector(''); }}>
+            Limpiar
+          </Button>
+        </div>
+      )}
       {isLoading ? (
         <div className="text-center text-text-muted py-8">Cargando alertas...</div>
       ) : (
