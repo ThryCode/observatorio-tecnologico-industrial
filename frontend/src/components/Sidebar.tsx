@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAlerts } from '@/hooks/useAlerts';
+import { usePatents } from '@/hooks/usePatents';
 import {
   LayoutDashboard,
   Share2,
@@ -28,7 +29,7 @@ const mainNav = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/graph', label: 'Grafo de Conocimiento', icon: Share2 },
   { to: '/technologies', label: 'Tecnologías', icon: BookOpen },
-  { to: '/patents', label: 'Patentes', icon: FileText, badge: '1.2k' },
+  { to: '/patents', label: 'Patentes', icon: FileText },
   { to: '/publications', label: 'Publicaciones', icon: Newspaper },
 ];
 
@@ -44,6 +45,11 @@ const orgNav = [
   { to: '/network', label: 'Red Profesional', icon: Users },
 ];
 
+function formatPatentCount(count: number): string {
+  if (count >= 1000) return (count / 1000).toFixed(count >= 10000 ? 0 : 1).replace('.0', '') + 'k';
+  return String(count);
+}
+
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -51,6 +57,10 @@ export default function Sidebar() {
   const location = useLocation();
   const { data: unreadAlerts } = useAlerts(true, 1, 1);
   const unreadCount = Array.isArray(unreadAlerts) ? unreadAlerts.length : 0;
+  const { data: patentsData } = usePatents(1, 1);
+  const patentCount = patentsData?.total;
+  const lastSeenCount = parseInt(localStorage.getItem('lastPatentSeenCount') ?? '0', 10);
+  const newPatentCount = patentCount && patentCount > lastSeenCount ? patentCount - lastSeenCount : 0;
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
@@ -117,6 +127,7 @@ export default function Sidebar() {
             <NavItem
               key={item.to}
               {...item}
+              badge={item.to === '/patents' && newPatentCount > 0 ? formatPatentCount(newPatentCount) : undefined}
               collapsed={collapsed}
               active={isActive(item.to)}
               onClick={() => setMobileOpen(false)}

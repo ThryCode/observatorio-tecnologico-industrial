@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePatents, useCreatePatent, useUpdatePatent, useDeletePatent } from '@/hooks/usePatents';
 import FileUpload from '@/components/FileUpload';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -75,6 +75,12 @@ export default function Patents() {
   const deleteMutation = useDeletePatent();
 
   const { data, isLoading, isError, refetch } = usePatents(page, 20, sector || undefined, status || undefined, search || undefined);
+
+  useEffect(() => {
+    if (data?.total !== undefined) {
+      localStorage.setItem('lastPatentSeenCount', String(data.total));
+    }
+  }, [data?.total]);
 
   const resetForm = () => {
     setFormData({ title: '', patent_number: '', applicant: '', inventor: '', filing_date: '', publication_date: '', status: '', abstract: '', technological_sector: '', country: '', file_url: '' });
