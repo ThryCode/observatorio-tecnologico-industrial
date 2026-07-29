@@ -13,10 +13,22 @@ export async function getTechnologies(
   page = 1,
   perPage = 20,
   sector?: string,
+  q?: string,
+  trlNivel?: number,
+  sortBy?: string,
+  sortOrder?: string,
 ): Promise<PaginatedResponse<Technology>> {
   if (USE_MOCK) {
     let filtered = [...MOCK_TECHNOLOGIES];
     if (sector) filtered = filtered.filter((t) => t.sector_codigo === sector);
+    if (q) {
+      const term = q.toLowerCase();
+      filtered = filtered.filter((t) =>
+        t.nombre.toLowerCase().includes(term) ||
+        (t.descripcion && t.descripcion.toLowerCase().includes(term))
+      );
+    }
+    if (trlNivel !== undefined) filtered = filtered.filter((t) => t.trl_nivel === trlNivel);
     return {
       items: filtered,
       total: filtered.length,
@@ -27,6 +39,10 @@ export async function getTechnologies(
   }
   const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
   if (sector) params.set('sector_codigo', sector);
+  if (q) params.set('q', q);
+  if (trlNivel !== undefined) params.set('trl_nivel', String(trlNivel));
+  if (sortBy) params.set('sort_by', sortBy);
+  if (sortOrder) params.set('sort_order', sortOrder);
   const res = await client.get<PaginatedResponse<Technology>>(`/technologies?${params}`);
   return res.data;
 }

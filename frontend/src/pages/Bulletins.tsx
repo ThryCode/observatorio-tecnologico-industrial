@@ -1,6 +1,15 @@
+import { useState } from 'react';
 import PageHeader from '@/components/PageHeader';
 import ProductCard from '@/components/ProductCard';
-import { FileText, Clock, User } from 'lucide-react';
+import { FileText, Clock, User, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useBulletins } from '@/hooks/useBulletins';
 import type { Bulletin } from '@/types';
 
@@ -18,7 +27,11 @@ function mapBulletinToProductCard(bulletin: Bulletin) {
 }
 
 export default function Bulletins() {
-  const { data: rawBulletins, isLoading } = useBulletins();
+  const [q, setQ] = useState('');
+  const [categoria, setCategoria] = useState<string | undefined>();
+  const [fechaDesde, setFechaDesde] = useState('');
+  const [fechaHasta, setFechaHasta] = useState('');
+  const { data: rawBulletins, isLoading } = useBulletins(1, 20, undefined, categoria, q || undefined, fechaDesde || undefined, fechaHasta || undefined);
   const bulletins = rawBulletins?.items.map(mapBulletinToProductCard) || [];
 
   return (
@@ -27,6 +40,34 @@ export default function Bulletins() {
         title="Boletines y Publicaciones"
         highlight="Publicaciones"
         description="Productos de inteligencia estratégica: boletines, alertas tecnológicas, estudios de prospectiva y mapas de patentes."
+        actions={
+          <div className="flex flex-wrap gap-2 items-center">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar boletines..."
+                className="pl-8"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+              />
+            </div>
+            <Select value={categoria || 'todas'} onValueChange={(v) => setCategoria(v === 'todas' ? undefined : v)}>
+              <SelectTrigger className="w-[140px]"><SelectValue placeholder="Categoría" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas</SelectItem>
+                <SelectItem value="boletin">Boletín</SelectItem>
+                <SelectItem value="estudio">Estudio</SelectItem>
+                <SelectItem value="alerta">Alerta Tecnológica</SelectItem>
+                <SelectItem value="mapa">Mapa</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="flex items-center gap-1">
+              <Input type="date" className="w-[140px]" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} placeholder="Desde" />
+              <span className="text-muted-foreground">-</span>
+              <Input type="date" className="w-[140px]" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} placeholder="Hasta" />
+            </div>
+          </div>
+        }
       />
       {isLoading ? (
         <div className="text-center text-text-muted py-8">Cargando publicaciones...</div>

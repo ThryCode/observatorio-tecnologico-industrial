@@ -11,7 +11,7 @@ interface ProductCardProps {
 }
 
 const typeConfig = {
-  alerta: { label: 'Alerta', color: 'text-accent-orange', icon: AlertTriangle },
+  alerta: { label: 'Alerta Tecnológica', color: 'text-accent-orange', icon: AlertTriangle },
   boletin: { label: 'Boletín', color: 'text-info', icon: BookOpen },
   estudio: { label: 'Estudio', color: 'text-success', icon: FileText },
   mapa: { label: 'Mapa', color: 'text-gold', icon: Map },

@@ -105,11 +105,23 @@ export async function getOrganizations(
   page = 1,
   perPage = 20,
   sectorCodigo?: string,
+  q?: string,
+  pais?: string,
+  provincia?: string,
+  sortBy?: string,
+  sortOrder?: string,
 ): Promise<PaginatedResponse<Organization>> {
   if (USE_MOCK) {
-    const filtered = sectorCodigo
-      ? MOCK_ORGANIZATIONS.filter((o) => o.sector_codigo === sectorCodigo)
-      : MOCK_ORGANIZATIONS;
+    let filtered = [...MOCK_ORGANIZATIONS];
+    if (sectorCodigo) filtered = filtered.filter((o) => o.sector_codigo === sectorCodigo);
+    if (q) {
+      const term = q.toLowerCase();
+      filtered = filtered.filter((o) =>
+        o.nombre.toLowerCase().includes(term) || o.siglas.toLowerCase().includes(term)
+      );
+    }
+    if (pais) filtered = filtered.filter((o) => o.pais === pais);
+    if (provincia) filtered = filtered.filter((o) => o.provincia === provincia);
     return {
       items: filtered,
       total: filtered.length,
@@ -120,6 +132,11 @@ export async function getOrganizations(
   }
   const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
   if (sectorCodigo) params.set('sector_codigo', sectorCodigo);
+  if (q) params.set('q', q);
+  if (pais) params.set('pais', pais);
+  if (provincia) params.set('provincia', provincia);
+  if (sortBy) params.set('sort_by', sortBy);
+  if (sortOrder) params.set('sort_order', sortOrder);
   const res = await client.get<PaginatedResponse<Organization>>(`/organizations?${params}`);
   return res.data;
 }

@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { listAlerts, createAlert, updateAlert, deleteAlert } from '@/api/alerts';
+import { listAlerts, createAlert, updateAlert, deleteAlert, markAllAlertsRead } from '@/api/alerts';
 
-export function useAlerts(unreadOnly = false) {
+export function useAlerts(unreadOnly = false, page = 1, perPage = 20, q?: string, severidad?: string, sector?: string, fechaDesde?: string, fechaHasta?: string, sortBy?: string, sortOrder?: string) {
   return useQuery({
-    queryKey: ['alerts', { unreadOnly }],
-    queryFn: () => listAlerts(unreadOnly),
+    queryKey: ['alerts', { unreadOnly, page, perPage, q, severidad, sector, fechaDesde, fechaHasta, sortBy, sortOrder }],
+    queryFn: () => listAlerts(unreadOnly, page, perPage, q, severidad, sector, fechaDesde, fechaHasta, sortBy, sortOrder),
   });
 }
 
@@ -28,6 +28,14 @@ export function useDeleteAlert() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteAlert,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['alerts'] }),
+  });
+}
+
+export function useMarkAllAlertsRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: markAllAlertsRead,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['alerts'] }),
   });
 }

@@ -7,10 +7,10 @@ import {
 } from '@/api/professionals';
 import type { ProfessionalProfile } from '@/types';
 
-export function useProfessionalList(page = 1, perPage = 20, especialidad?: string) {
+export function useProfessionalList(page = 1, perPage = 20, especialidad?: string, q?: string, sortBy?: string, sortOrder?: string) {
   return useQuery({
-    queryKey: ['professionals', 'list', page, perPage, especialidad],
-    queryFn: () => listProfessionals(page, perPage, especialidad),
+    queryKey: ['professionals', 'list', page, perPage, especialidad, q, sortBy, sortOrder],
+    queryFn: () => listProfessionals(page, perPage, especialidad, q, sortBy, sortOrder),
   });
 }
 

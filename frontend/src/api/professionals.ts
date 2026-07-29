@@ -5,9 +5,15 @@ export async function listProfessionals(
   page = 1,
   perPage = 20,
   especialidad?: string,
+  q?: string,
+  sortBy?: string,
+  sortOrder?: string,
 ): Promise<PaginatedResponse<ProfessionalListItem>> {
   const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
   if (especialidad) params.set('especialidad', especialidad);
+  if (q) params.set('q', q);
+  if (sortBy) params.set('sort_by', sortBy);
+  if (sortOrder) params.set('sort_order', sortOrder);
   const res = await client.get<PaginatedResponse<ProfessionalListItem>>(
     `/professionals?${params.toString()}`,
   );

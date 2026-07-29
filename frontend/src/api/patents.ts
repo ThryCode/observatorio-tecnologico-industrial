@@ -96,6 +96,10 @@ export async function getPatents(
   sector?: string,
   status?: string,
   q?: string,
+  fechaDesde?: string,
+  fechaHasta?: string,
+  sortBy?: string,
+  sortOrder?: string,
 ): Promise<PaginatedResponse<Patent>> {
   if (USE_MOCK) {
     let filtered = [...MOCK_PATENTS];
@@ -110,6 +114,8 @@ export async function getPatents(
           p.applicant.toLowerCase().includes(term),
       );
     }
+    if (fechaDesde) filtered = filtered.filter((p) => p.filing_date >= fechaDesde);
+    if (fechaHasta) filtered = filtered.filter((p) => p.filing_date <= fechaHasta);
     return {
       items: filtered,
       total: filtered.length,
@@ -122,6 +128,10 @@ export async function getPatents(
   if (sector) params.set('sector', sector);
   if (status) params.set('status', status);
   if (q) params.set('q', q);
+  if (fechaDesde) params.set('fecha_desde', fechaDesde);
+  if (fechaHasta) params.set('fecha_hasta', fechaHasta);
+  if (sortBy) params.set('sort_by', sortBy);
+  if (sortOrder) params.set('sort_order', sortOrder);
   const res = await client.get<PaginatedResponse<Patent>>(`/patents?${params}`);
   return res.data;
 }

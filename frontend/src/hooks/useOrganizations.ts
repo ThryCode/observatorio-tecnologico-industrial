@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getOrganizations, createOrganization, updateOrganization, deleteOrganization } from '@/api/organizations';
 
-export function useOrganizations(page = 1, perPage = 20, sectorCodigo?: string) {
+export function useOrganizations(page = 1, perPage = 20, sectorCodigo?: string, q?: string, pais?: string, provincia?: string, sortBy?: string, sortOrder?: string) {
   return useQuery({
-    queryKey: ['organizations', page, perPage, sectorCodigo],
-    queryFn: () => getOrganizations(page, perPage, sectorCodigo),
+    queryKey: ['organizations', page, perPage, sectorCodigo, q, pais, provincia, sortBy, sortOrder],
+    queryFn: () => getOrganizations(page, perPage, sectorCodigo, q, pais, provincia, sortBy, sortOrder),
   });
 }
 

@@ -78,6 +78,15 @@ async def mark_alert_read(
     return await AlertService(db).mark_read(alert_id)
 
 
+@router.post("/read-all", response_model=Message)
+async def mark_all_alerts_read(
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+):
+    count = await AlertService(db).mark_all_read()
+    return Message(detail=f"{count} alerts marked as read")
+
+
 @router.delete("/{alert_id}", response_model=Message)
 async def delete_alert(
     alert_id: UUID,

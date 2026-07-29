@@ -11,13 +11,39 @@ const MOCK_ALERTS: Alert[] = [
   { id: '7', titulo: 'Alerta: Ciberseguridad industrial', descripcion: 'Se detectó un aumento de ataques a sistemas SCADA en la región.', severidad: 'alta', fecha: '2026-07-14', leida: false },
 ];
 
-export async function listAlerts(unreadOnly = false): Promise<Alert[]> {
+export async function listAlerts(
+  unreadOnly = false,
+  page = 1,
+  perPage = 20,
+  q?: string,
+  severidad?: string,
+  sector?: string,
+  fechaDesde?: string,
+  fechaHasta?: string,
+  sortBy?: string,
+  sortOrder?: string,
+): Promise<Alert[]> {
   if (USE_MOCK) {
-    if (unreadOnly) return MOCK_ALERTS.filter(a => !a.leida);
-    return MOCK_ALERTS;
+    let filtered = [...MOCK_ALERTS];
+    if (unreadOnly) filtered = filtered.filter(a => !a.leida);
+    if (q) {
+      const term = q.toLowerCase();
+      filtered = filtered.filter(a => a.titulo.toLowerCase().includes(term) || (a.descripcion && a.descripcion.toLowerCase().includes(term)));
+    }
+    if (severidad) filtered = filtered.filter(a => a.severidad === severidad);
+    if (sector) filtered = filtered.filter(a => a.sector === sector);
+    return filtered;
   }
-  const params = unreadOnly ? '?unread_only=true' : '';
-  const res = await client.get<{ items: Alert[] }>(`/alerts${params}`);
+  const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
+  if (unreadOnly) params.set('unread_only', 'true');
+  if (q) params.set('q', q);
+  if (severidad) params.set('severidad', severidad);
+  if (sector) params.set('sector_codigo', sector);
+  if (fechaDesde) params.set('fecha_desde', fechaDesde);
+  if (fechaHasta) params.set('fecha_hasta', fechaHasta);
+  if (sortBy) params.set('sort_by', sortBy);
+  if (sortOrder) params.set('sort_order', sortOrder);
+  const res = await client.get<{ items: Alert[] }>(`/alerts?${params}`);
   return res.data.items;
 }
 
@@ -29,6 +55,14 @@ export async function getAlert(id: string): Promise<Alert> {
   }
   const res = await client.get<Alert>(`/alerts/${id}`);
   return res.data;
+}
+
+export async function markAllAlertsRead(): Promise<void> {
+  if (USE_MOCK) {
+    MOCK_ALERTS.forEach(a => { a.leida = true; });
+    return;
+  }
+  await client.post('/alerts/read-all');
 }
 
 export async function markAlertRead(id: string): Promise<Alert> {

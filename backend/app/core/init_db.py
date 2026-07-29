@@ -22,7 +22,12 @@ async def create_superuser_if_not_exists(session: AsyncSession) -> None:
     existing_admin = result.scalar_one_or_none()
 
     if existing_admin:
-        logger.info(f"Superuser already exists: {existing_admin.email}")
+        if existing_admin.status == UserStatus.PENDING.value:
+            existing_admin.status = UserStatus.APPROVED.value
+            await session.flush()
+            logger.info(f"Superuser status updated to approved: {existing_admin.email}")
+        else:
+            logger.info(f"Superuser already exists: {existing_admin.email}")
         return
 
     raw = settings.first_superuser

@@ -12,10 +12,25 @@ export async function getRegulations(
   page = 1,
   perPage = 20,
   category?: string,
+  q?: string,
+  sectorCodigo?: string,
+  fechaDesde?: string,
+  fechaHasta?: string,
+  sortBy?: string,
+  sortOrder?: string,
 ): Promise<PaginatedResponse<Regulation>> {
   if (USE_MOCK) {
     let filtered = [...MOCK_REGULATIONS];
     if (category) filtered = filtered.filter((r) => r.category === category);
+    if (q) {
+      const term = q.toLowerCase();
+      filtered = filtered.filter((r) =>
+        r.title.toLowerCase().includes(term) || r.regulation_number.toLowerCase().includes(term)
+      );
+    }
+    if (sectorCodigo) filtered = filtered.filter((r) => r.sector_codigo === sectorCodigo);
+    if (fechaDesde) filtered = filtered.filter((r) => r.publication_date >= fechaDesde);
+    if (fechaHasta) filtered = filtered.filter((r) => r.publication_date <= fechaHasta);
     return {
       items: filtered,
       total: filtered.length,
@@ -26,6 +41,12 @@ export async function getRegulations(
   }
   const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
   if (category) params.set('category', category);
+  if (q) params.set('q', q);
+  if (sectorCodigo) params.set('sector_codigo', sectorCodigo);
+  if (fechaDesde) params.set('fecha_desde', fechaDesde);
+  if (fechaHasta) params.set('fecha_hasta', fechaHasta);
+  if (sortBy) params.set('sort_by', sortBy);
+  if (sortOrder) params.set('sort_order', sortOrder);
   const res = await client.get<PaginatedResponse<Regulation>>(`/regulations?${params}`);
   return res.data;
 }

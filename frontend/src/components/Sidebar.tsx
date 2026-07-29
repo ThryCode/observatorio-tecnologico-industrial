@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAlerts } from '@/hooks/useAlerts';
 import {
   LayoutDashboard,
   Share2,
@@ -32,7 +33,7 @@ const mainNav = [
 ];
 
 const intelligenceNav = [
-  { to: '/alerts', label: 'Alertas', icon: Bell, badge: '7', badgeVariant: 'danger' as const },
+  { to: '/alerts', label: 'Alertas', icon: Bell, badgeVariant: 'danger' as const },
   { to: '/bulletins', label: 'Boletines', icon: BookOpen },
   { to: '/competitiveness', label: 'Análisis de Competitividad', icon: BarChart3 },
   { to: '/patent-maps', label: 'Mapas de Patentes', icon: Map },
@@ -48,6 +49,8 @@ export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user } = useAuth();
   const location = useLocation();
+  const { data: unreadAlerts } = useAlerts(true, 1, 1);
+  const unreadCount = Array.isArray(unreadAlerts) ? unreadAlerts.length : 0;
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
@@ -126,6 +129,7 @@ export default function Sidebar() {
             <NavItem
               key={item.to}
               {...item}
+              badge={item.to === '/alerts' && unreadCount > 0 ? String(unreadCount) : undefined}
               collapsed={collapsed}
               active={isActive(item.to)}
               onClick={() => setMobileOpen(false)}

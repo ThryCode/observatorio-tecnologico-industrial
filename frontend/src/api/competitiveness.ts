@@ -17,9 +17,19 @@ interface CompetitivenessChartRow {
   [pais: string]: string | number;
 }
 
-export async function getCompetitivenessData(periodo?: string) {
+export async function getCompetitivenessData(
+  periodo?: string,
+  sectorCodigo?: string,
+  q?: string,
+  sortBy?: string,
+  sortOrder?: string,
+) {
   const params: Record<string, string> = {};
   if (periodo) params.periodo = periodo;
+  if (sectorCodigo) params.sector_codigo = sectorCodigo;
+  if (q) params.q = q;
+  if (sortBy) params.sort_by = sortBy;
+  if (sortOrder) params.sort_order = sortOrder;
   const res = await client.get<PaginatedResponse<CompetitivenessApiItem>>('/competitiveness', { params });
   const items = res.data.items;
 

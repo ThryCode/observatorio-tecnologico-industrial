@@ -82,6 +82,16 @@ class AlertService:
         await self.db.refresh(alert)
         return alert
 
+    async def mark_all_read(self) -> int:
+        result = await self.db.execute(
+            select(Alert).where(Alert.leida == False)  # noqa: E712
+        )
+        alerts = result.scalars().all()
+        for alert in alerts:
+            alert.leida = True
+        await self.db.flush()
+        return len(alerts)
+
     async def delete(self, alert_id: UUID) -> None:
         alert = await self.get(alert_id)
         await self.db.delete(alert)

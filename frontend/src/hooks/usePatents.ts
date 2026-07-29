@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getPatents, createPatent, updatePatent, deletePatent } from '@/api/patents';
 
-export function usePatents(page = 1, perPage = 20, sector?: string, status?: string, q?: string) {
+export function usePatents(page = 1, perPage = 20, sector?: string, status?: string, q?: string, fechaDesde?: string, fechaHasta?: string, sortBy?: string, sortOrder?: string) {
   return useQuery({
-    queryKey: ['patents', page, perPage, sector, status, q],
-    queryFn: () => getPatents(page, perPage, sector, status, q),
+    queryKey: ['patents', page, perPage, sector, status, q, fechaDesde, fechaHasta, sortBy, sortOrder],
+    queryFn: () => getPatents(page, perPage, sector, status, q, fechaDesde, fechaHasta, sortBy, sortOrder),
   });
 }
 

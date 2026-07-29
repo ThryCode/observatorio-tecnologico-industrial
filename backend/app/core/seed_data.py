@@ -19,6 +19,7 @@ from app.models.competitiveness import CompetitivenessIndex
 from app.models.indicator import Indicator, IndicatorPeriod
 from app.models.organization import Organization
 from app.models.patent_map import PatentMapEntry
+from app.models.industrial_sector import IndustrialSector
 from app.models.technology import Technology
 from app.models.user import User, UserRole, UserStatus
 
@@ -564,17 +565,39 @@ async def seed_patent_maps(session: AsyncSession) -> int:
     return len(_PATENT_MAP_DATA)
 
 
+# ---------------------------------------------------------------------------
+# Industrial Sectors
+# ---------------------------------------------------------------------------
+
+_SECTORES = [
+    {"codigo": "AUT", "nombre": "Automotriz", "descripcion": "Industria automotriz y autopartes"},
+    {"codigo": "BIO", "nombre": "Biotecnología", "descripcion": "Biotecnología y ciencias de la vida"},
+    {"codigo": "ELE", "nombre": "Electrónica", "descripcion": "Electrónica y equipos eléctricos"},
+    {"codigo": "MET", "nombre": "Metalurgia", "descripcion": "Metalurgia y minería"},
+    {"codigo": "QUI", "nombre": "Química", "descripcion": "Industria química y petroquímica"},
+    {"codigo": "SID", "nombre": "Siderurgia", "descripcion": "Siderurgia y acero"},
+]
+
+
+async def seed_industrial_sectors(session: AsyncSession) -> int:
+    """Seed industrial_sectores table (idempotent)."""
+    count = 0
+    for row in _SECTORES:
+        existing = await session.execute(
+            select(IndustrialSector).where(IndustrialSector.codigo == row["codigo"])
+        )
+        if existing.scalar_one_or_none() is None:
+            session.add(IndustrialSector(**row))
+            count += 1
+    await session.flush()
+    if count:
+        logger.info(f"Seeded {count} industrial sectors")
+    return count
+
+
 async def seed_all(session: AsyncSession) -> None:
-    """Run all seed functions in the correct order.
-
-    Organizations must be seeded before technologies and indicators
-    because the latter two reference ``industrial_sectores.codigo``
-    via foreign keys.  Users are seeded after organizations so that
-    org-linked users can find their organization.
-
-    The industrial_sectores table is assumed to already contain the
-    base sector rows (AUT, MET, SID, ELE, QUI).
-    """
+    """Run all seed functions in the correct order."""
+    await seed_industrial_sectors(session)
     await seed_organizations(session)
     await seed_users(session)
     await seed_technologies(session)

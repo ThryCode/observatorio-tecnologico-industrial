@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getTechnologies, createTechnology, updateTechnology, deleteTechnology } from '@/api/technologies';
 
-export function useTechnologies(page = 1, perPage = 20, sector?: string) {
+export function useTechnologies(page = 1, perPage = 20, sector?: string, q?: string, trlNivel?: number, sortBy?: string, sortOrder?: string) {
   return useQuery({
-    queryKey: ['technologies', page, perPage, sector],
-    queryFn: () => getTechnologies(page, perPage, sector),
+    queryKey: ['technologies', page, perPage, sector, q, trlNivel, sortBy, sortOrder],
+    queryFn: () => getTechnologies(page, perPage, sector, q, trlNivel, sortBy, sortOrder),
   });
 }
 

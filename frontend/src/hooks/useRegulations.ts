@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getRegulations, createRegulation, updateRegulation, deleteRegulation } from '@/api/regulations';
 
-export function useRegulations(page = 1, perPage = 20, category?: string) {
+export function useRegulations(page = 1, perPage = 20, category?: string, q?: string, sectorCodigo?: string, fechaDesde?: string, fechaHasta?: string, sortBy?: string, sortOrder?: string) {
   return useQuery({
-    queryKey: ['regulations', page, perPage, category],
-    queryFn: () => getRegulations(page, perPage, category),
+    queryKey: ['regulations', page, perPage, category, q, sectorCodigo, fechaDesde, fechaHasta, sortBy, sortOrder],
+    queryFn: () => getRegulations(page, perPage, category, q, sectorCodigo, fechaDesde, fechaHasta, sortBy, sortOrder),
   });
 }
 

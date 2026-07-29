@@ -34,10 +34,25 @@ function mapBulletin(item: BulletinApiItem): BulletinListItem {
   };
 }
 
-export async function listBulletins(page = 1, perPage = 20, sectorCodigo?: string, categoria?: string) {
+export async function listBulletins(
+  page = 1,
+  perPage = 20,
+  sectorCodigo?: string,
+  categoria?: string,
+  q?: string,
+  fechaDesde?: string,
+  fechaHasta?: string,
+  sortBy?: string,
+  sortOrder?: string,
+) {
   const params: Record<string, string | number> = { page, per_page: perPage };
   if (sectorCodigo) params.sector_codigo = sectorCodigo;
   if (categoria) params.categoria = categoria;
+  if (q) params.q = q;
+  if (fechaDesde) params.fecha_desde = fechaDesde;
+  if (fechaHasta) params.fecha_hasta = fechaHasta;
+  if (sortBy) params.sort_by = sortBy;
+  if (sortOrder) params.sort_order = sortOrder;
   const res = await client.get<PaginatedResponse<BulletinApiItem>>('/bulletins', { params });
   return {
     ...res.data,

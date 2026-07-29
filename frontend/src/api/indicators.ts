@@ -14,11 +14,20 @@ export async function getIndicators(
   perPage = 20,
   sector?: string,
   period?: string,
+  q?: string,
+  sortBy?: string,
+  sortOrder?: string,
 ): Promise<PaginatedResponse<Indicator>> {
   if (USE_MOCK) {
     let filtered = [...MOCK_INDICATORS];
     if (sector) filtered = filtered.filter((i) => i.sector_codigo === sector);
     if (period) filtered = filtered.filter((i) => i.period === period);
+    if (q) {
+      const term = q.toLowerCase();
+      filtered = filtered.filter((i) =>
+        i.name.toLowerCase().includes(term) || i.code.toLowerCase().includes(term)
+      );
+    }
     return {
       items: filtered,
       total: filtered.length,
@@ -30,6 +39,9 @@ export async function getIndicators(
   const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
   if (sector) params.set('sector', sector);
   if (period) params.set('period', period);
+  if (q) params.set('q', q);
+  if (sortBy) params.set('sort_by', sortBy);
+  if (sortOrder) params.set('sort_order', sortOrder);
   const res = await client.get<PaginatedResponse<Indicator>>(`/indicators?${params}`);
   return res.data;
 }

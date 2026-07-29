@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import PageHeader from '@/components/PageHeader';
 import AlertList from '@/components/AlertList';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Filter } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { usePermissions } from '@/hooks/usePermissions';
-import { useAlerts, useCreateAlert, useUpdateAlert, useDeleteAlert } from '@/hooks/useAlerts';
+import { useAlerts, useCreateAlert, useUpdateAlert, useDeleteAlert, useMarkAllAlertsRead } from '@/hooks/useAlerts';
 import {
   Dialog,
   DialogContent,
@@ -47,20 +47,34 @@ function mapAlertToAlertItem(alert: Alert) {
 
 export default function AlertsPage() {
   const { can } = usePermissions();
+  const [q, setQ] = useState('');
+  const [severidad, setSeveridad] = useState<string | undefined>();
+  const [leidaFilter, setLeidaFilter] = useState<'todas' | 'no_leidas' | 'leidas'>('todas');
+  const [fechaDesde, setFechaDesde] = useState('');
+  const [fechaHasta, setFechaHasta] = useState('');
+  const [proximasActive, setProximasActive] = useState(false);
+  const [page, setPage] = useState(1);
+  const [sortBy, setSortBy] = useState<string | undefined>('fecha');
+  const [sortOrder, setSortOrder] = useState<string | undefined>('desc');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAlert, setEditingAlert] = useState<Alert | null>(null);
   const [deleteAlertId, setDeleteAlertId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ titulo: '', descripcion: '', severidad: 'media', fecha: '', sector: '' });
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  const [filterSeveridad, setFilterSeveridad] = useState('');
-  const [filterSector, setFilterSector] = useState('');
-
-  const { data: rawAlerts, isLoading, refetch } = useAlerts();
+  const today = new Date().toISOString().slice(0, 10);
+  const unreadOnly = leidaFilter === 'no_leidas';
+  const { data: rawAlerts, isLoading, refetch } = useAlerts(unreadOnly, page, 10, q || undefined, severidad, undefined, fechaDesde || undefined, fechaHasta || undefined, sortBy, sortOrder);
+  const allAlerts = Array.isArray(rawAlerts)
+    ? leidaFilter === 'leidas' ? rawAlerts.filter(a => a.leida) : rawAlerts
+    : [];
+  const alerts = allAlerts.map(mapAlertToAlertItem);
+  const markAllRead = useMarkAllAlertsRead();
   const createMutation = useCreateAlert();
   const updateMutation = useUpdateAlert();
   const deleteMutation = useDeleteAlert();
 
-  const alerts = rawAlerts?.map(mapAlertToAlertItem) || [];
+  useEffect(() => {
+    markAllRead.mutate();
+  }, []);
 
   const resetForm = () => {
     setFormData({ titulo: '', descripcion: '', severidad: 'media', fecha: new Date().toISOString().slice(0, 10), sector: '' });
@@ -121,10 +135,40 @@ export default function AlertsPage() {
         highlight="Alertas"
         description="Monitoreo automatizado de patentes, normativas, publicaciones y cambios en el ecosistema CTI."
         actions={
-          <div className="flex gap-2">
-            <Button variant="secondary" className="gap-2" onClick={() => setFiltersOpen(!filtersOpen)}>
-              <Filter className="h-4 w-4" />
-              Filtros
+          <div className="flex flex-wrap gap-2 items-center">
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar alertas..."
+                className="pl-8"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+              />
+            </div>
+            <Select value={leidaFilter} onValueChange={(v) => setLeidaFilter(v as 'todas' | 'no_leidas' | 'leidas')}>
+              <SelectTrigger className="w-[130px]"><SelectValue placeholder="Estado" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas</SelectItem>
+                <SelectItem value="no_leidas">No leídas</SelectItem>
+                <SelectItem value="leidas">Leídas</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={severidad || 'todas'} onValueChange={(v) => setSeveridad(v === 'todas' ? undefined : v)}>
+              <SelectTrigger className="w-[130px]"><SelectValue placeholder="Severidad" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas</SelectItem>
+                <SelectItem value="alta">Alta</SelectItem>
+                <SelectItem value="media">Media</SelectItem>
+                <SelectItem value="baja">Baja</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="flex items-center gap-1">
+              <Input type="date" className="w-[140px]" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} placeholder="Desde" />
+              <span className="text-muted-foreground">-</span>
+              <Input type="date" className="w-[140px]" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} placeholder="Hasta" />
+            </div>
+            <Button variant={proximasActive ? 'default' : 'outline'} size="sm" onClick={() => { setProximasActive(!proximasActive); setFechaDesde(proximasActive ? '' : today); setFechaHasta(''); setPage(1); }}>
+              Próximas
             </Button>
             {can('alerts', 'create') && (
               <Button className="gap-2" onClick={openCreate}>
@@ -135,28 +179,6 @@ export default function AlertsPage() {
           </div>
         }
       />
-      {filtersOpen && (
-        <div className="flex gap-4 p-4 bg-surface rounded-lg border border-border">
-          <Select value={filterSeveridad} onValueChange={setFilterSeveridad}>
-            <SelectTrigger className="w-40"><SelectValue placeholder="Severidad" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">Todas</SelectItem>
-              <SelectItem value="alta">Alta</SelectItem>
-              <SelectItem value="media">Media</SelectItem>
-              <SelectItem value="baja">Baja</SelectItem>
-            </SelectContent>
-          </Select>
-          <Input
-            placeholder="Sector"
-            value={filterSector}
-            onChange={(e) => setFilterSector(e.target.value)}
-            className="w-40"
-          />
-          <Button variant="ghost" size="sm" onClick={() => { setFilterSeveridad(''); setFilterSector(''); }}>
-            Limpiar
-          </Button>
-        </div>
-      )}
       {isLoading ? (
         <div className="text-center text-text-muted py-8">Cargando alertas...</div>
       ) : (
@@ -165,6 +187,17 @@ export default function AlertsPage() {
           onEdit={can('alerts', 'edit') ? openEdit : undefined}
           onDelete={can('alerts', 'delete') ? (id) => setDeleteAlertId(id) : undefined}
         />
+      )}
+      {!isLoading && allAlerts.length > 0 && (
+        <div className="flex items-center justify-between pt-2">
+          <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>
+            Anteriores
+          </Button>
+          <span className="text-sm text-text-muted">Página {page}</span>
+          <Button variant="outline" size="sm" disabled={allAlerts.length < 10} onClick={() => setPage(p => p + 1)}>
+            Siguientes
+          </Button>
+        </div>
       )}
 
       {/* Create / Edit Dialog */}
