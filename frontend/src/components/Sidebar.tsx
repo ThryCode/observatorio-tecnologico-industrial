@@ -55,12 +55,13 @@ export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user } = useAuth();
   const location = useLocation();
-  const { data: unreadAlerts } = useAlerts(true, 1, 1);
-  const unreadCount = Array.isArray(unreadAlerts) ? unreadAlerts.length : 0;
+  const today = new Date().toISOString().split('T')[0];
+  const { data: upcomingAlerts } = useAlerts(false, 1, 1, undefined, undefined, undefined, today);
+  const upcomingCount = Array.isArray(upcomingAlerts) ? upcomingAlerts.length : 0;
   const { data: patentsData } = usePatents(1, 1);
   const patentCount = patentsData?.total;
-  const lastSeenCount = parseInt(localStorage.getItem('lastPatentSeenCount') ?? '0', 10);
-  const newPatentCount = patentCount && patentCount > lastSeenCount ? patentCount - lastSeenCount : 0;
+  const lastSeenCount = parseInt(localStorage.getItem('lastPatentSeenCount') ?? '-1', 10);
+  const newPatentCount = lastSeenCount === -1 ? (patentCount ?? 0) : Math.max(0, (patentCount ?? 0) - lastSeenCount);
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
@@ -140,7 +141,7 @@ export default function Sidebar() {
             <NavItem
               key={item.to}
               {...item}
-              badge={item.to === '/alerts' && unreadCount > 0 ? String(unreadCount) : undefined}
+              badge={item.to === '/alerts' && upcomingCount > 0 ? String(upcomingCount) : undefined}
               collapsed={collapsed}
               active={isActive(item.to)}
               onClick={() => setMobileOpen(false)}
