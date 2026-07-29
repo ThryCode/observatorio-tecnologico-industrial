@@ -34,7 +34,7 @@ export default function Topbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
-  const [notifCount] = useState(3);
+  const [notifCount, setNotifCount] = useState(3);
 
   // Keyboard shortcut: Cmd+K / Ctrl+K to focus search
   useEffect(() => {
@@ -118,7 +118,7 @@ export default function Topbar() {
           </div>
 
           {/* Notifications */}
-          <button onClick={() => navigate('/alerts')} className="relative w-10 h-10 rounded-full border border-border bg-surface text-text-secondary hover:bg-background hover:border-accent-orange hover:text-accent-orange hover:-translate-y-0.5 transition-all duration-150 flex items-center justify-center" aria-label="Notificaciones" title="Notificaciones">
+          <button onClick={() => { setNotifCount(0); navigate('/alerts'); }} className="relative w-10 h-10 rounded-full border border-border bg-surface text-text-secondary hover:bg-background hover:border-accent-orange hover:text-accent-orange hover:-translate-y-0.5 transition-all duration-150 flex items-center justify-center" aria-label="Notificaciones" title="Notificaciones">
             <Bell className="h-4 w-4" />
             {notifCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] rounded-full bg-accent-orange text-white text-[10px] font-bold flex items-center justify-center border-2 border-surface">
