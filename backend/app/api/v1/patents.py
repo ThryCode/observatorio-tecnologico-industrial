@@ -1,4 +1,5 @@
-from datetime import date
+import enum
+from datetime import date, datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Request
@@ -10,6 +11,22 @@ from app.schemas.common import Message, PaginatedResponse
 from app.schemas.patent import PatentCreate, PatentResponse, PatentUpdate
 from app.services.audit_service import AuditService
 from app.services.patent_service import PatentService
+
+
+def _serialize(obj):
+    if obj is None:
+        return None
+    d = {}
+    for col in obj.__table__.columns:
+        val = getattr(obj, col.name)
+        if isinstance(val, (date, datetime)):
+            val = val.isoformat()
+        elif isinstance(val, UUID):
+            val = str(val)
+        elif isinstance(val, enum.Enum):
+            val = val.value
+        d[col.name] = val
+    return d
 
 router = APIRouter(prefix="/patents", tags=["patents"])
 
@@ -58,7 +75,7 @@ async def create_patent(
         action="CREATE",
         entity_type="Patent",
         entity_id=str(patent.id),
-        changes=data.model_dump(),
+        changes=_serialize(patent),
         ip_address=ip,
     )
     return patent
@@ -80,7 +97,7 @@ async def update_patent(
         action="UPDATE",
         entity_type="Patent",
         entity_id=str(patent_id),
-        changes={"old": old.model_dump(), "new": data.model_dump(exclude_unset=True)},
+        changes={"old": _serialize(old), "new": data.model_dump(exclude_unset=True, mode="json")},
         ip_address=ip,
     )
     return patent
