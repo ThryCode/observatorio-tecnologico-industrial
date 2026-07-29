@@ -6,6 +6,7 @@ Create Date: 2026-07-29 09:52:43.834700
 """
 from typing import Sequence, Union
 from alembic import op
+from sqlalchemy import inspect
 import sqlalchemy as sa
 
 
@@ -16,8 +17,14 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column("patents", sa.Column("file_url", sa.String(500), nullable=True))
-    op.add_column("regulations", sa.Column("file_url", sa.String(500), nullable=True))
+    conn = op.get_bind()
+    inspector = inspect(conn)
+    patents_cols = {c["name"] for c in inspector.get_columns("patents")}
+    regulations_cols = {c["name"] for c in inspector.get_columns("regulations")}
+    if "file_url" not in patents_cols:
+        op.add_column("patents", sa.Column("file_url", sa.String(500), nullable=True))
+    if "file_url" not in regulations_cols:
+        op.add_column("regulations", sa.Column("file_url", sa.String(500), nullable=True))
 
 
 def downgrade() -> None:

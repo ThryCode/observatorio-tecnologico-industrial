@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api.v1 import (
     alerts,
+    audit_logs,
     auth,
     bulletins,
     competitiveness,
@@ -20,6 +21,7 @@ from app.api.v1 import (
     technologies,
     uploads,
     users,
+    ws,
 )
 
 api_router = APIRouter(prefix="/api/v1")
@@ -42,3 +44,5 @@ api_router.include_router(industrial_sectors.router)
 api_router.include_router(professionals.router)
 api_router.include_router(research_publications.router)
 api_router.include_router(uploads.router)
+api_router.include_router(audit_logs.router)
+api_router.include_router(ws.router)

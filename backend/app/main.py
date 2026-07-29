@@ -87,8 +87,8 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 register_exception_handlers(app)
 app.include_router(api_router)
 
-import os
 from pathlib import Path
+
 uploads_path = Path(settings.upload_dir)
 uploads_path.mkdir(parents=True, exist_ok=True)
 app.mount("/api/v1/files", StaticFiles(directory=str(uploads_path)), name="files")

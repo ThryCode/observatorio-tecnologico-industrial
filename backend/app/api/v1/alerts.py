@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db, require_role
@@ -9,6 +9,8 @@ from app.models.user import User, UserRole
 from app.schemas.alert import AlertCreate, AlertResponse, AlertUpdate
 from app.schemas.common import Message, PaginatedResponse
 from app.services.alert_service import AlertService
+from app.services.audit_service import AuditService
+from app.ws_manager import manager
 
 router = APIRouter(prefix="/alerts", tags=["alerts"])
 
@@ -53,20 +55,40 @@ async def get_alert(
 @router.post("", response_model=AlertResponse, status_code=201)
 async def create_alert(
     data: AlertCreate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    return await AlertService(db).create(data)
+    alert = await AlertService(db).create(data)
+    ip = request.client.host if request.client else None
+    await AuditService(db).log(
+        user_id=current_user.id, action="CREATE", entity_type="Alert",
+        entity_id=str(alert.id), changes=data.model_dump(), ip_address=ip,
+    )
+    await manager.send_to_user(str(current_user.id), {
+        "type": "new_alert", "alert": {"id": str(alert.id), "titulo": alert.titulo},
+    })
+    return alert
 
 
 @router.put("/{alert_id}", response_model=AlertResponse)
 async def update_alert(
     alert_id: UUID,
     data: AlertUpdate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    return await AlertService(db).update(alert_id, data)
+    old = await AlertService(db).get(alert_id)
+    alert = await AlertService(db).update(alert_id, data)
+    ip = request.client.host if request.client else None
+    await AuditService(db).log(
+        user_id=current_user.id, action="UPDATE", entity_type="Alert",
+        entity_id=str(alert_id),
+        changes={"old": {"titulo": old.titulo}, "new": data.model_dump(exclude_unset=True)},
+        ip_address=ip,
+    )
+    return alert
 
 
 @router.patch("/{alert_id}/read", response_model=AlertResponse)
@@ -90,8 +112,15 @@ async def mark_all_alerts_read(
 @router.delete("/{alert_id}", response_model=Message)
 async def delete_alert(
     alert_id: UUID,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    current_user: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
+    old = await AlertService(db).get(alert_id)
     await AlertService(db).delete(alert_id)
+    ip = request.client.host if request.client else None
+    await AuditService(db).log(
+        user_id=current_user.id, action="DELETE", entity_type="Alert",
+        entity_id=str(alert_id), changes={"titulo": old.titulo}, ip_address=ip,
+    )
     return Message(detail="Alert deleted")

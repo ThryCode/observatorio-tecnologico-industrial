@@ -1,4 +1,5 @@
 from app.models.alert import Alert
+from app.models.audit_log import AuditLog
 from app.models.base import Base
 from app.models.bulletin import Bulletin
 from app.models.competitiveness import CompetitivenessIndex
@@ -16,6 +17,7 @@ from app.models.user import User
 
 __all__ = [
     "Alert",
+    "AuditLog",
     "Base",
     "Bulletin",
     "CompetitivenessIndex",

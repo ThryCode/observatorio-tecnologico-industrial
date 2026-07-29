@@ -1,13 +1,14 @@
 from datetime import date
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, require_role
 from app.models.user import User, UserRole
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.patent import PatentCreate, PatentResponse, PatentUpdate
+from app.services.audit_service import AuditService
 from app.services.patent_service import PatentService
 
 router = APIRouter(prefix="/patents", tags=["patents"])
@@ -46,27 +47,61 @@ async def get_patent(patent_id: UUID, db: AsyncSession = Depends(get_db)):
 @router.post("", response_model=PatentResponse, status_code=201)
 async def create_patent(
     data: PatentCreate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS, UserRole.ANALISTA)),
+    current_user: User = Depends(require_role(UserRole.ADMIN_MINDUS, UserRole.ANALISTA)),
 ):
-    return await PatentService(db).create(data)
+    patent = await PatentService(db).create(data)
+    ip = request.client.host if request.client else None
+    await AuditService(db).log(
+        user_id=current_user.id,
+        action="CREATE",
+        entity_type="Patent",
+        entity_id=str(patent.id),
+        changes=data.model_dump(),
+        ip_address=ip,
+    )
+    return patent
 
 
 @router.put("/{patent_id}", response_model=PatentResponse)
 async def update_patent(
     patent_id: UUID,
     data: PatentUpdate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    current_user: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
-    return await PatentService(db).update(patent_id, data)
+    old = await PatentService(db).get(patent_id)
+    patent = await PatentService(db).update(patent_id, data)
+    ip = request.client.host if request.client else None
+    await AuditService(db).log(
+        user_id=current_user.id,
+        action="UPDATE",
+        entity_type="Patent",
+        entity_id=str(patent_id),
+        changes={"old": old.model_dump(), "new": data.model_dump(exclude_unset=True)},
+        ip_address=ip,
+    )
+    return patent
 
 
 @router.delete("/{patent_id}", response_model=Message)
 async def delete_patent(
     patent_id: UUID,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    current_user: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
+    old = await PatentService(db).get(patent_id)
     await PatentService(db).delete(patent_id)
+    ip = request.client.host if request.client else None
+    await AuditService(db).log(
+        user_id=current_user.id,
+        action="DELETE",
+        entity_type="Patent",
+        entity_id=str(patent_id),
+        changes={"title": old.title, "patent_number": old.patent_number},
+        ip_address=ip,
+    )
     return Message(detail="Patent deleted")

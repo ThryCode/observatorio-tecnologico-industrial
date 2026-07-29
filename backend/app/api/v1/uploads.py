@@ -1,9 +1,8 @@
-from fastapi import APIRouter, UploadFile, File, Depends
+from fastapi import APIRouter, Depends, File, UploadFile
 from loguru import logger
 
 from app.dependencies import get_current_user
-from app.schemas.common import Message
-from app.services.file_service import save_upload, FileServiceError
+from app.services.file_service import FileServiceError, save_upload
 
 router = APIRouter(prefix="/upload", tags=["upload"])
 
