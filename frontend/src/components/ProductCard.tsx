@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { FileText, BookOpen, AlertTriangle, Map, User, Bookmark, Eye } from 'lucide-react';
 
-interface ProductCardProps {
+export interface ProductCardProps {
   type: 'alerta' | 'boletin' | 'estudio' | 'mapa';
   title: string;
   excerpt: string;

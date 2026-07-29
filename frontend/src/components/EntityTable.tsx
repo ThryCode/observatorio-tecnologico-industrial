@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
-interface Entity {
+export interface Entity {
   id: string;
   name: string;
   initials: string;

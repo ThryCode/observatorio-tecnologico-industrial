@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { FileText, BookOpen, Users, AlertTriangle, Plus, Download, Clock, Eye } from 'lucide-react';
 import { pdf } from '@react-pdf/renderer';
 import PageHeader from '@/components/PageHeader';
@@ -22,33 +23,11 @@ import { getIndicators } from '@/api/indicators';
 import { listBulletins } from '@/api/bulletins';
 import { getIndustrialSectors } from '@/api/industrialSectors';
 import { listAlerts } from '@/api/alerts';
-import { getDashboardKPIs, getTimelineEvents } from '@/api/dashboard';
-import type { Alert, DashboardKPI, TimelineEvent } from '@/types';
-
-const sectors = [
-  { id: 'all', label: 'Todos', count: 2847 },
-  { id: 'sid', label: 'Siderurgia', count: 412 },
-  { id: 'met', label: 'Metalurgia', count: 389 },
-  { id: 'ele', label: 'Electrónica', count: 567 },
-  { id: 'qui', label: 'Química', count: 298 },
-  { id: 'aut', label: 'Automatización', count: 456 },
-  { id: 'ene', label: 'Energía', count: 234 },
-  { id: 'bio', label: 'Biotecnología', count: 187 },
-];
-
-const entities = [
-  { id: '1', name: 'Centro de Investigación de Materiales', initials: 'CIMAT', type: 'Centro de Investigación', status: 'active' as const, progress: 94 },
-  { id: '2', name: 'Universidad Central de Las Villas', initials: 'UCLV', type: 'Universidad', status: 'active' as const, progress: 87 },
-  { id: '3', name: 'Centro de Innovación Metalúrgica', initials: 'CIME', type: 'Centro de Innovación', status: 'pending' as const, progress: 45 },
-  { id: '4', name: 'Instituto Nacional de Innovación y Desarrollo Tecnológico', initials: 'INIDT', type: 'Instituto Tecnológico', status: 'active' as const, progress: 78 },
-  { id: '5', name: 'Universidad de las Ciencias Informáticas', initials: 'UCI', type: 'Universidad', status: 'inactive' as const, progress: 12 },
-];
-
-const products = [
-  { type: 'estudio' as const, title: 'Análisis de competitividad del sector metalúrgico cubano vs. Brasil 2026', excerpt: 'Estudio comparativo de indicadores de productividad, capacidad instalada y penetración de mercado del sector metalúrgico cubano frente al brasileño.', meta: [{ icon: <FileText className="h-3 w-3" />, text: '42 páginas' }, { icon: <Clock className="h-3 w-3" />, text: 'Hace 3d' }, { icon: <Users className="h-3 w-3" />, text: 'Dr. Méndez' }] },
-  { type: 'boletin' as const, title: 'Boletín Tecnológico Quincenal — Sector Electrónica', excerpt: 'Compendio de novedades tecnológicas, patentes y publicaciones del sector electrónico con énfasis en semiconductores y sensores IoT.', meta: [{ icon: <FileText className="h-3 w-3" />, text: '156 lecturas' }, { icon: <Clock className="h-3 w-3" />, text: 'Hace 5d' }, { icon: <Users className="h-3 w-3" />, text: 'EDI' }] },
-  { type: 'alerta' as const, title: 'Disrupción detectada: nuevos materiales en soldadura de aleaciones de aluminio', excerpt: 'Identificación temprana de una innovación disruptiva en procesos de soldadura por fricción-agitación para aleaciones de aluminio de alta resistencia.', meta: [{ icon: <FileText className="h-3 w-3" />, text: 'Prioridad alta' }, { icon: <Clock className="h-3 w-3" />, text: 'Hace 1d' }, { icon: <Users className="h-3 w-3" />, text: 'CIMAT' }] },
-];
+import { getDashboardKPIs, getTimelineEvents, getDashboardSectors } from '@/api/dashboard';
+import type { Alert, DashboardKPI, TimelineEvent, Organization } from '@/types';
+import type { BulletinListItem } from '@/api/bulletins';
+import type { Entity } from '@/components/EntityTable';
+import type { ProductCardProps } from '@/components/ProductCard';
 
 function mapSeverityToPriority(severity: Alert['severidad']): 'high' | 'medium' | 'low' {
   switch (severity) {
@@ -109,6 +88,50 @@ function mapTimelineToEvent(event: TimelineEvent) {
   };
 }
 
+const tipoMap: Record<string, string> = {
+  centro_investigacion: 'Centro de Investigación',
+  instituto_tecnologico: 'Instituto Tecnológico',
+  universidad: 'Universidad',
+  empresa: 'Empresa',
+  ministerio: 'Ministerio',
+};
+
+function mapOrgToEntity(org: Organization): Entity {
+  return {
+    id: org.id,
+    name: org.nombre,
+    initials: org.siglas,
+    type: tipoMap[org.tipo] || org.tipo,
+    status: 'active' as const,
+    progress: 78,
+  };
+}
+
+function mapBulletinToProduct(bulletin: BulletinListItem): ProductCardProps {
+  const age = getRelativeTime(new Date(bulletin.fecha));
+  const type = bulletin.categoria === 'alerta' ? 'alerta' : 'boletin';
+  return {
+    type,
+    title: bulletin.titulo,
+    excerpt: bulletin.resumen,
+    meta: [
+      { icon: <FileText className="h-3 w-3" />, text: bulletin.categoria },
+      { icon: <Clock className="h-3 w-3" />, text: age },
+      { icon: <Users className="h-3 w-3" />, text: bulletin.autor || 'Sistema' },
+    ],
+  };
+}
+
+function getRelativeTime(date: Date): string {
+  const diff = Date.now() - date.getTime();
+  const days = Math.floor(diff / 86400000);
+  if (days > 30) return `Hace ${Math.floor(days / 30)}m`;
+  if (days > 0) return `Hace ${days}d`;
+  const hours = Math.floor(diff / 3600000);
+  if (hours > 0) return `Hace ${hours}h`;
+  return 'Ahora';
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const [activeSector, setActiveSector] = useState('all');
@@ -116,9 +139,29 @@ export default function Dashboard() {
   const { data: rawAlerts, isLoading: alertsLoading } = useAlerts();
   const { data: kpis, isLoading: kpisLoading } = useDashboardKPIs();
   const { data: rawTimeline, isLoading: timelineLoading } = useTimelineEvents();
+  const { data: sectorsData, isLoading: sectorsLoading } = useQuery({
+    queryKey: ['dashboard', 'sectors'],
+    queryFn: getDashboardSectors,
+    staleTime: 5 * 60 * 1000,
+  });
+  const { data: orgsData, isLoading: orgsLoading } = useQuery({
+    queryKey: ['organizations', { page: 1, per_page: 5 }],
+    queryFn: () => getOrganizations(1, 5),
+  });
+  const { data: bulletinsData, isLoading: bulletinsLoading } = useQuery({
+    queryKey: ['bulletins', { page: 1, per_page: 3 }],
+    queryFn: () => listBulletins(1, 3),
+  });
 
   const alerts = rawAlerts?.map(mapAlertToAlertItem) || [];
   const timelineEvents = rawTimeline?.map(mapTimelineToEvent) || [];
+  const totalCount = sectorsData?.reduce((s, item) => s + item.count, 0) || 0;
+  const sectors = [
+    { id: 'all', label: 'Todos', count: totalCount },
+    ...(sectorsData || []).map((s) => ({ id: s.codigo.toLowerCase(), label: s.nombre, count: s.count })),
+  ];
+  const entities = (orgsData?.items || []).map(mapOrgToEntity);
+  const products = (bulletinsData?.items || []).slice(0, 3).map(mapBulletinToProduct);
 
   const handleExport = useCallback(async () => {
     setExporting(true);
@@ -188,7 +231,11 @@ export default function Dashboard() {
         }
       />
 
-      <SectorPills sectors={sectors} active={activeSector} onChange={setActiveSector} />
+      {sectorsLoading ? (
+        <div className="text-center text-text-muted py-4">Cargando sectores...</div>
+      ) : (
+        <SectorPills sectors={sectors} active={activeSector} onChange={setActiveSector} />
+      )}
 
       {/* Section 2 — KPIs */}
       <section>
@@ -233,7 +280,11 @@ export default function Dashboard() {
               </Button>
             </div>
             <div className="bg-surface rounded-lg border border-border flex-1">
-              <EntityTable entities={entities} />
+              {orgsLoading ? (
+                <div className="text-center text-text-muted py-8">Cargando entidades...</div>
+              ) : (
+                <EntityTable entities={entities} />
+              )}
             </div>
           </div>
           <div className="flex flex-col">
@@ -260,11 +311,15 @@ export default function Dashboard() {
             Ver todos
           </Button>
         </div>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {products.map((product, i) => (
-            <ProductCard key={i} {...product} />
-          ))}
-        </div>
+        {bulletinsLoading ? (
+          <div className="text-center text-text-muted py-8">Cargando productos...</div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {products.map((product, i) => (
+              <ProductCard key={i} {...product} />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Footer */}

@@ -8,11 +8,12 @@ from app.dependencies import get_current_user, get_db
 from app.models.alert import Alert
 from app.models.bulletin import Bulletin
 from app.models.indicator import Indicator
+from app.models.industrial_sector import IndustrialSector
 from app.models.organization import Organization
 from app.models.patent import Patent
 from app.models.regulation import Regulation
 from app.models.technology import Technology
-from app.schemas.dashboard import DashboardSummary, KPIItem, TimelineEvent
+from app.schemas.dashboard import DashboardSummary, KPIItem, SectorCount, TimelineEvent
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
@@ -49,6 +50,47 @@ async def dashboard_summary(
         KPIItem(label="Indicadores", value=ind_count, unit="activos", change=0),
         KPIItem(label="Alertas", value=alert_count, unit="activas", change=0),
     ])
+
+
+@router.get("/sectors", response_model=list[SectorCount])
+async def dashboard_sectors(
+    db: AsyncSession = Depends(get_db),
+    _=Depends(get_current_user),
+):
+    pat_counts = select(
+        Patent.technological_sector.label("codigo"),
+        func.count().label("cnt"),
+    ).where(Patent.technological_sector.isnot(None)).group_by(Patent.technological_sector).cte()
+
+    tech_counts = select(
+        Technology.sector_codigo.label("codigo"),
+        func.count().label("cnt"),
+    ).where(Technology.sector_codigo.isnot(None)).group_by(Technology.sector_codigo).cte()
+
+    org_counts = select(
+        Organization.sector_codigo.label("codigo"),
+        func.count().label("cnt"),
+    ).where(Organization.sector_codigo.isnot(None)).group_by(Organization.sector_codigo).cte()
+
+    query = (
+        select(
+            IndustrialSector.codigo,
+            IndustrialSector.nombre,
+            (
+                func.coalesce(pat_counts.c.cnt, 0)
+                + func.coalesce(tech_counts.c.cnt, 0)
+                + func.coalesce(org_counts.c.cnt, 0)
+            ).label("count"),
+        )
+        .outerjoin(pat_counts, IndustrialSector.codigo == pat_counts.c.codigo)
+        .outerjoin(tech_counts, IndustrialSector.codigo == tech_counts.c.codigo)
+        .outerjoin(org_counts, IndustrialSector.codigo == org_counts.c.codigo)
+        .order_by(IndustrialSector.codigo)
+    )
+
+    result = await db.execute(query)
+    rows = result.fetchall()
+    return [SectorCount(codigo=r.codigo, nombre=r.nombre, count=r.count) for r in rows]
 
 
 @router.get("/timeline", response_model=list[TimelineEvent])

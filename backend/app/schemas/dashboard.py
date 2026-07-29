@@ -19,3 +19,9 @@ class TimelineEvent(BaseModel):
     fecha: datetime
     titulo: str
     tipo: str
+
+
+class SectorCount(BaseModel):
+    codigo: str
+    nombre: str
+    count: int
