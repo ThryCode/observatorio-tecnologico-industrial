@@ -58,6 +58,8 @@ export default function Sidebar() {
   const today = new Date().toISOString().split('T')[0];
   const { data: upcomingAlerts } = useAlerts(false, 1, 1, undefined, undefined, undefined, today);
   const upcomingCount = Array.isArray(upcomingAlerts) ? upcomingAlerts.length : 0;
+  const lastAlertSeen = parseInt(localStorage.getItem('lastAlertUpcomingCount') ?? '-1', 10);
+  const newAlertCount = lastAlertSeen === -1 ? upcomingCount : Math.max(0, upcomingCount - lastAlertSeen);
   const { data: patentsData } = usePatents(1, 1);
   const patentCount = patentsData?.total;
   const lastSeenCount = parseInt(localStorage.getItem('lastPatentSeenCount') ?? '-1', 10);
@@ -141,7 +143,7 @@ export default function Sidebar() {
             <NavItem
               key={item.to}
               {...item}
-              badge={item.to === '/alerts' && upcomingCount > 0 ? String(upcomingCount) : undefined}
+              badge={item.to === '/alerts' && newAlertCount > 0 ? String(newAlertCount) : undefined}
               collapsed={collapsed}
               active={isActive(item.to)}
               onClick={() => setMobileOpen(false)}

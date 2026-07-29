@@ -63,6 +63,14 @@ export default function AlertsPage() {
   const today = new Date().toISOString().slice(0, 10);
   const unreadOnly = leidaFilter === 'no_leidas';
   const { data: rawAlerts, isLoading, refetch } = useAlerts(unreadOnly, page, 10, q || undefined, severidad, undefined, fechaDesde || undefined, fechaHasta || undefined, sortBy, sortOrder);
+
+  useEffect(() => {
+    import('@/api/alerts').then(({ listAlerts }) =>
+      listAlerts(false, 1, 1, undefined, undefined, undefined, today).then((alerts) => {
+        localStorage.setItem('lastAlertUpcomingCount', String(alerts.length));
+      })
+    );
+  }, []);
   const allAlerts = Array.isArray(rawAlerts)
     ? leidaFilter === 'leidas' ? rawAlerts.filter(a => a.leida) : rawAlerts
     : [];
