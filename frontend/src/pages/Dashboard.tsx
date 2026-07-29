@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { FileText, BookOpen, Users, AlertTriangle, Plus, Download, Clock, Eye } from 'lucide-react';
+import { pdf } from '@react-pdf/renderer';
 import PageHeader from '@/components/PageHeader';
 import KPICard from '@/components/KPICard';
 import SectorPills from '@/components/SectorPills';
@@ -8,9 +9,19 @@ import EntityTable from '@/components/EntityTable';
 import Timeline from '@/components/Timeline';
 import KnowledgeGraph from '@/components/KnowledgeGraph';
 import ProductCard from '@/components/ProductCard';
+import FullExportPDF from '@/components/FullExportPDF';
 import { Button } from '@/components/ui/button';
 import { useAlerts } from '@/hooks/useAlerts';
 import { useDashboardKPIs, useTimelineEvents } from '@/hooks/useDashboard';
+import { getPatents } from '@/api/patents';
+import { getTechnologies } from '@/api/technologies';
+import { getOrganizations } from '@/api/organizations';
+import { getRegulations } from '@/api/regulations';
+import { getIndicators } from '@/api/indicators';
+import { listBulletins } from '@/api/bulletins';
+import { getIndustrialSectors } from '@/api/industrialSectors';
+import { listAlerts } from '@/api/alerts';
+import { getDashboardKPIs, getTimelineEvents } from '@/api/dashboard';
 import type { Alert, DashboardKPI, TimelineEvent } from '@/types';
 
 const sectors = [
@@ -99,12 +110,60 @@ function mapTimelineToEvent(event: TimelineEvent) {
 
 export default function Dashboard() {
   const [activeSector, setActiveSector] = useState('all');
+  const [exporting, setExporting] = useState(false);
   const { data: rawAlerts, isLoading: alertsLoading } = useAlerts();
   const { data: kpis, isLoading: kpisLoading } = useDashboardKPIs();
   const { data: rawTimeline, isLoading: timelineLoading } = useTimelineEvents();
 
   const alerts = rawAlerts?.map(mapAlertToAlertItem) || [];
   const timelineEvents = rawTimeline?.map(mapTimelineToEvent) || [];
+
+  const handleExport = useCallback(async () => {
+    setExporting(true);
+    try {
+      async function fetchSafe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+        try { return await fn(); } catch { return fallback; }
+      }
+      const [
+        kpisRes, patentsRes, techRes, orgsRes, regsRes,
+        indicsRes, alertsRes, bullsRes, sectorsRes, timelineRes,
+      ] = await Promise.all([
+        fetchSafe(() => getDashboardKPIs(), []),
+        fetchSafe(() => getPatents(1, 200), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
+        fetchSafe(() => getTechnologies(1, 200), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
+        fetchSafe(() => getOrganizations(1, 200), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
+        fetchSafe(() => getRegulations(1, 200), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
+        fetchSafe(() => getIndicators(1, 200), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
+        fetchSafe(() => listAlerts(), []),
+        fetchSafe(() => listBulletins(1, 200), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
+        fetchSafe(() => getIndustrialSectors(1, 200), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
+        fetchSafe(() => getTimelineEvents(), []),
+      ]);
+      const blob = await pdf(
+        <FullExportPDF
+          kpis={kpisRes}
+          patents={patentsRes.items}
+          technologies={techRes.items}
+          organizations={orgsRes.items}
+          regulations={regsRes.items}
+          indicators={indicsRes.items}
+          alerts={alertsRes}
+          bulletins={bullsRes.items}
+          industrialSectors={sectorsRes.items}
+          timeline={timelineRes}
+          generatedAt={new Date().toLocaleString('es-ES')}
+        />
+      ).toBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `informe-completo-${new Date().toISOString().split('T')[0]}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  }, []);
 
   return (
     <div className="space-y-10">
@@ -115,9 +174,9 @@ export default function Dashboard() {
         description="Vigilancia tecnológica y competitividad industrial — datos actualizados en tiempo real desde fuentes internas y externas."
         actions={
           <div className="flex gap-2">
-            <Button variant="secondary" className="gap-2">
-              <Download className="h-4 w-4" />
-              Exportar
+            <Button variant="secondary" className="gap-2" onClick={handleExport} disabled={exporting}>
+              <Download className={`h-4 w-4 ${exporting ? 'animate-spin' : ''}`} />
+              {exporting ? 'Exportando...' : 'Exportar'}
             </Button>
             <Button className="gap-2">
               <Plus className="h-4 w-4" />
@@ -163,7 +222,7 @@ export default function Dashboard() {
       {/* Section 4 — Entidades + Timeline (1fr + 1fr) */}
       <section>
         <div className="grid gap-6 lg:grid-cols-2">
-          <div>
+          <div className="flex flex-col">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-bold text-foreground">Entidades CTI</h3>
               <Button variant="link" size="sm" className="text-accent-orange gap-1">
@@ -171,17 +230,19 @@ export default function Dashboard() {
                 Ver todas
               </Button>
             </div>
-            <div className="bg-surface rounded-lg border border-border">
+            <div className="bg-surface rounded-lg border border-border flex-1">
               <EntityTable entities={entities} />
             </div>
           </div>
-          <div>
-            <h3 className="text-base font-bold text-foreground mb-3">Actividad Reciente</h3>
-            <div className="bg-surface rounded-lg border border-border p-5">
+          <div className="flex flex-col">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-bold text-foreground">Actividad Reciente</h3>
+            </div>
+            <div className="bg-surface rounded-lg border border-border p-5 flex-1 mt-3">
               {timelineLoading ? (
                 <div className="text-center text-text-muted py-8">Cargando actividad reciente...</div>
               ) : (
-                <Timeline events={timelineEvents} />
+                <Timeline events={timelineEvents.slice(0, 6)} />
               )}
             </div>
           </div>
