@@ -35,9 +35,12 @@ export default function Topbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchRef = useRef<HTMLInputElement>(null);
+  const [notifClicked, setNotifClicked] = useState(false);
   const today = new Date().toISOString().slice(0, 10);
   const { data: upcomingAlerts } = useAlerts(false, 1, 1, undefined, undefined, undefined, today);
-  const notifCount = Array.isArray(upcomingAlerts) ? upcomingAlerts.length : 0;
+  const rawCount = Array.isArray(upcomingAlerts) ? upcomingAlerts.length : 0;
+  const lastSeen = parseInt(localStorage.getItem('lastAlertUpcomingCount') ?? '-1', 10);
+  const notifCount = notifClicked ? 0 : (lastSeen === -1 ? rawCount : Math.max(0, rawCount - lastSeen));
 
   // Keyboard shortcut: Cmd+K / Ctrl+K to focus search
   useEffect(() => {
@@ -121,7 +124,7 @@ export default function Topbar() {
           </div>
 
           {/* Notifications */}
-          <button onClick={() => { localStorage.setItem('lastAlertUpcomingCount', String(notifCount)); navigate('/alerts'); }} className="relative w-10 h-10 rounded-full border border-border bg-surface text-text-secondary hover:bg-background hover:border-accent-orange hover:text-accent-orange hover:-translate-y-0.5 transition-all duration-150 flex items-center justify-center" aria-label="Alertas" title="Alertas">
+          <button onClick={() => { setNotifClicked(true); localStorage.setItem('lastAlertUpcomingCount', String(rawCount)); navigate('/alerts'); }} className="relative w-10 h-10 rounded-full border border-border bg-surface text-text-secondary hover:bg-background hover:border-accent-orange hover:text-accent-orange hover:-translate-y-0.5 transition-all duration-150 flex items-center justify-center" aria-label="Alertas" title="Alertas">
             <Bell className="h-4 w-4" />
             {notifCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] rounded-full bg-accent-orange text-white text-[10px] font-bold flex items-center justify-center border-2 border-surface">
