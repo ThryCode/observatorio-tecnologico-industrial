@@ -208,7 +208,7 @@ export default function Dashboard() {
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <h3 className="text-base font-bold text-foreground mb-3">Grafo de Conocimiento Industrial</h3>
-            <KnowledgeGraph height={400} className="rounded-lg border border-border" />
+            <KnowledgeGraph height={620} className="rounded-lg border border-border" />
           </div>
           <div>
             <h3 className="text-base font-bold text-foreground mb-3">Alertas Recientes</h3>

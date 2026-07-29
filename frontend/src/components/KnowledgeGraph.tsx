@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 interface GraphNode {
@@ -94,6 +95,7 @@ const legend = [
 ];
 
 export default function KnowledgeGraph({ className, height = 400 }: KnowledgeGraphProps) {
+  const navigate = useNavigate();
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   const isConnected = (nodeId: string) => {
@@ -157,6 +159,7 @@ export default function KnowledgeGraph({ className, height = 400 }: KnowledgeGra
               className="cursor-pointer"
               onMouseEnter={() => setHoveredId(node.id)}
               onMouseLeave={() => setHoveredId(null)}
+              onClick={() => navigate('/graph')}
             >
               <circle
                 cx={node.x}
