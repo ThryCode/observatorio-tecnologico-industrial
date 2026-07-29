@@ -1,12 +1,29 @@
 import client, { USE_MOCK } from './client';
 import type { Regulation, PaginatedResponse } from '@/types';
 
-const MOCK_REGULATIONS: Regulation[] = [
+const STORAGE_KEY = 'mock_regulations';
+
+const DEFAULT_REGULATIONS: Regulation[] = [
   { id: '1', title: 'Reglamento de Seguridad Industrial', regulation_number: 'RES-2025-001', issuing_body: 'MINDUS', publication_date: '2025-01-15', category: 'resolution', summary: 'Normas de seguridad para instalaciones industriales.', sector_codigo: 'BIO', created_at: '2025-01-15T00:00:00Z', updated_at: '2025-01-15T00:00:00Z' },
   { id: '2', title: 'Ley de Innovacion Tecnologica', regulation_number: 'LEY-2025-002', issuing_body: 'Asamblea Nacional', publication_date: '2025-03-20', effective_date: '2025-06-01', category: 'law', summary: 'Marco legal para la innovacion tecnologica industrial.', created_at: '2025-03-20T00:00:00Z', updated_at: '2025-03-20T00:00:00Z' },
   { id: '3', title: 'Decreto de Propiedad Industrial', regulation_number: 'DEC-2025-003', issuing_body: 'Consejo de Ministros', publication_date: '2025-05-10', category: 'decree', summary: 'Regulacion de derechos de propiedad industrial.', created_at: '2025-05-10T00:00:00Z', updated_at: '2025-05-10T00:00:00Z' },
   { id: '4', title: 'Norma Tecnica de Biotecnologia', regulation_number: 'NC-2025-004', issuing_body: 'ONN', publication_date: '2025-04-05', effective_date: '2025-07-01', category: 'standard', summary: 'Requisitos tecnicos para productos biotecnologicos.', sector_codigo: 'BIO', created_at: '2025-04-05T00:00:00Z', updated_at: '2025-04-05T00:00:00Z' },
 ];
+
+function loadMockRegulations(): Regulation[] {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_REGULATIONS));
+  return [...DEFAULT_REGULATIONS];
+}
+
+function saveMockRegulations(regs: Regulation[]) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(regs));
+}
+
+let MOCK_REGULATIONS = loadMockRegulations();
 
 export async function getRegulations(
   page = 1,
@@ -60,6 +77,7 @@ export async function createRegulation(data: Partial<Regulation>): Promise<Regul
   if (USE_MOCK) {
     const newReg: Regulation = { ...data, id: String(Date.now()), created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as Regulation;
     MOCK_REGULATIONS.unshift(newReg);
+    saveMockRegulations(MOCK_REGULATIONS);
     return newReg;
   }
   const res = await client.post<Regulation>('/regulations', data);
@@ -71,6 +89,7 @@ export async function updateRegulation(id: string, data: Partial<Regulation>): P
     const idx = MOCK_REGULATIONS.findIndex((r) => r.id === id);
     if (idx === -1) throw new Error('Regulation not found');
     MOCK_REGULATIONS[idx] = { ...MOCK_REGULATIONS[idx], ...data, updated_at: new Date().toISOString() };
+    saveMockRegulations(MOCK_REGULATIONS);
     return MOCK_REGULATIONS[idx];
   }
   const res = await client.put<Regulation>(`/regulations/${id}`, data);
@@ -82,6 +101,7 @@ export async function deleteRegulation(id: string): Promise<void> {
     const idx = MOCK_REGULATIONS.findIndex((r) => r.id === id);
     if (idx === -1) throw new Error('Regulation not found');
     MOCK_REGULATIONS.splice(idx, 1);
+    saveMockRegulations(MOCK_REGULATIONS);
     return;
   }
   await client.delete(`/regulations/${id}`);

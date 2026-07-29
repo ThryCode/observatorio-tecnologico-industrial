@@ -28,10 +28,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, FileText, ExternalLink, Calendar, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Search, FileText, Calendar, Plus, Pencil, Trash2, Download, AlertCircle } from 'lucide-react';
 import { formatDate } from '@/utils/formatters';
 import { usePermissions } from '@/hooks/usePermissions';
 import type { Regulation } from '@/types';
+import FileUpload from '@/components/FileUpload';
 
 const categoryLabels: Record<string, string> = {
   law: 'Ley', decree: 'Decreto', resolution: 'Resolución', standard: 'Norma', other: 'Otro',
@@ -53,8 +54,9 @@ export default function Regulations() {
   const [regToDelete, setRegToDelete] = useState<Regulation | null>(null);
   const [formData, setFormData] = useState({
     title: '', regulation_number: '', issuing_body: '', publication_date: '',
-    effective_date: '', category: '', summary: '', sector_codigo: '',
+    effective_date: '', category: '', summary: '', sector_codigo: '', file_url: '',
   });
+  const [saveError, setSaveError] = useState('');
 
   const createMutation = useCreateRegulation();
   const updateMutation = useUpdateRegulation();
@@ -67,7 +69,7 @@ export default function Regulations() {
   );
 
   const resetForm = () => {
-    setFormData({ title: '', regulation_number: '', issuing_body: '', publication_date: '', effective_date: '', category: '', summary: '', sector_codigo: '' });
+    setFormData({ title: '', regulation_number: '', issuing_body: '', publication_date: '', effective_date: '', category: '', summary: '', sector_codigo: '', file_url: '' });
     setEditingReg(null);
   };
 
@@ -79,26 +81,33 @@ export default function Regulations() {
       title: reg.title, regulation_number: reg.regulation_number, issuing_body: reg.issuing_body,
       publication_date: reg.publication_date, effective_date: reg.effective_date || '',
       category: reg.category, summary: reg.summary || '', sector_codigo: reg.sector_codigo || '',
+      file_url: reg.file_url || '',
     });
     setDialogOpen(true);
   };
 
   const handleSave = async () => {
-    const data: Partial<Regulation> = {
+    setSaveError('');
+    const data: Partial<Regulation> & { file_url?: string } = {
       ...formData,
       category: formData.category as import('@/types').RegulationCategory,
       effective_date: formData.effective_date || undefined,
       summary: formData.summary || undefined,
       sector_codigo: formData.sector_codigo || undefined,
+      file_url: formData.file_url || undefined,
     };
-    if (editingReg) {
-      await updateMutation.mutateAsync({ id: editingReg.id, data });
-    } else {
-      await createMutation.mutateAsync(data);
+    try {
+      if (editingReg) {
+        await updateMutation.mutateAsync({ id: editingReg.id, data });
+      } else {
+        await createMutation.mutateAsync(data);
+      }
+      setDialogOpen(false);
+      resetForm();
+      refetch();
+    } catch {
+      setSaveError('Error al guardar la normativa. Verifica los datos.');
     }
-    setDialogOpen(false);
-    resetForm();
-    refetch();
   };
 
   const handleDelete = async () => {
@@ -179,13 +188,18 @@ export default function Regulations() {
                       <TableCell className="text-muted-foreground">{formatDate(item.publication_date)}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
+                          {item.file_url && (
+                            <a href={item.file_url} download onClick={(e) => e.stopPropagation()}>
+                              <Button variant="ghost" size="sm" type="button"><Download className="h-4 w-4 text-blue-500" /></Button>
+                            </a>
+                          )}
                           {can('regulations', 'edit') && (
                             <Button variant="ghost" size="sm" onClick={() => openEditDialog(item)}><Pencil className="h-4 w-4" /></Button>
                           )}
                           {can('regulations', 'delete') && (
                             <Button variant="ghost" size="sm" onClick={() => { setRegToDelete(item); setDeleteDialogOpen(true); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                           )}
-                          <Button variant="ghost" size="sm" onClick={() => setSelected(item)}><ExternalLink className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="sm" onClick={() => setSelected(item)}><FileText className="h-4 w-4" /></Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -225,6 +239,15 @@ export default function Regulations() {
                   <span className="text-muted-foreground">{selected.effective_date ? formatDate(selected.effective_date) : 'N/A'}</span>
                 </div>
               </div>
+              {selected.file_url && (
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="font-medium">Archivo adjunto:</span>
+                  <a href={selected.file_url} download className="flex items-center gap-1 text-primary hover:underline">
+                    <Download className="h-3.5 w-3.5" />
+                    Descargar archivo
+                  </a>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
@@ -273,7 +296,21 @@ export default function Regulations() {
               <label className="text-sm font-medium">Resumen</label>
               <textarea className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" value={formData.summary} onChange={(e) => setFormData({ ...formData, summary: e.target.value })} placeholder="Resumen de la normativa" />
             </div>
+            <div className="col-span-2">
+              <label className="text-sm font-medium">Archivo adjunto</label>
+              <FileUpload
+                onUpload={(url) => setFormData({ ...formData, file_url: url })}
+                currentUrl={formData.file_url}
+                accept=".pdf,.doc,.docx"
+              />
+            </div>
           </div>
+          {saveError && (
+            <div className="flex items-center gap-2 text-sm text-red-500">
+              <AlertCircle className="h-4 w-4" />
+              <span>{saveError}</span>
+            </div>
+          )}
           <DialogFooter>
             <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>Cancelar</Button>
             <Button onClick={handleSave} disabled={!formData.title || !formData.regulation_number || createMutation.isPending || updateMutation.isPending}>

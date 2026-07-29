@@ -160,6 +160,7 @@ export interface Regulation {
   summary?: string;
   full_text_url?: string;
   sector_codigo?: string;
+  file_url?: string;
   created_at: string;
   updated_at: string;
 }
