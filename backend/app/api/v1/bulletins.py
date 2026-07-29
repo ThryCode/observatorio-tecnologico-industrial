@@ -1,3 +1,4 @@
+from datetime import date
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
@@ -18,9 +19,16 @@ async def list_bulletins(
     per_page: int = Query(20, ge=1, le=100),
     sector_codigo: str | None = Query(None),
     categoria: str | None = Query(None),
+    q: str | None = Query(None),
+    fecha_desde: date | None = Query(None),
+    fecha_hasta: date | None = Query(None),
+    sort_by: str | None = Query(None),
+    sort_order: str = Query("desc"),
     db: AsyncSession = Depends(get_db),
 ):
-    items, total = await BulletinService(db).list(page, per_page, sector_codigo, categoria)
+    items, total = await BulletinService(db).list(
+        page, per_page, sector_codigo, categoria, q, fecha_desde, fecha_hasta, sort_by, sort_order,
+    )
     return PaginatedResponse(
         items=items,
         total=total,

@@ -17,9 +17,13 @@ async def list_technologies(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
     sector_codigo: str | None = Query(None),
+    q: str | None = Query(None),
+    trl_nivel: int | None = Query(None),
+    sort_by: str | None = Query(None),
+    sort_order: str = Query("desc"),
     db: AsyncSession = Depends(get_db),
 ):
-    items, total = await TechnologyService(db).list(page, per_page, sector_codigo)
+    items, total = await TechnologyService(db).list(page, per_page, sector_codigo, q, trl_nivel, sort_by, sort_order)
     return PaginatedResponse(
         items=items,
         total=total,

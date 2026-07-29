@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
@@ -17,10 +18,20 @@ async def list_alerts(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
     unread_only: bool = Query(False),
+    q: str | None = Query(None),
+    severidad: str | None = Query(None),
+    sector_codigo: str | None = Query(None),
+    fecha_desde: datetime | None = Query(None),
+    fecha_hasta: datetime | None = Query(None),
+    sort_by: str | None = Query(None),
+    sort_order: str = Query("desc"),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    items, total = await AlertService(db).list(page, per_page, unread_only)
+    items, total = await AlertService(db).list(
+        page, per_page, unread_only, q, severidad, sector_codigo,
+        fecha_desde, fecha_hasta, sort_by, sort_order,
+    )
     return PaginatedResponse(
         items=items,
         total=total,

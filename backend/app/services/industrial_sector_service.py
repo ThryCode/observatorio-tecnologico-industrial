@@ -4,18 +4,33 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import AppException
 from app.models.industrial_sector import IndustrialSector
 from app.schemas.industrial_sector import IndustrialSectorCreate, IndustrialSectorUpdate
+from app.services.query_helpers import apply_search, apply_sorting
 
 
 class IndustrialSectorService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def list(self, page: int, per_page: int) -> tuple[list[IndustrialSector], int]:
+    async def list(self, page: int, per_page: int, q: str | None = None,
+                   sort_by: str | None = None, sort_order: str = "desc") -> tuple[list[IndustrialSector], int]:
+        query = select(IndustrialSector)
         count_query = select(func.count(IndustrialSector.codigo))
+
+        if q:
+            fields = [IndustrialSector.nombre, IndustrialSector.codigo]
+            query = apply_search(query, IndustrialSector, q, fields)
+            count_query = apply_search(count_query, IndustrialSector, q, fields)
+
         total = (await self.db.execute(count_query)).scalar()
         offset = (page - 1) * per_page
+
+        allowed_sorts = {"nombre": IndustrialSector.nombre, "codigo": IndustrialSector.codigo}
+        query = apply_sorting(query, IndustrialSector, sort_by, sort_order, allowed_sorts)
+        if not sort_by:
+            query = query.order_by(IndustrialSector.codigo)
+
         result = await self.db.execute(
-            select(IndustrialSector).offset(offset).limit(per_page).order_by(IndustrialSector.codigo)
+            query.offset(offset).limit(per_page)
         )
         items = result.scalars().all()
         return items, total

@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import asc, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -15,7 +15,8 @@ class ProfessionalProfileService:
         self.db = db
 
     async def list_professionals(
-        self, page: int, per_page: int, especialidad: str | None = None
+        self, page: int, per_page: int, especialidad: str | None = None,
+        q: str | None = None, sort_by: str | None = None, sort_order: str = "desc"
     ) -> tuple[list[ProfessionalListItem], int]:
         query = (
             select(User)
@@ -32,11 +33,24 @@ class ProfessionalProfileService:
         if especialidad:
             query = query.where(ProfessionalProfile.especialidad == especialidad)
             count_query = count_query.where(ProfessionalProfile.especialidad == especialidad)
+        if q:
+            like = f"%{q}%"
+            cond = User.full_name.ilike(like) | User.email.ilike(like)
+            query = query.where(cond)
+            count_query = count_query.where(cond)
 
         total = (await self.db.execute(count_query)).scalar() or 0
         offset = (page - 1) * per_page
+
+        if sort_by == "email":
+            order_col = User.email
+        elif sort_by == "especialidad":
+            order_col = ProfessionalProfile.especialidad
+        else:
+            order_col = User.full_name
+        sort_fn = asc if sort_order == "asc" else desc
         result = await self.db.execute(
-            query.order_by(User.full_name).offset(offset).limit(per_page)
+            query.order_by(sort_fn(order_col)).offset(offset).limit(per_page)
         )
         users = list(result.scalars().all())
 

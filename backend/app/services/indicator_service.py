@@ -8,6 +8,7 @@ from app.core.exceptions import AppException
 from app.models.indicator import Indicator
 from app.schemas.indicator import IndicatorCreate, IndicatorUpdate
 from app.services.cache import cache_key, get_cached, invalidate_pattern, set_cached
+from app.services.query_helpers import apply_search, apply_sorting
 
 
 class IndicatorService:
@@ -16,8 +17,12 @@ class IndicatorService:
         self.redis = redis
 
     async def list(self, page: int, per_page: int, sector: str | None = None,
-                   period: str | None = None) -> tuple[list[Indicator], int]:
-        key = cache_key("indicators:list", page, per_page, sector=sector, period=period)
+                   period: str | None = None, q: str | None = None,
+                   sort_by: str | None = None, sort_order: str = "desc") -> tuple[list[Indicator], int]:
+        key = cache_key(
+            "indicators:list", page, per_page,
+            sector=sector, period=period, q=q, sort_by=sort_by, sort_order=sort_order,
+        )
         cached = await get_cached(self.redis, key)
         if cached is not None:
             return [Indicator(**item) for item in cached["items"]], cached["total"]
@@ -31,11 +36,25 @@ class IndicatorService:
         if period:
             query = query.where(Indicator.period == period)
             count_query = count_query.where(Indicator.period == period)
+        if q:
+            query = apply_search(query, Indicator, q, [Indicator.name, Indicator.code, Indicator.source])
+            count_query = apply_search(count_query, Indicator, q, [Indicator.name, Indicator.code, Indicator.source])
 
         total = (await self.db.execute(count_query)).scalar()
         offset = (page - 1) * per_page
+
+        allowed_sorts = {
+            "name": Indicator.name,
+            "created_at": Indicator.created_at,
+            "period": Indicator.period,
+            "value": Indicator.value,
+        }
+        query = apply_sorting(query, Indicator, sort_by, sort_order, allowed_sorts)
+        if not sort_by:
+            query = query.order_by(Indicator.created_at.desc())
+
         result = await self.db.execute(
-            query.offset(offset).limit(per_page).order_by(Indicator.created_at.desc())
+            query.offset(offset).limit(per_page)
         )
         items = result.scalars().all()
         serialized = [

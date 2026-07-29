@@ -1,3 +1,4 @@
+from datetime import date
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
@@ -19,9 +20,15 @@ async def list_patents(
     sector: str | None = Query(None),
     status: str | None = Query(None),
     q: str | None = Query(None),
+    fecha_desde: date | None = Query(None),
+    fecha_hasta: date | None = Query(None),
+    sort_by: str | None = Query(None),
+    sort_order: str = Query("desc"),
     db: AsyncSession = Depends(get_db),
 ):
-    items, total = await PatentService(db).list(page, per_page, sector, status, q)
+    items, total = await PatentService(db).list(
+        page, per_page, sector, status, q, fecha_desde, fecha_hasta, sort_by, sort_order
+    )
     return PaginatedResponse(
         items=items,
         total=total,

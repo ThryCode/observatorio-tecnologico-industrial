@@ -18,9 +18,14 @@ async def list_competitiveness(
     per_page: int = Query(20, ge=1, le=100),
     sector_codigo: str | None = Query(None),
     periodo: str | None = Query(None),
+    q: str | None = Query(None),
+    sort_by: str | None = Query(None),
+    sort_order: str = Query("desc"),
     db: AsyncSession = Depends(get_db),
 ):
-    items, total = await CompetitivenessService(db).list(page, per_page, sector_codigo, periodo)
+    items, total = await CompetitivenessService(db).list(
+        page, per_page, sector_codigo, periodo, q, sort_by, sort_order,
+    )
     return PaginatedResponse(
         items=items,
         total=total,

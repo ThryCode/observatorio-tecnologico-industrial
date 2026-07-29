@@ -16,10 +16,16 @@ router = APIRouter(prefix="/users", tags=["users"])
 async def list_users(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
+    q: str | None = Query(None),
+    role: str | None = Query(None),
+    status: str | None = Query(None),
+    is_active: bool | None = Query(None),
+    sort_by: str | None = Query(None),
+    sort_order: str = Query("desc"),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
-    items, total = await UserService(db).list(page, per_page)
+    items, total = await UserService(db).list(page, per_page, q, role, status, is_active, sort_by, sort_order)
     return PaginatedResponse(
         items=items,
         total=total,

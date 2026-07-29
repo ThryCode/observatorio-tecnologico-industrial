@@ -18,9 +18,12 @@ router = APIRouter(prefix="/industrial-sectors", tags=["industrial-sectors"])
 async def list_sectors(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
+    q: str | None = Query(None),
+    sort_by: str | None = Query(None),
+    sort_order: str = Query("desc"),
     db: AsyncSession = Depends(get_db),
 ):
-    items, total = await IndustrialSectorService(db).list(page, per_page)
+    items, total = await IndustrialSectorService(db).list(page, per_page, q, sort_by, sort_order)
     return PaginatedResponse(
         items=items,
         total=total,

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db
@@ -16,13 +16,16 @@ router = APIRouter(prefix="/professionals", tags=["professionals"])
 
 @router.get("", response_model=PaginatedResponse[ProfessionalListItem])
 async def list_professionals(
-    page: int = 1,
-    per_page: int = 20,
-    especialidad: str | None = None,
+    page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=1, le=100),
+    especialidad: str | None = Query(None),
+    q: str | None = Query(None),
+    sort_by: str | None = Query(None),
+    sort_order: str = Query("desc"),
     db: AsyncSession = Depends(get_db),
 ):
     service = ProfessionalProfileService(db)
-    items, total = await service.list_professionals(page, per_page, especialidad)
+    items, total = await service.list_professionals(page, per_page, especialidad, q, sort_by, sort_order)
     total_pages = max(1, (total + per_page - 1) // per_page)
     return PaginatedResponse(
         items=items,

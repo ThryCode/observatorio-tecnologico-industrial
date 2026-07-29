@@ -1,3 +1,4 @@
+from datetime import date
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
@@ -17,9 +18,17 @@ async def list_regulations(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
     category: str | None = Query(None),
+    q: str | None = Query(None),
+    sector_codigo: str | None = Query(None),
+    fecha_desde: date | None = Query(None),
+    fecha_hasta: date | None = Query(None),
+    sort_by: str | None = Query(None),
+    sort_order: str = Query("desc"),
     db: AsyncSession = Depends(get_db),
 ):
-    items, total = await RegulationService(db).list(page, per_page, category)
+    items, total = await RegulationService(db).list(
+        page, per_page, category, q, sector_codigo, fecha_desde, fecha_hasta, sort_by, sort_order,
+    )
     return PaginatedResponse(
         items=items,
         total=total,

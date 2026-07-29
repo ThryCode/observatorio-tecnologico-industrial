@@ -22,10 +22,13 @@ async def list_indicators(
     per_page: int = Query(20, ge=1, le=100),
     sector: str | None = Query(None),
     period: str | None = Query(None),
+    q: str | None = Query(None),
+    sort_by: str | None = Query(None),
+    sort_order: str = Query("desc"),
     db: AsyncSession = Depends(get_db),
     redis=Depends(get_redis),
 ):
-    items, total = await _service(db, redis).list(page, per_page, sector, period)
+    items, total = await _service(db, redis).list(page, per_page, sector, period, q, sort_by, sort_order)
     return PaginatedResponse(
         items=items,
         total=total,

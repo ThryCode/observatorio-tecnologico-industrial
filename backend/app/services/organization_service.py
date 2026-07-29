@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import AppException
 from app.models.organization import Organization
 from app.schemas.organization import OrganizationCreate, OrganizationUpdate
+from app.services.query_helpers import apply_search, apply_sorting
 
 
 class OrganizationService:
@@ -14,7 +15,9 @@ class OrganizationService:
 
     async def list(
         self, page: int, per_page: int, tipo: str | None = None,
-        sector_codigo: str | None = None,
+        sector_codigo: str | None = None, q: str | None = None,
+        pais: str | None = None, provincia: str | None = None,
+        sort_by: str | None = None, sort_order: str = "desc",
     ) -> tuple[list[Organization], int]:
         query = select(Organization)
         count_query = select(func.count(Organization.id))
@@ -25,12 +28,31 @@ class OrganizationService:
         if sector_codigo:
             query = query.where(Organization.sector_codigo == sector_codigo)
             count_query = count_query.where(Organization.sector_codigo == sector_codigo)
+        if q:
+            query = apply_search(query, Organization, q, [Organization.nombre, Organization.siglas])
+            count_query = apply_search(count_query, Organization, q, [Organization.nombre, Organization.siglas])
+        if pais:
+            query = query.where(Organization.pais == pais)
+            count_query = count_query.where(Organization.pais == pais)
+        if provincia:
+            query = query.where(Organization.provincia == provincia)
+            count_query = count_query.where(Organization.provincia == provincia)
 
         total = (await self.db.execute(count_query)).scalar()
         offset = (page - 1) * per_page
-        result = await self.db.execute(
-            query.offset(offset).limit(per_page).order_by(Organization.created_at.desc())
-        )
+
+        allowed_sorts = {
+            "nombre": Organization.nombre,
+            "siglas": Organization.siglas,
+            "created_at": Organization.created_at,
+            "tipo": Organization.tipo,
+        }
+        if sort_by:
+            query = apply_sorting(query, Organization, sort_by, sort_order, allowed_sorts)
+        else:
+            query = query.order_by(Organization.created_at.desc())
+
+        result = await self.db.execute(query.offset(offset).limit(per_page))
         items = result.scalars().all()
         return items, total
 
