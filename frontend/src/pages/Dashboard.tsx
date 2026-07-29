@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FileText, BookOpen, Users, AlertTriangle, Plus, Download, Clock, Eye } from 'lucide-react';
 import { pdf } from '@react-pdf/renderer';
 import PageHeader from '@/components/PageHeader';
@@ -109,6 +110,7 @@ function mapTimelineToEvent(event: TimelineEvent) {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [activeSector, setActiveSector] = useState('all');
   const [exporting, setExporting] = useState(false);
   const { data: rawAlerts, isLoading: alertsLoading } = useAlerts();
@@ -178,7 +180,7 @@ export default function Dashboard() {
               <Download className={`h-4 w-4 ${exporting ? 'animate-spin' : ''}`} />
               {exporting ? 'Exportando...' : 'Exportar'}
             </Button>
-            <Button className="gap-2">
+            <Button className="gap-2" onClick={() => navigate('/alerts')}>
               <Plus className="h-4 w-4" />
               Nueva Alerta
             </Button>
