@@ -49,3 +49,5 @@ def register_exception_handlers(app: FastAPI):
             status_code=409,
             content={"detail": "Conflict: the resource already exists or violates a unique constraint."},
         )
+
+

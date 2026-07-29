@@ -4,7 +4,7 @@ All functions are idempotent: they check for existing records before inserting.
 Each function returns the number of inserted records.
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from uuid import uuid4
 
@@ -19,6 +19,7 @@ from app.models.competitiveness import CompetitivenessIndex
 from app.models.indicator import Indicator, IndicatorPeriod
 from app.models.industrial_sector import IndustrialSector
 from app.models.organization import Organization
+from app.models.patent import Patent, PatentStatus
 from app.models.patent_map import PatentMapEntry
 from app.models.research_publication import ResearchPublication
 from app.models.technology import Technology
@@ -705,6 +706,121 @@ async def seed_research_publications(session: AsyncSession) -> int:
     return len(_RESEARCH_PUBLICATIONS)
 
 
+# ---------------------------------------------------------------------------
+# Patents
+# ---------------------------------------------------------------------------
+
+_PATENTS = [
+    {
+        "title": "Sistema de detección temprana de fallos en motores de vehículos mediante análisis de vibraciones",
+        "patent_number": "CU202600001",
+        "applicant": "AutoTech Solutions",
+        "inventor": "Pérez, G.; Rodríguez, L.; Hernández, M.",
+        "filing_date": date(2024, 8, 15),
+        "publication_date": date(2025, 12, 10),
+        "status": PatentStatus.GRANTED,
+        "abstract": (
+            "Sistema embebido basado en redes neuronales convolutional para el monitoreo en tiempo real "
+            "de vibraciones en motores de combustión interna, capaz de detectar anomalías con un 94% "
+            "de precisión antes de que ocurra una falla catastrófica."
+        ),
+        "technological_sector": "AUT",
+        "country": "Cuba",
+    },
+    {
+        "title": "Proceso de obtención de biopolímeros a partir de residuos de la industria azucarera",
+        "patent_number": "CU202600002",
+        "applicant": "Centro de Biotecnología Industrial",
+        "inventor": "García, A.; Martínez, R.; Fernández, T.",
+        "filing_date": date(2024, 5, 20),
+        "publication_date": date(2025, 9, 15),
+        "status": PatentStatus.GRANTED,
+        "abstract": (
+            "Método innovador para la conversión de bagazo de caña y otros residuos lignocelulósicos "
+            "en biopolímeros biodegradables mediante fermentación bacteriana, con aplicaciones "
+            "en empaques y dispositivos médicos."
+        ),
+        "technological_sector": "BIO",
+        "country": "Cuba",
+    },
+    {
+        "title": "Dispositivo de iluminación LED de alta eficiencia con gestión inteligente de energía",
+        "patent_number": "CU202600003",
+        "applicant": "Empresa Eléctrica de Villa Clara",
+        "inventor": "López, D.; Torres, S.; Cruz, R.",
+        "filing_date": date(2024, 1, 10),
+        "publication_date": date(2025, 6, 20),
+        "status": PatentStatus.GRANTED,
+        "abstract": (
+            "Luminaria LED con módulo IoT integrado que ajusta automáticamente el flujo luminoso "
+            "según la presencia de personas y la luz ambiental, logrando un ahorro energético "
+            "superior al 60% respecto a luminarias convencionales."
+        ),
+        "technological_sector": "ELE",
+        "country": "Cuba",
+    },
+    {
+        "title": "Método de recuperación de metales raros a partir de escorias metalúrgicas",
+        "patent_number": "CU202600004",
+        "applicant": "Empresa de Metalurgia y Equipo Técnico Camagüey",
+        "inventor": "Herrera, J.; Castillo, P.; Vega, M.",
+        "filing_date": date(2024, 11, 5),
+        "publication_date": date(2026, 2, 28),
+        "status": PatentStatus.GRANTED,
+        "abstract": (
+            "Proceso hidrometalúrgico combinado con extracción por solvente para la recuperación "
+            "selectiva de metales de tierras raras contenidos en escorias de la industria "
+            "metalúrgica, con una eficiencia de extracción del 91%."
+        ),
+        "technological_sector": "MET",
+        "country": "Cuba",
+    },
+    {
+        "title": "Composición catalítica para la producción de amoníaco verde a baja temperatura",
+        "patent_number": "CU202600005",
+        "applicant": "QuimiCuba Industrial",
+        "inventor": "Medina, O.; Ramírez, E.; Sánchez, L.",
+        "filing_date": date(2025, 2, 14),
+        "publication_date": None,
+        "status": PatentStatus.EXAMINATION,
+        "abstract": (
+            "Nuevo catalizador heterogéneo basado en nitruros metálicos soportados sobre carbón "
+            "activado que permite la síntesis de amoníaco a temperaturas de 250-350°C, "
+            "reduciendo significativamente el consumo energético del proceso Haber-Bosch."
+        ),
+        "technological_sector": "QUI",
+        "country": "Cuba",
+    },
+    {
+        "title": "Procedimiento de laminación en caliente para aceros de alta resistencia soldables",
+        "patent_number": "CU202600006",
+        "applicant": "Instituto Nacional de Siderurgia y Industria del Duque",
+        "inventor": "González, R.; Díaz, F.; Álvarez, P.",
+        "filing_date": date(2024, 9, 30),
+        "publication_date": date(2025, 11, 18),
+        "status": PatentStatus.GRANTED,
+        "abstract": (
+            "Procedimiento termomecánico de laminación en caliente controlada que produce aceros "
+            "microaleados con límite elástico superior a 700 MPa y excelente soldabilidad, "
+            "aptos para construcciones sismorresistentes."
+        ),
+        "technological_sector": "SID",
+        "country": "Cuba",
+    },
+]
+
+
+async def seed_patents(session: AsyncSession) -> int:
+    result = await session.execute(select(Patent.patent_number).limit(1))
+    if result.scalar_one_or_none():
+        return 0
+    for data in _PATENTS:
+        session.add(Patent(id=uuid4(), **data))
+    await session.flush()
+    logger.info(f"Seeded {len(_PATENTS)} patents")
+    return len(_PATENTS)
+
+
 async def seed_all(session: AsyncSession) -> None:
     """Run all seed functions in the correct order."""
     await seed_industrial_sectors(session)
@@ -717,3 +833,4 @@ async def seed_all(session: AsyncSession) -> None:
     await seed_competitiveness(session)
     await seed_patent_maps(session)
     await seed_research_publications(session)
+    await seed_patents(session)
