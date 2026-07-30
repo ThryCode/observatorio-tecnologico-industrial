@@ -477,22 +477,28 @@ async def seed_alerts(session: AsyncSession) -> int:
 
 _BULLETINS = [
     {
-        "titulo": "Boletin Trimestral de Ciencia y Tecnologia Q2 2026",
-        "resumen": "Tendencias tecnologicas emergentes en sectores siderurgico, metalurgico y quimico.",
+        "titulo": "Alerta Tecnologica: Nuevos Materiales para Hidrogeno",
+        "resumen": "Innovaciones en materiales de hidruros metalicos para almacenamiento de energia.",
+        "fecha_publicacion": datetime(2026, 5, 15),
+        "categoria": "alerta", "autor": "CIB", "sector_codigo": None,
+    },
+    {
+        "titulo": "Boletin de prueba",
+        "resumen": "Probando el endpoint real",
+        "fecha_publicacion": datetime(2026, 7, 28),
+        "categoria": "boletin", "autor": "Admin MINDUS", "sector_codigo": None,
+    },
+    {
+        "titulo": "Boletin Trimestral Q2 2026",
+        "resumen": "Analisis de tendencias tecnologicas en sectores siderurgico, metalurgico y quimico",
         "fecha_publicacion": datetime(2026, 7, 1),
         "categoria": "boletin", "autor": "OCyT", "sector_codigo": "SID",
     },
     {
         "titulo": "Estudio de Prospectiva: IA en Manufactura",
-        "resumen": "Potencial de adopcion de IA en procesos productivos del sector industrial cubano.",
+        "resumen": "Evaluacion del potencial de adopcion de IA en procesos productivos industriales",
         "fecha_publicacion": datetime(2026, 6, 1),
         "categoria": "estudio", "autor": "ICT", "sector_codigo": "ELE",
-    },
-    {
-        "titulo": "Alerta Tecnologica: Nuevos Materiales para Hidrogeno",
-        "resumen": "Innovaciones en materiales de hidruros metalicos para almacenamiento de energia.",
-        "fecha_publicacion": datetime(2026, 5, 15),
-        "categoria": "alerta", "autor": "CIB", "sector_codigo": None,
     },
     {
         "titulo": "Mapa de Patentes: Tecnologias de Energia Renovable",
@@ -504,14 +510,17 @@ _BULLETINS = [
 
 
 async def seed_bulletins(session: AsyncSession) -> int:
-    result = await session.execute(select(Bulletin.titulo).limit(1))
-    if result.scalar_one_or_none():
-        return 0
+    result = await session.execute(select(Bulletin.titulo))
+    existing = {row[0] for row in result.all()}
+    inserted = 0
     for data in _BULLETINS:
-        session.add(Bulletin(id=uuid4(), **data))
-    await session.flush()
-    logger.info(f"Seeded {len(_BULLETINS)} bulletins")
-    return len(_BULLETINS)
+        if data["titulo"] not in existing:
+            session.add(Bulletin(id=uuid4(), **data))
+            inserted += 1
+    if inserted:
+        await session.flush()
+        logger.info(f"Seeded {inserted} bulletins")
+    return inserted
 
 
 # ---------------------------------------------------------------------------
