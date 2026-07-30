@@ -56,7 +56,7 @@ class BaseService(Generic[M, C, U]):
         if sort_by and allowed_sorts:
             from app.services.query_helpers import apply_sorting
             list_query = apply_sorting(list_query, self.model, sort_by, sort_order, allowed_sorts)
-        elif default_sort:
+        elif default_sort is not None:
             list_query = list_query.order_by(default_sort)
         else:
             list_query = list_query.order_by(self.model.created_at.desc())

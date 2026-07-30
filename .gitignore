@@ -41,6 +41,9 @@ dump.rdb
 # Temp files
 backend/token.txt
 
+# Upload directory (generated during tests)
+backend/uploads/
+
 # Generated Vite files
 frontend/vite.config.d.ts
 frontend/vite.config.js
