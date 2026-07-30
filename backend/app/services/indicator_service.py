@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppException
 from app.models.indicator import Indicator
-from app.schemas.indicator import IndicatorCreate, IndicatorUpdate
+from app.schemas.indicator import IndicatorCreate, IndicatorResponse, IndicatorUpdate
 from app.services.cache import cache_key, get_cached, invalidate_pattern, set_cached
 from app.services.query_helpers import apply_search, apply_sorting
 
@@ -25,7 +25,7 @@ class IndicatorService:
         )
         cached = await get_cached(self.redis, key)
         if cached is not None:
-            return [Indicator(**item) for item in cached["items"]], cached["total"]
+            return [IndicatorResponse(**item) for item in cached["items"]], cached["total"]
 
         query = select(Indicator)
         count_query = select(func.count(Indicator.id))
@@ -58,33 +58,17 @@ class IndicatorService:
         )
         items = result.scalars().all()
         serialized = [
-            i.to_dict() if hasattr(i, "to_dict") else {"id": str(i.id), "code": i.code}
+            IndicatorResponse.model_validate(i).model_dump(mode="json")
             for i in items
         ]
         await set_cached(self.redis, key, {"items": serialized, "total": total}, ttl=300)
         return items, total
 
     async def get(self, indicator_id: UUID) -> Indicator:
-        key = cache_key("indicators:get", indicator_id)
-        cached = await get_cached(self.redis, key)
-        if cached is not None:
-            return Indicator(**cached)
-
         result = await self.db.execute(select(Indicator).where(Indicator.id == indicator_id))
         indicator = result.scalar_one_or_none()
         if not indicator:
             raise AppException(404, "Indicator not found")
-        cached_data = {
-            "id": str(indicator.id),
-            "code": indicator.code,
-            "name": indicator.name,
-            "value": float(indicator.value) if indicator.value else None,
-            "unit": indicator.unit,
-            "source": indicator.source,
-            "period": indicator.period.value if indicator.period else None,
-            "sector_codigo": indicator.sector_codigo,
-        }
-        await set_cached(self.redis, key, cached_data, ttl=300)
         return indicator
 
     async def create(self, data: IndicatorCreate) -> Indicator:
