@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Plus, Search } from 'lucide-react';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useAlerts, useCreateAlert, useUpdateAlert, useDeleteAlert, useMarkAllAlertsRead } from '@/hooks/useAlerts';
+import { getIndustrialSectors } from '@/api/industrialSectors';
+import { useQuery } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -41,6 +43,12 @@ export default function AlertsPage() {
   const today = new Date().toISOString().slice(0, 10);
   const unreadOnly = leidaFilter === 'no_leidas';
   const { data: rawAlerts, isLoading, refetch } = useAlerts(unreadOnly, page, 10, q || undefined, severidad, undefined, fechaDesde || undefined, fechaHasta || undefined, sortBy, sortOrder);
+  const { data: sectorsData } = useQuery({
+    queryKey: ['industrial-sectors'],
+    queryFn: () => getIndustrialSectors(1, 100),
+    staleTime: 10 * 60 * 1000,
+  });
+  const sectorOptions = (sectorsData?.items || []).map((s) => ({ value: s.codigo, label: s.nombre }));
   const allAlerts = Array.isArray(rawAlerts)
     ? leidaFilter === 'leidas' ? rawAlerts.filter(a => a.leida) : rawAlerts
     : [];
@@ -69,7 +77,7 @@ export default function AlertsPage() {
       descripcion: alert.descripcion,
       severidad: alert.severidad,
       fecha: alert.fecha,
-      sector: alert.sector || '',
+      sector: alert.sector_codigo || '',
     });
     setDialogOpen(true);
   };
@@ -80,7 +88,7 @@ export default function AlertsPage() {
       descripcion: formData.descripcion,
       severidad: formData.severidad as Alert['severidad'],
       fecha: formData.fecha,
-      sector: formData.sector || undefined,
+      sector_codigo: formData.sector || undefined,
     };
     if (editingAlert) {
       await updateMutation.mutateAsync({ id: editingAlert.id, data });
@@ -214,7 +222,15 @@ export default function AlertsPage() {
             </div>
             <div>
               <label className="text-sm font-medium">Sector</label>
-              <Input value={formData.sector} onChange={(e) => setFormData({ ...formData, sector: e.target.value })} placeholder="Sector (opcional)" />
+              <Select value={formData.sector || 'general'} onValueChange={(v) => setFormData({ ...formData, sector: v === 'general' ? '' : v })}>
+                <SelectTrigger><SelectValue placeholder="Seleccionar sector..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="general">General</SelectItem>
+                  {sectorOptions.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>

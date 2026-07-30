@@ -426,32 +426,42 @@ async def seed_alerts(session: AsyncSession) -> int:
         Alert(
             titulo="Nueva patente en biotecnología",
             descripcion="Se ha registrado una patente clave para fermentación de precisión.",
-            severidad="alta",
-            leida=False,
+            severidad="alta", leida=False, sector_codigo="BIO",
         ),
         Alert(
             titulo="Actualización regulatoria sector energético",
             descripcion="Nueva normativa para eficiencia energética publicada por el MINEM.",
-            severidad="media",
-            leida=False,
+            severidad="media", leida=False, sector_codigo="ENE",
         ),
         Alert(
             titulo="Indicador de innovación en ascenso",
             descripcion="El índice de innovación industrial subió 3 puntos este trimestre.",
-            severidad="baja",
-            leida=True,
+            severidad="baja", leida=True,
         ),
         Alert(
             titulo="Tendencia: Automatización en manufactura",
             descripcion="La adopción de robots industriales crece un 15% anual en la región.",
-            severidad="media",
-            leida=False,
+            severidad="media", leida=False, sector_codigo="MET",
         ),
         Alert(
             titulo="Fondo de innovación disponible",
             descripcion="Nuevo fondo concursable para proyectos de I+D industrial.",
-            severidad="alta",
-            leida=False,
+            severidad="alta", leida=False,
+        ),
+        Alert(
+            titulo="Electrónica: nuevo estándar de eficiencia",
+            descripcion="Normativa ISO actualizada para componentes electrónicos industriales.",
+            severidad="media", leida=False, sector_codigo="ELE",
+        ),
+        Alert(
+            titulo="Química: método innovador de catálisis",
+            descripcion="Nuevo catalizador reduce costos en procesos petroquímicos.",
+            severidad="media", leida=False, sector_codigo="QUI",
+        ),
+        Alert(
+            titulo="Siderurgia: actualización tecnológica",
+            descripcion="Planta siderúrgica nacional incorpora horno de arco eléctrico de última generación.",
+            severidad="alta", leida=True, sector_codigo="SID",
         ),
     ]
     for alert in alerts:
@@ -575,6 +585,7 @@ _SECTORES = [
     {"codigo": "AUT", "nombre": "Automotriz", "descripcion": "Industria automotriz y autopartes"},
     {"codigo": "BIO", "nombre": "Biotecnología", "descripcion": "Biotecnología y ciencias de la vida"},
     {"codigo": "ELE", "nombre": "Electrónica", "descripcion": "Electrónica y equipos eléctricos"},
+    {"codigo": "ENE", "nombre": "Energía", "descripcion": "Sector energético industrial"},
     {"codigo": "MET", "nombre": "Metalurgia", "descripcion": "Metalurgia y minería"},
     {"codigo": "QUI", "nombre": "Química", "descripcion": "Industria química y petroquímica"},
     {"codigo": "SID", "nombre": "Siderurgia", "descripcion": "Siderurgia y acero"},

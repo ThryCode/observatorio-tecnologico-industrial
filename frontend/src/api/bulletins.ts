@@ -1,4 +1,4 @@
-import client from './client';
+import client, { USE_MOCK } from './client';
 import type { PaginatedResponse } from '@/types';
 
 export interface BulletinApiItem {
@@ -21,6 +21,16 @@ export interface BulletinListItem {
   autor?: string;
   url?: string;
 }
+
+const MOCK_BULLETINS: BulletinApiItem[] = [
+  { id: '1', titulo: 'Boletín trimestral de biotecnología', resumen: 'Resumen de avances en biotecnología industrial cubana.', fecha_publicacion: '2026-07-15', categoria: 'boletin', autor: 'MINDUS', archivo_url: null, sector_codigo: 'BIO' },
+  { id: '2', titulo: 'Estudio de prospectiva energética 2030', resumen: 'Escenarios energéticos para la industria cubana en la próxima década.', fecha_publicacion: '2026-07-10', categoria: 'estudio', autor: 'INIDT', archivo_url: null, sector_codigo: 'ENE' },
+  { id: '3', titulo: 'Alerta: disrupción en sensores IoT', resumen: 'Nueva tecnología de sensores que podría afectar la manufactura electrónica.', fecha_publicacion: '2026-07-08', categoria: 'alerta', autor: 'Sistema', archivo_url: null, sector_codigo: 'ELE' },
+  { id: '4', titulo: 'Mapa de patentes en metalurgia 2026', resumen: 'Panorama global de patentes en aleaciones y procesos metalúrgicos.', fecha_publicacion: '2026-07-05', categoria: 'mapa', autor: 'OCPI', archivo_url: null, sector_codigo: 'MET' },
+  { id: '5', titulo: 'Boletín de innovación química', resumen: 'Novedades en procesos catalíticos y materiales avanzados.', fecha_publicacion: '2026-07-01', categoria: 'boletin', autor: 'MINDUS', archivo_url: null, sector_codigo: 'QUI' },
+  { id: '6', titulo: 'Estudio de cadena de valor del acero', resumen: 'Análisis de la cadena de valor siderúrgica en Cuba.', fecha_publicacion: '2026-06-28', categoria: 'estudio', autor: 'INIDT', archivo_url: null, sector_codigo: 'SID' },
+  { id: '7', titulo: 'Panorama tecnológico general', resumen: 'Resumen ejecutivo de tendencias tecnológicas intersectoriales.', fecha_publicacion: '2026-06-25', categoria: 'boletin', autor: 'Observatorio', archivo_url: null, sector_codigo: null },
+];
 
 function mapBulletin(item: BulletinApiItem): BulletinListItem {
   return {
@@ -45,6 +55,18 @@ export async function listBulletins(
   sortBy?: string,
   sortOrder?: string,
 ) {
+  if (USE_MOCK) {
+    let filtered = [...MOCK_BULLETINS];
+    if (sectorCodigo) filtered = filtered.filter((b) => !b.sector_codigo || b.sector_codigo === sectorCodigo);
+    if (categoria) filtered = filtered.filter((b) => b.categoria === categoria);
+    if (q) {
+      const term = q.toLowerCase();
+      filtered = filtered.filter((b) => b.titulo.toLowerCase().includes(term) || (b.resumen && b.resumen.toLowerCase().includes(term)));
+    }
+    const start = (page - 1) * perPage;
+    const items = filtered.slice(start, start + perPage).map(mapBulletin);
+    return { items, total: filtered.length, page, per_page: perPage, total_pages: Math.ceil(filtered.length / perPage) };
+  }
   const params: Record<string, string | number> = { page, per_page: perPage };
   if (sectorCodigo) params.sector_codigo = sectorCodigo;
   if (categoria) params.categoria = categoria;

@@ -1,16 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
 import { getDashboardKPIs, getTimelineEvents } from '@/api/dashboard';
 
-export function useDashboardKPIs() {
+export function useDashboardKPIs(sectorCodigo?: string) {
   return useQuery({
-    queryKey: ['dashboard', 'kpis'],
-    queryFn: getDashboardKPIs,
+    queryKey: ['dashboard', 'kpis', sectorCodigo],
+    queryFn: () => getDashboardKPIs(sectorCodigo),
   });
 }
 
-export function useTimelineEvents() {
+export function useTimelineEvents(sectorCodigo?: string) {
   return useQuery({
-    queryKey: ['dashboard', 'timeline'],
-    queryFn: getTimelineEvents,
+    queryKey: ['dashboard', 'timeline', sectorCodigo],
+    queryFn: () => getTimelineEvents(sectorCodigo),
   });
 }

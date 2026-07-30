@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import func, select, update
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.alert import Alert
@@ -31,8 +31,8 @@ class AlertService(BaseService[Alert, AlertCreate, AlertUpdate]):
             query = query.where(Alert.severidad == severidad)
             count_query = count_query.where(Alert.severidad == severidad)
         if sector_codigo:
-            query = query.where(Alert.sector_codigo == sector_codigo)
-            count_query = count_query.where(Alert.sector_codigo == sector_codigo)
+            query = query.where(or_(Alert.sector_codigo == sector_codigo, Alert.sector_codigo.is_(None)))
+            count_query = count_query.where(or_(Alert.sector_codigo == sector_codigo, Alert.sector_codigo.is_(None)))
 
         query = apply_search(query, Alert, q, [Alert.titulo, Alert.descripcion])
         count_query = apply_search(count_query, Alert, q, [Alert.titulo, Alert.descripcion])

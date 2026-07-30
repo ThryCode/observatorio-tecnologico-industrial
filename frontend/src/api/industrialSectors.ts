@@ -3,9 +3,11 @@ import type { IndustrialSector, PaginatedResponse } from '@/types';
 
 const MOCK_SECTORS: IndustrialSector[] = [
   { codigo: 'BIO', nombre: 'Biotecnologia', descripcion: 'Sector biotecnologico industrial', created_at: '2025-01-01T00:00:00Z', updated_at: '2025-01-01T00:00:00Z' },
-  { codigo: 'TIC', nombre: 'Tecnologias de la Informacion', descripcion: 'Sector TIC industrial', created_at: '2025-01-01T00:00:00Z', updated_at: '2025-01-01T00:00:00Z' },
-  { codigo: 'NAN', nombre: 'Nanotecnologia', descripcion: 'Sector nanotecnologico', created_at: '2025-01-01T00:00:00Z', updated_at: '2025-01-01T00:00:00Z' },
+  { codigo: 'ELE', nombre: 'Electronica', descripcion: 'Sector electronico industrial', created_at: '2025-01-01T00:00:00Z', updated_at: '2025-01-01T00:00:00Z' },
   { codigo: 'ENE', nombre: 'Energia', descripcion: 'Sector energetico industrial', created_at: '2025-01-01T00:00:00Z', updated_at: '2025-01-01T00:00:00Z' },
+  { codigo: 'MET', nombre: 'Metalurgia', descripcion: 'Sector metalurgico industrial', created_at: '2025-01-01T00:00:00Z', updated_at: '2025-01-01T00:00:00Z' },
+  { codigo: 'QUI', nombre: 'Quimica', descripcion: 'Sector quimico industrial', created_at: '2025-01-01T00:00:00Z', updated_at: '2025-01-01T00:00:00Z' },
+  { codigo: 'SID', nombre: 'Siderurgia', descripcion: 'Sector siderurgico industrial', created_at: '2025-01-01T00:00:00Z', updated_at: '2025-01-01T00:00:00Z' },
 ];
 
 export async function getIndustrialSectors(

@@ -144,7 +144,7 @@ export default function FullExportPDF(data: FullExportData) {
           <Text style={S.sectionTitle}>7. Alertas ({data.alerts.length})</Text>
           <Row bold cells={['#', 'Título', 'Severidad', 'Sector', 'Fecha']} />
           {data.alerts.slice(0, 10).map((a, i) => (
-            <Row key={a.id} cells={[String(i + 1), a.titulo, a.severidad, a.sector || '-', new Date(a.fecha).toLocaleDateString('es-ES')]} />
+            <Row key={a.id} cells={[String(i + 1), a.titulo, a.severidad, a.sector_codigo || '-', new Date(a.fecha).toLocaleDateString('es-ES')]} />
           ))}
         </View>
 

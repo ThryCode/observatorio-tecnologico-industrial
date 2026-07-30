@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { FileText, BookOpen, AlertTriangle, Map, User, Bookmark, Eye } from 'lucide-react';
+import { FileText, BookOpen, AlertTriangle, Map, GraduationCap, User, Bookmark, Eye } from 'lucide-react';
 
 export interface ProductCardProps {
   type: 'alerta' | 'boletin' | 'estudio' | 'mapa';
@@ -13,7 +13,7 @@ export interface ProductCardProps {
 const typeConfig = {
   alerta: { label: 'Alerta Tecnológica', color: 'text-accent-orange', icon: AlertTriangle },
   boletin: { label: 'Boletín', color: 'text-info', icon: BookOpen },
-  estudio: { label: 'Estudio', color: 'text-success', icon: FileText },
+  estudio: { label: 'Estudio', color: 'text-success', icon: GraduationCap },
   mapa: { label: 'Mapa', color: 'text-gold', icon: Map },
 };
 

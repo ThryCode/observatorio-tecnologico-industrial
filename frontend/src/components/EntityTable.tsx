@@ -7,7 +7,6 @@ export interface Entity {
   initials: string;
   type: string;
   status: 'active' | 'pending' | 'inactive';
-  progress: number;
 }
 
 interface EntityTableProps {
@@ -29,8 +28,7 @@ export default function EntityTable({ entities, className }: EntityTableProps) {
           <tr className="bg-background">
             <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-text-muted border-b border-border text-left rounded-tl-md">Entidad</th>
             <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-text-muted border-b border-border text-left">Tipo</th>
-            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-text-muted border-b border-border text-left">Estado</th>
-            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-text-muted border-b border-border text-right rounded-tr-md">Progreso</th>
+            <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-text-muted border-b border-border text-left rounded-tr-md">Estado</th>
           </tr>
         </thead>
         <tbody>
@@ -58,23 +56,10 @@ export default function EntityTable({ entities, className }: EntityTableProps) {
                 <td className="px-4 py-4">
                   <span className="text-[11px] text-text-muted">{entity.type}</span>
                 </td>
-                <td className="px-4 py-4">
+                <td className={cn('px-4 py-4', isLast && 'rounded-br-md')}>
                   <Badge variant={status.variant} dot className="text-xs">
                     {status.label}
                   </Badge>
-                </td>
-                <td className={cn('px-4 py-4', isLast && 'rounded-br-md')}>
-                  <div className="flex flex-col items-end gap-1">
-                    <div className="w-full max-w-[120px] h-1.5 bg-border-subtle rounded-full overflow-hidden" role="progressbar" aria-valuenow={entity.progress} aria-valuemin={0} aria-valuemax={100} aria-label={`${entity.progress}% completado`}>
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-accent-orange to-gold transition-all duration-350 relative overflow-hidden"
-                        style={{ width: `${entity.progress}%` }}
-                      >
-                        <div className="absolute inset-0 shimmer bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent)]" />
-                      </div>
-                    </div>
-                    <span className="text-xs font-semibold text-text-secondary">{entity.progress}%</span>
-                  </div>
                 </td>
               </tr>
             );

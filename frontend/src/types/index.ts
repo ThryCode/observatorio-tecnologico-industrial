@@ -234,7 +234,7 @@ export interface Alert {
   descripcion: string;
   severidad: 'alta' | 'media' | 'baja';
   fecha: string;
-  sector?: string;
+  sector_codigo?: string;
   leida: boolean;
 }
 

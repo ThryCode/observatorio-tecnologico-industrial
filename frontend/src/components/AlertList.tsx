@@ -11,7 +11,7 @@ interface AlertItem {
   time: string;
   tag: {
     label: string;
-    variant: 'accent' | 'info' | 'gold' | 'success';
+    variant: 'accent' | 'info' | 'gold' | 'success' | 'default';
   };
 }
 

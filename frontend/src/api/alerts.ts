@@ -2,13 +2,17 @@ import client, { USE_MOCK } from './client';
 import type { Alert } from '@/types';
 
 const MOCK_ALERTS: Alert[] = [
-  { id: '1', titulo: 'Nueva patente en biotecnología', descripcion: 'Se ha registrado una patente clave en el sector biotecnológico.', severidad: 'alta', fecha: '2026-07-20', sector: 'BIO', leida: false },
-  { id: '2', titulo: 'Actualización regulatoria sector energético', descripcion: 'Nueva normativa para eficiencia energética publicada.', severidad: 'media', fecha: '2026-07-19', sector: 'ENE', leida: false },
+  { id: '1', titulo: 'Nueva patente en biotecnología', descripcion: 'Se ha registrado una patente clave en el sector biotecnológico.', severidad: 'alta', fecha: '2026-07-20', sector_codigo: 'BIO', leida: false },
+  { id: '2', titulo: 'Actualización regulatoria sector energético', descripcion: 'Nueva normativa para eficiencia energética publicada.', severidad: 'media', fecha: '2026-07-19', sector_codigo: 'ENE', leida: false },
   { id: '3', titulo: 'Indicador de innovación en ascenso', descripcion: 'El índice de innovación industrial subió 3 puntos este trimestre.', severidad: 'baja', fecha: '2026-07-18', leida: true },
-  { id: '4', titulo: 'Tendencia: Automatización en manufactura', descripcion: 'La adopción de robots industriales crece un 15% anual en la región.', severidad: 'media', fecha: '2026-07-17', sector: 'IND', leida: false },
+  { id: '4', titulo: 'Tendencia: Automatización en manufactura', descripcion: 'La adopción de robots industriales crece un 15% anual en la región.', severidad: 'media', fecha: '2026-07-17', sector_codigo: 'MET', leida: false },
   { id: '5', titulo: 'Fondo de innovación disponible', descripcion: 'Nuevo fondo concursable para proyectos de I+D industrial.', severidad: 'alta', fecha: '2026-07-16', leida: false },
-  { id: '6', titulo: 'Colaboración internacional en nanotecnología', descripcion: 'Acuerdo de cooperación en investigación de nanomateriales.', severidad: 'baja', fecha: '2026-07-15', sector: 'NAN', leida: true },
+  { id: '6', titulo: 'Colaboración internacional en nanotecnología', descripcion: 'Acuerdo de cooperación en investigación de nanomateriales.', severidad: 'baja', fecha: '2026-07-15', sector_codigo: 'QUI', leida: true },
   { id: '7', titulo: 'Alerta: Ciberseguridad industrial', descripcion: 'Se detectó un aumento de ataques a sistemas SCADA en la región.', severidad: 'alta', fecha: '2026-07-14', leida: false },
+  { id: '8', titulo: 'Electrónica: nuevo estándar de eficiencia', descripcion: 'Normativa ISO actualizada para componentes electrónicos industriales.', severidad: 'media', fecha: '2026-07-22', sector_codigo: 'ELE', leida: false },
+  { id: '9', titulo: 'Metalurgia: avance en aleaciones ligeras', descripcion: 'Investigación cubana desarrolla nueva aleación de aluminio para la industria.', severidad: 'baja', fecha: '2026-07-21', sector_codigo: 'MET', leida: false },
+  { id: '10', titulo: 'Química: método innovador de catálisis', descripcion: 'Nuevo catalizador reduce costos en procesos petroquímicos.', severidad: 'media', fecha: '2026-07-20', sector_codigo: 'QUI', leida: false },
+  { id: '11', titulo: 'Siderurgia: actualización tecnológica', descripcion: 'Planta siderúrgica nacional incorpora horno de arco eléctrico de última generación.', severidad: 'alta', fecha: '2026-07-19', sector_codigo: 'SID', leida: true },
 ];
 
 export async function listAlerts(
@@ -31,7 +35,7 @@ export async function listAlerts(
       filtered = filtered.filter(a => a.titulo.toLowerCase().includes(term) || (a.descripcion && a.descripcion.toLowerCase().includes(term)));
     }
     if (severidad) filtered = filtered.filter(a => a.severidad === severidad);
-    if (sector) filtered = filtered.filter(a => a.sector === sector);
+    if (sector) filtered = filtered.filter(a => !a.sector_codigo || a.sector_codigo === sector);
     return filtered;
   }
   const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });

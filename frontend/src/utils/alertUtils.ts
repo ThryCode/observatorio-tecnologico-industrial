@@ -9,7 +9,17 @@ export function mapSeverityToPriority(severity: Alert['severidad']): 'high' | 'm
   }
 }
 
+const sectorVariant: Record<string, 'accent' | 'info' | 'gold' | 'success' | 'default'> = {
+  BIO: 'success',
+  ELE: 'info',
+  ENE: 'gold',
+  MET: 'default',
+  QUI: 'accent',
+  SID: 'info',
+};
+
 export function mapAlertToAlertItem(alert: Alert) {
+  const sector = alert.sector_codigo;
   return {
     id: alert.id,
     priority: mapSeverityToPriority(alert.severidad),
@@ -17,8 +27,8 @@ export function mapAlertToAlertItem(alert: Alert) {
     description: alert.descripcion,
     time: alert.fecha,
     tag: {
-      label: alert.sector || 'General',
-      variant: 'accent' as const,
+      label: sector || 'General',
+      variant: sector ? (sectorVariant[sector] || 'accent') : 'accent',
     },
   };
 }

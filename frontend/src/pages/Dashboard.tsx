@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { FileText, BookOpen, Users, AlertTriangle, Plus, Download, Clock, Eye } from 'lucide-react';
+import { FileText, BookOpen, Users, AlertTriangle, GraduationCap, Plus, Download, Clock, Eye } from 'lucide-react';
 import { pdf } from '@react-pdf/renderer';
 import PageHeader from '@/components/PageHeader';
 import KPICard from '@/components/KPICard';
@@ -30,38 +30,52 @@ import type { BulletinListItem } from '@/api/bulletins';
 import type { Entity } from '@/components/EntityTable';
 import type { ProductCardProps } from '@/components/ProductCard';
 
-function labelToIconKey(label: string): 'users' | 'file-text' | 'book-open' | 'alert-triangle' {
-  const map: Record<string, 'users' | 'file-text' | 'book-open' | 'alert-triangle'> = {
+type IconKey = 'users' | 'file-text' | 'book-open' | 'alert-triangle' | 'graduation';
+
+const iconMap: Record<IconKey, React.ReactNode> = {
+  'file-text': <FileText className="h-4 w-4" />,
+  'book-open': <BookOpen className="h-4 w-4" />,
+  'users': <Users className="h-4 w-4" />,
+  'alert-triangle': <AlertTriangle className="h-4 w-4" />,
+  'graduation': <GraduationCap className="h-4 w-4" />,
+};
+
+const iconBgMap: Record<string, 'blue' | 'orange' | 'green' | 'gold'> = {
+  'file-text': 'blue',
+  'book-open': 'orange',
+  'users': 'green',
+  'alert-triangle': 'gold',
+  'graduation': 'blue',
+};
+
+function labelToIconKey(label: string): IconKey {
+  const map: Record<string, IconKey> = {
     Organizaciones: 'users',
     Patentes: 'file-text',
     Tecnologías: 'book-open',
     Indicadores: 'alert-triangle',
     Alertas: 'alert-triangle',
+    Estudio: 'graduation',
+    Investigación: 'graduation',
+    Publicaciones: 'book-open',
+    Organizacion: 'users',
+    Patente: 'file-text',
+    Tecnología: 'book-open',
+    Indicador: 'alert-triangle',
+    Alerta: 'alert-triangle',
   };
   return map[label] || 'file-text';
 }
 
 function mapKPIToCardProps(kpi: DashboardKPI) {
-  const iconMap: Record<string, React.ReactNode> = {
-    'file-text': <FileText className="h-4 w-4" />,
-    'book-open': <BookOpen className="h-4 w-4" />,
-    'users': <Users className="h-4 w-4" />,
-    'alert-triangle': <AlertTriangle className="h-4 w-4" />,
-  };
-  const iconBgMap: Record<string, 'blue' | 'orange' | 'green' | 'gold'> = {
-    'file-text': 'blue',
-    'book-open': 'orange',
-    'users': 'green',
-    'alert-triangle': 'gold',
-  };
   const iconKey = labelToIconKey(kpi.label);
   return {
     label: kpi.label,
     value: kpi.value.toLocaleString(),
     change: `${kpi.change >= 0 ? '+' : ''}${kpi.change}%`,
     changeType: kpi.change >= 0 ? 'positive' as const : 'negative' as const,
-    icon: iconMap[iconKey] || <FileText className="h-4 w-4" />,
-    iconBg: iconBgMap[iconKey] || 'blue',
+    icon: iconMap[iconKey],
+    iconBg: iconBgMap[iconKey],
   };
 }
 
@@ -89,13 +103,15 @@ function mapOrgToEntity(org: Organization): Entity {
     initials: org.siglas,
     type: tipoMap[org.tipo] || org.tipo,
     status: 'active' as const,
-    progress: 78,
   };
 }
 
 function mapBulletinToProduct(bulletin: BulletinListItem): ProductCardProps {
   const age = getRelativeTime(new Date(bulletin.fecha));
-  const type = bulletin.categoria === 'alerta' ? 'alerta' : 'boletin';
+  const validTypes = ['alerta', 'boletin', 'estudio', 'mapa'] as const;
+  const type = validTypes.includes(bulletin.categoria as typeof validTypes[number])
+    ? bulletin.categoria as typeof validTypes[number]
+    : 'boletin';
   return {
     type,
     title: bulletin.titulo,
@@ -126,17 +142,18 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [activeSector, setActiveSector] = useState('all');
   const [exporting, setExporting] = useState(false);
-  const { data: rawAlerts, isLoading: alertsLoading, isError: alertsError } = useAlerts();
-  const { data: kpis, isLoading: kpisLoading, isError: kpisError } = useDashboardKPIs();
-  const { data: rawTimeline, isLoading: timelineLoading, isError: timelineError } = useTimelineEvents();
+  const sectorParam = activeSector !== 'all' ? activeSector.toUpperCase() : undefined;
+  const { data: rawAlerts, isLoading: alertsLoading, isError: alertsError } = useAlerts(false, 1, 20, undefined, undefined, sectorParam);
+  const { data: kpis, isLoading: kpisLoading, isError: kpisError } = useDashboardKPIs(sectorParam);
+  const { data: rawTimeline, isLoading: timelineLoading, isError: timelineError } = useTimelineEvents(sectorParam);
   const { data: sectorsData, isLoading: sectorsLoading, isError: sectorsError } = useQuery({
     queryKey: ['dashboard', 'sectors'],
     queryFn: getDashboardSectors,
     staleTime: 5 * 60 * 1000,
   });
   const { data: orgsData, isLoading: orgsLoading, isError: orgsError } = useQuery({
-    queryKey: ['organizations', { page: 1, per_page: 5 }],
-    queryFn: () => getOrganizations(1, 5),
+    queryKey: ['organizations', { page: 1, per_page: 5, sector: sectorParam }],
+    queryFn: () => getOrganizations(1, 5, sectorParam),
   });
   const { data: bulletinsData, isLoading: bulletinsLoading, isError: bulletinsError } = useQuery({
     queryKey: ['bulletins', { page: 1, per_page: 3 }],
@@ -249,7 +266,13 @@ export default function Dashboard() {
             <KnowledgeGraph height={620} className="rounded-lg border border-border" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-foreground mb-3">Alertas Recientes</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-bold text-foreground">Alertas Recientes</h3>
+              <Button variant="link" size="sm" className="text-accent-orange gap-1" onClick={() => navigate('/alerts')}>
+                <Eye className="h-3.5 w-3.5" />
+                Ver todas
+              </Button>
+            </div>
             {alertsError ? (
               <div className="text-center text-red-500 py-8">Error al cargar alertas</div>
             ) : alertsLoading ? (
