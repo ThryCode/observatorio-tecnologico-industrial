@@ -1,244 +1,232 @@
-import { useRef, useEffect, useCallback, useState } from 'react';
+import { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import type { EnterpriseGraphNode, EnterpriseGraphEdge } from '@/types';
-
-interface ForceNode extends EnterpriseGraphNode {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-}
 
 interface Props {
   nodes: EnterpriseGraphNode[];
   edges: EnterpriseGraphEdge[];
+  onNodeClick?: (node: EnterpriseGraphNode | null) => void;
 }
 
-const REPULSION = 8000;
-const ATTRACTION = 0.005;
-const DAMPING = 0.85;
-const MIN_VELOCITY = 0.1;
-const RADIUS = 24;
-const RADIUS_ORG = 32;
+interface NodePos {
+  x: number;
+  y: number;
+}
 
-export default function ForceGraph2D({ nodes, edges }: Props) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const simRef = useRef<ForceNode[]>([]);
-  const animRef = useRef<number>(0);
-  const dragRef = useRef<{ node: ForceNode | null; ox: number; oy: number }>({ node: null, ox: 0, oy: 0 });
-  const sizeRef = useRef({ width: 800, height: 600 });
+const COLORS = [
+  { node: '#6366f1', edge: 'rgba(99,102,241,0.35)', label: 'rgb(165, 167, 247)' },
+  { node: '#06b6d4', edge: 'rgba(6,182,212,0.35)', label: 'rgb(103, 232, 249)' },
+  { node: '#10b981', edge: 'rgba(16,185,129,0.35)', label: 'rgb(110, 231, 183)' },
+  { node: '#f59e0b', edge: 'rgba(245,158,11,0.35)', label: 'rgb(252, 211, 77)' },
+  { node: '#f97316', edge: 'rgba(249,115,22,0.35)', label: 'rgb(251, 191, 143)' },
+  { node: '#ef4444', edge: 'rgba(239,68,68,0.35)', label: 'rgb(252, 165, 165)' },
+  { node: '#ec4899', edge: 'rgba(236,72,153,0.35)', label: 'rgb(244, 189, 212)' },
+  { node: '#a855f7', edge: 'rgba(168,85,247,0.35)', label: 'rgb(216, 180, 254)' },
+  { node: '#14b8a6', edge: 'rgba(20,184,166,0.35)', label: 'rgb(153, 246, 228)' },
+];
 
-  const initSimulation = useCallback(() => {
-    const { width, height } = sizeRef.current;
-    const sim: ForceNode[] = nodes.map(() => ({
-      ...(null as unknown as ForceNode),
-      x: width / 2 + (Math.random() - 0.5) * width * 0.5,
-      y: height / 2 + (Math.random() - 0.5) * height * 0.5,
-      vx: 0,
-      vy: 0,
-      id: '',
-      type: 'person',
-      label: '',
-    }));
-    for (let i = 0; i < nodes.length; i++) {
-      sim[i] = { ...nodes[i], ...sim[i] };
-    }
-    simRef.current = sim;
-  }, [nodes]);
+function computeLayout(nodes: EnterpriseGraphNode[], edges: EnterpriseGraphEdge[]): NodePos[] {
+  const cx = 50;
+  const cy = 50;
+  const r = 38;
 
-  const tick = useCallback(() => {
-    const sim = simRef.current;
-    const { width, height } = sizeRef.current;
-    const cx = width / 2;
-    const cy = height / 2;
-    const es = edges;
+  const positions: NodePos[] = [];
+  const connected: number[] = [];
+  const orphans: number[] = [];
 
-    for (let i = 0; i < sim.length; i++) {
-      let fx = 0;
-      let fy = 0;
+  for (let i = 0; i < nodes.length; i++) {
+    const hasEdge = edges.some((e) => e.source === nodes[i].id || e.target === nodes[i].id);
+    if (hasEdge) connected.push(i);
+    else orphans.push(i);
+  }
 
-      fx += (cx - sim[i].x) * 0.001;
-      fy += (cy - sim[i].y) * 0.001;
+  for (let i = 0; i < connected.length; i++) {
+    const angle = (2 * Math.PI * i) / connected.length - Math.PI / 2;
+    positions[connected[i]] = {
+      x: cx + r * 0.7 * Math.cos(angle),
+      y: cy + r * 0.7 * Math.sin(angle),
+    };
+  }
 
-      for (let j = 0; j < sim.length; j++) {
-        if (i === j) continue;
-        const dx = sim[i].x - sim[j].x;
-        const dy = sim[i].y - sim[j].y;
-        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        const f = REPULSION / (dist * dist);
-        fx += (dx / dist) * f;
-        fy += (dy / dist) * f;
-      }
+  for (let i = 0; i < orphans.length; i++) {
+    const angle = (2 * Math.PI * i) / orphans.length;
+    positions[orphans[i]] = {
+      x: cx + r * 1.4 * Math.cos(angle),
+      y: cy + r * 1.4 * Math.sin(angle),
+    };
+  }
 
-      for (const e of es) {
-        let si = -1;
-        let sj = -1;
-        for (let k = 0; k < sim.length; k++) {
-          if (sim[k].id === e.source) si = k;
-          if (sim[k].id === e.target) sj = k;
-        }
-        if (si < 0 || sj < 0) continue;
-        const ni = sim[si];
-        const nj = sim[sj];
-        const dx = nj.x - ni.x;
-        const dy = nj.y - ni.y;
-        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-        const force = ATTRACTION;
-        ni.vx += dx * force;
-        ni.vy += dy * force;
-        nj.vx -= dx * force;
-        nj.vy -= dy * force;
-      }
+  return positions;
+}
 
-      sim[i].vx = (sim[i].vx + fx) * DAMPING;
-      sim[i].vy = (sim[i].vy + fy) * DAMPING;
-      sim[i].x += sim[i].vx;
-      sim[i].y += sim[i].vy;
-    }
-  }, [edges]);
+export default function ForceGraph2D({ nodes, edges, onNodeClick }: Props) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const initialLayout = useMemo(() => computeLayout(nodes, edges), [nodes, edges]);
+  const [positions, setPositions] = useState<NodePos[]>(initialLayout);
+  const [dragging, setDragging] = useState<{ index: number; offsetX: number; offsetY: number } | null>(null);
+  const [hovered, setHovered] = useState<number | null>(null);
+  const draggedRef = useRef(false);
 
-  const draw = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    const { width, height } = sizeRef.current;
+  const screenToSvg = useCallback((clientX: number, clientY: number) => {
+    const svg = svgRef.current;
+    if (!svg) return { x: 0, y: 0 };
+    const rect = svg.getBoundingClientRect();
+    const viewBox = svg.viewBox.baseVal;
+    return {
+      x: ((clientX - rect.left) / rect.width) * viewBox.width + viewBox.x,
+      y: ((clientY - rect.top) / rect.height) * viewBox.height + viewBox.y,
+    };
+  }, []);
 
-    canvas.width = width;
-    canvas.height = height;
-    ctx.clearRect(0, 0, width, height);
-    const sim = simRef.current;
+  const handleMouseDown = useCallback((index: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const svgPt = screenToSvg(e.clientX, e.clientY);
+    const pos = positions[index];
+    if (!pos) return;
+    draggedRef.current = false;
+    setDragging({ index, offsetX: svgPt.x - pos.x, offsetY: svgPt.y - pos.y });
+  }, [positions, screenToSvg]);
 
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
-    ctx.lineWidth = 1.5;
-    for (const e of edges) {
-      const src = sim.find((n) => n.id === e.source);
-      const tgt = sim.find((n) => n.id === e.target);
-      if (!src || !tgt) continue;
-
-      ctx.beginPath();
-      ctx.moveTo(src.x, src.y);
-      ctx.lineTo(tgt.x, tgt.y);
-      ctx.stroke();
-
-      const dx = tgt.x - src.x;
-      const dy = tgt.y - src.y;
-      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-      const r = tgt.type === 'organization' ? RADIUS_ORG : RADIUS;
-      const ax = tgt.x - (dx / dist) * (r + 8);
-      const ay = tgt.y - (dy / dist) * (r + 8);
-      const angle = Math.atan2(dy, dx);
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-      ctx.beginPath();
-      ctx.moveTo(ax, ay);
-      ctx.lineTo(ax - 8 * Math.cos(angle - 0.4), ay - 8 * Math.sin(angle - 0.4));
-      ctx.lineTo(ax - 8 * Math.cos(angle + 0.4), ay - 8 * Math.sin(angle + 0.4));
-      ctx.closePath();
-      ctx.fill();
-    }
-
-    for (const n of sim) {
-      const r = n.type === 'organization' ? RADIUS_ORG : RADIUS;
-      ctx.beginPath();
-      ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
-
-      if (n.type === 'organization') {
-        ctx.fillStyle = '#f97316';
-        ctx.shadowColor = '#f9731680';
-        ctx.shadowBlur = 16;
-      } else {
-        ctx.fillStyle = '#3b82f6';
-        ctx.shadowColor = '#3b82f680';
-        ctx.shadowBlur = 10;
-      }
-      ctx.fill();
-      ctx.shadowBlur = 0;
-
-      ctx.fillStyle = '#fff';
-      ctx.font = '11px Inter, system-ui, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      const label = n.type === 'organization' ? (n.siglas || n.label) : n.label.split(' ')[0];
-      ctx.fillText(label, n.x, n.y + r + 4);
-    }
-
-    const avgV = sim.reduce((a, n) => a + Math.abs(n.vx) + Math.abs(n.vy), 0) / sim.length;
-    if (avgV > MIN_VELOCITY) {
-      tick();
-      animRef.current = requestAnimationFrame(draw);
-    }
-  }, [edges, tick]);
-
-  useEffect(() => {
-    initSimulation();
-    animRef.current = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(animRef.current);
-  }, [initSimulation, draw]);
-
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const ro = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        sizeRef.current = { width: Math.floor(width), height: Math.floor(height) };
-        const canvas = canvasRef.current;
-        if (canvas) {
-          canvas.width = Math.floor(width);
-          canvas.height = Math.floor(height);
-        }
-      }
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!dragging) return;
+    draggedRef.current = true;
+    const svgPt = screenToSvg(e.clientX, e.clientY);
+    setPositions((prev) => {
+      const next = [...prev];
+      next[dragging.index] = {
+        x: svgPt.x - dragging.offsetX,
+        y: svgPt.y - dragging.offsetY,
+      };
+      return next;
     });
-    ro.observe(el);
-    return () => ro.disconnect();
+  }, [dragging, screenToSvg]);
+
+  const handleMouseUp = useCallback(() => {
+    setDragging(null);
   }, []);
 
-  const getNodeAt = useCallback((x: number, y: number): ForceNode | null => {
-    for (const n of simRef.current) {
-      const r = n.type === 'organization' ? RADIUS_ORG : RADIUS;
-      const dx = n.x - x;
-      const dy = n.y - y;
-      if (dx * dx + dy * dy <= r * r) return n;
-    }
-    return null;
-  }, []);
-
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const node = getNodeAt(x, y);
-    if (node) {
-      dragRef.current = { node, ox: node.x - x, oy: node.y - y };
-      canvasRef.current?.setPointerCapture(e.pointerId);
-    }
-  }, [getNodeAt]);
-
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    const { node, ox, oy } = dragRef.current;
-    if (!node || !canvasRef.current) return;
-    const rect = canvasRef.current.getBoundingClientRect();
-    node.x = e.clientX - rect.left + ox;
-    node.y = e.clientY - rect.top + oy;
-    node.vx = 0;
-    node.vy = 0;
-  }, []);
-
-  const handlePointerUp = useCallback(() => {
-    dragRef.current.node = null;
-  }, []);
+  useEffect(() => {
+    setPositions(computeLayout(nodes, edges));
+  }, [nodes, edges]);
 
   return (
-    <div ref={containerRef} className="w-full h-full">
-      <canvas
-        ref={canvasRef}
-        className="w-full h-full cursor-grab active:cursor-grabbing rounded-lg"
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerLeave={handlePointerUp}
-      />
+    <div className="w-full h-full rounded-lg overflow-hidden relative" style={{ background: 'radial-gradient(ellipse at 50% 40%, #1e293b 0%, #0f172a 70%)' }}>
+      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #ffffff 0.5px, transparent 0.5px)', backgroundSize: '16px 16px' }} />
+      <svg
+        ref={svgRef}
+        viewBox="0 0 100 100"
+        className="w-full h-full select-none relative z-10"
+        preserveAspectRatio="xMidYMid meet"
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={() => { handleMouseUp(); setHovered(null); }}
+      >
+        <defs>
+          <marker id="eg-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="rgba(255,255,255,0.25)" />
+          </marker>
+        </defs>
+
+        <rect width="100" height="100" fill="transparent" onClick={() => onNodeClick?.(null)} />
+
+        {edges.map((e, i) => {
+          const si = nodes.findIndex((n) => n.id === e.source);
+          const ti = nodes.findIndex((n) => n.id === e.target);
+          if (si < 0 || ti < 0 || !positions[si] || !positions[ti]) return null;
+          const src = positions[si];
+          const tgt = positions[ti];
+          const dx = tgt.x - src.x;
+          const dy = tgt.y - src.y;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          const arrowSize = 1.8;
+          const ax = tgt.x - (dx / dist) * 5;
+          const ay = tgt.y - (dy / dist) * 5;
+          const angle = Math.atan2(dy, dx);
+          const edgeColor = COLORS[si % COLORS.length].edge;
+          const isHovered = hovered === si || hovered === ti;
+          return (
+            <g key={`edge-${i}`}>
+              <line
+                x1={src.x} y1={src.y} x2={ax} y2={ay}
+                stroke={edgeColor}
+                strokeWidth={isHovered ? 0.7 : 0.45}
+                className="transition-all duration-300"
+              />
+              <polygon
+                points={`${ax},${ay} ${ax - arrowSize * Math.cos(angle - 0.45)},${ay - arrowSize * Math.sin(angle - 0.45)} ${ax - arrowSize * Math.cos(angle + 0.45)},${ay - arrowSize * Math.sin(angle + 0.45)}`}
+                fill="rgba(255,255,255,0.35)"
+              />
+            </g>
+          );
+        })}
+
+        {nodes.map((n, i) => {
+          const pos = positions[i];
+          if (!pos) return null;
+          const c = COLORS[i % COLORS.length];
+          const radialGradId = `eg-grad-${i}`;
+          const isDragging = dragging?.index === i;
+          const isHovered = hovered === i;
+          const scale = isDragging ? 1.3 : isHovered ? 1.15 : 1;
+          const r = isDragging ? 6 : 4.5;
+
+          return (
+            <g
+              key={n.id}
+              onMouseDown={(e) => handleMouseDown(i, e)}
+              onClick={(e) => { if (!draggedRef.current) onNodeClick?.(n); }}
+              onMouseEnter={() => setHovered(i)}
+              onMouseLeave={() => setHovered(null)}
+              style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+              className="transition-transform duration-150"
+              transform={`translate(${pos.x}, ${pos.y}) scale(${scale})`}
+            >
+              <defs>
+                <radialGradient id={radialGradId} cx="35%" cy="30%">
+                  <stop offset="0%" stopColor="#ffffff" stopOpacity="0.5" />
+                  <stop offset="40%" stopColor={c.node} stopOpacity="0.9" />
+                  <stop offset="100%" stopColor={c.node} stopOpacity="1" />
+                </radialGradient>
+              </defs>
+
+              {isHovered && (
+                <circle cx={0} cy={0} r={r + 2.5} fill="none" stroke={c.node} strokeWidth="0.4" opacity="0.4">
+                  <animate attributeName="r" values={`${r + 2};${r + 4};${r + 2}`} dur="2s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="0.4;0.1;0.4" dur="2s" repeatCount="indefinite" />
+                </circle>
+              )}
+
+              <circle
+                cx={0} cy={0} r={r}
+                fill={`url(#${radialGradId})`}
+              />
+
+              {isDragging && (
+                <circle cx={0} cy={0} r={r + 3} fill="none" stroke="#ffffff" strokeWidth="0.3" opacity="0.5" strokeDasharray="2 1.5" />
+              )}
+
+              <text
+                x={0} y={r + 3.2}
+                textAnchor="middle"
+                fill={c.label}
+                fontSize="2.2"
+                fontWeight="600"
+                className="pointer-events-none select-none"
+              >
+                {n.siglas || n.label.split('(')[0].trim()}
+              </text>
+              <text
+                x={0} y={r + 5.5}
+                textAnchor="middle"
+                fill="rgba(255,255,255,0.35)"
+                fontSize="1.4"
+                className="pointer-events-none select-none"
+              >
+                {n.tipo || ''}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
     </div>
   );
 }

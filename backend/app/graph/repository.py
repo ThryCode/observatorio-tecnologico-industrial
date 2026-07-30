@@ -9,6 +9,42 @@ class GraphRepository:
     def __init__(self, driver: AsyncDriver):
         self.driver = driver
 
+    async def get_enterprise_graph(self):
+        from app.schemas.graph import EnterpriseGraphNode, EnterpriseGraphEdge, EnterpriseGraphResponse
+        async with self.driver.session() as session:
+            nodes_result = await session.run(
+                "MATCH (n:Enterprise) RETURN n.id AS id, n.nombre AS nombre, n.siglas AS siglas, "
+                "n.sector_codigo AS sector, n.tipo AS tipo, n.provincia AS provincia ORDER BY n.id"
+            )
+            nodes_data = await nodes_result.data()
+
+            edges_result = await session.run(
+                "MATCH (a:Enterprise)-[:FOLLOWS]->(b:Enterprise) "
+                "RETURN a.id AS source, b.id AS target"
+            )
+            edges_data = await edges_result.data()
+
+        if not nodes_data:
+            return None
+
+        nodes = [
+            EnterpriseGraphNode(
+                id=n["id"],
+                type="organization",
+                label=f'{n.get("nombre", "")} ({n.get("siglas", "")})',
+                siglas=n.get("siglas"),
+                sector=n.get("sector"),
+                tipo=n.get("tipo"),
+                provincia=n.get("provincia"),
+            )
+            for n in nodes_data
+        ]
+        edges = [
+            EnterpriseGraphEdge(source=e["source"], target=e["target"], type="FOLLOWS")
+            for e in edges_data
+        ]
+        return EnterpriseGraphResponse(nodes=nodes, edges=edges)
+
     async def _apoc_available(self) -> bool:
         try:
             async with self.driver.session() as session:
@@ -335,6 +371,64 @@ class GraphRepository:
                         ind_id=str(ind.id), codigo=ind.sector_codigo,
                     )
                     rels_merged += 1
+
+            return {"nodes_merged": nodes_merged, "relationships_merged": rels_merged}
+
+    async def sync_enterprise_graph(self, db: AsyncSession):
+        from app.models.follow import Follow
+        from app.models.organization import Organization
+        from app.models.user import User
+
+        async with self.driver.session() as session:
+            nodes_merged = 0
+            rels_merged = 0
+
+            orgs = (await db.execute(select(Organization))).scalars().all()
+            org_map = {str(o.id): o for o in orgs}
+
+            for o in orgs:
+                props = {
+                    "nombre": o.nombre,
+                    "siglas": o.siglas,
+                    "tipo": o.tipo,
+                    "sector_codigo": o.sector_codigo,
+                    "pais": o.pais,
+                    "provincia": o.provincia,
+                }
+                await session.run(
+                    "MERGE (n:Enterprise:Organization {id: $id}) SET n += $props",
+                    id=str(o.id), props=props,
+                )
+                nodes_merged += 1
+
+            users = (await db.execute(select(User))).scalars().all()
+            user_org_map = {
+                str(u.id): str(u.organization_id)
+                for u in users if u.organization_id
+            }
+
+            follows = (await db.execute(
+                select(Follow).where(Follow.follower_type == "user")
+            )).scalars().all()
+
+            seen: set[tuple[str, str]] = set()
+            for f in follows:
+                follower_org = user_org_map.get(str(f.follower_id))
+                target_org = str(f.organization_id)
+                if not follower_org or follower_org == target_org:
+                    continue
+                if follower_org in org_map and target_org in org_map:
+                    key = (follower_org, target_org)
+                    if key not in seen:
+                        seen.add(key)
+                        await session.run(
+                            """
+                            MATCH (a:Enterprise {id: $source}), (b:Enterprise {id: $target})
+                            MERGE (a)-[:FOLLOWS]->(b)
+                            """,
+                            source=follower_org, target=target_org,
+                        )
+                        rels_merged += 1
 
             return {"nodes_merged": nodes_merged, "relationships_merged": rels_merged}
 

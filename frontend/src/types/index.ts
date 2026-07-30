@@ -192,11 +192,12 @@ export interface GraphStat {
 
 export interface EnterpriseGraphNode {
   id: string;
-  type: "person" | "organization";
+  type: string;
   label: string;
-  role?: string;
-  org_id?: string;
   siglas?: string;
+  sector?: string;
+  tipo?: string;
+  provincia?: string;
 }
 
 export interface EnterpriseGraphEdge {

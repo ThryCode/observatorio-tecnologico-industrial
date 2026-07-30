@@ -79,6 +79,19 @@ async def sync_graph(
     return await repo.sync_all(db)
 
 
+@router.post("/sync-enterprise", response_model=SyncResponse)
+async def sync_enterprise_graph(
+    neo4j=Depends(get_neo4j),
+    db=Depends(get_db),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+):
+    if not neo4j:
+        raise AppException(503, "Neo4j is not available")
+    from app.graph.repository import GraphRepository
+    repo = GraphRepository(neo4j)
+    return await repo.sync_enterprise_graph(db)
+
+
 @router.get("/shortest-path", response_model=ShortestPathResponse)
 async def find_shortest_path(
     from_id: str = Query(..., alias="from"),
@@ -100,50 +113,47 @@ async def enterprise_graph(
     db=Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    users_result = await db.execute(select(User))
-    users = users_result.scalars().all()
-
     orgs_result = await db.execute(select(Organization))
-    orgs = orgs_result.scalars().all()
+    orgs = {str(o.id): o for o in orgs_result.scalars().all()}
 
-    follows_result = await db.execute(select(Follow))
+    users_result = await db.execute(select(User))
+    user_org_map = {
+        str(u.id): str(u.organization_id)
+        for u in users_result.scalars().all()
+        if u.organization_id
+    }
+
+    follows_result = await db.execute(
+        select(Follow).where(Follow.follower_type == "user")
+    )
     follows = follows_result.scalars().all()
 
     nodes: list[EnterpriseGraphNode] = []
-    edges: list[EnterpriseGraphEdge] = []
-    seen = set()
-
-    for u in users:
-        nid = f"user-{u.id}"
-        seen.add(nid)
+    for o in orgs.values():
         nodes.append(EnterpriseGraphNode(
-            id=nid,
-            type="person",
-            label=u.full_name,
-            role=u.role,
-            org_id=str(u.organization_id) if u.organization_id else None,
-        ))
-    for o in orgs:
-        nid = f"org-{o.id}"
-        seen.add(nid)
-        nodes.append(EnterpriseGraphNode(
-            id=nid,
+            id=str(o.id),
             type="organization",
             label=f"{o.nombre} ({o.siglas})",
             siglas=o.siglas,
+            sector=o.sector_codigo,
+            tipo=o.tipo,
+            provincia=o.provincia,
         ))
 
+    edges: list[EnterpriseGraphEdge] = []
+    seen_edges: set[str] = set()
     for f in follows:
-        source = f"user-{f.follower_id}"
-        target = f"org-{f.organization_id}"
-        if source in seen and target in seen:
-            edges.append(EnterpriseGraphEdge(source=source, target=target, type="FOLLOWS"))
-
-    for u in users:
-        if u.organization_id:
-            source = f"user-{u.id}"
-            target = f"org-{u.organization_id}"
-            if source in seen and target in seen:
-                edges.append(EnterpriseGraphEdge(source=source, target=target, type="REPRESENTS"))
+        follower_org_id = user_org_map.get(str(f.follower_id))
+        if not follower_org_id or follower_org_id == str(f.organization_id):
+            continue
+        if follower_org_id in orgs and str(f.organization_id) in orgs:
+            key = f"{follower_org_id}->{f.organization_id}"
+            if key not in seen_edges:
+                seen_edges.add(key)
+                edges.append(EnterpriseGraphEdge(
+                    source=follower_org_id,
+                    target=str(f.organization_id),
+                    type="FOLLOWS",
+                ))
 
     return EnterpriseGraphResponse(nodes=nodes, edges=edges)

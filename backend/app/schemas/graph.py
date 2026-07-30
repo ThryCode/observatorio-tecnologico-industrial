@@ -42,11 +42,12 @@ class ShortestPathResponse(BaseModel):
 
 class EnterpriseGraphNode(BaseModel):
     id: str
-    type: str
+    type: str = "organization"
     label: str
-    role: str | None = None
-    org_id: str | None = None
     siglas: str | None = None
+    sector: str | None = None
+    tipo: str | None = None
+    provincia: str | None = None
 
 
 class EnterpriseGraphEdge(BaseModel):
