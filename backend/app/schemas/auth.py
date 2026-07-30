@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 VALID_ACCOUNT_TYPES = {"representante", "analista", "profesional"}
 
@@ -72,4 +72,4 @@ class PendingUserResponse(BaseModel):
     approved_at: datetime | None
     created_at: datetime
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)

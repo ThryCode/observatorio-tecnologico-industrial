@@ -10,7 +10,7 @@ class GraphRepository:
         self.driver = driver
 
     async def get_enterprise_graph(self):
-        from app.schemas.graph import EnterpriseGraphNode, EnterpriseGraphEdge, EnterpriseGraphResponse
+        from app.schemas.graph import EnterpriseGraphEdge, EnterpriseGraphNode, EnterpriseGraphResponse
         async with self.driver.session() as session:
             nodes_result = await session.run(
                 "MATCH (n:Enterprise) RETURN n.id AS id, n.nombre AS nombre, n.siglas AS siglas, "

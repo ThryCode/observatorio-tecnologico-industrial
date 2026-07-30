@@ -2,7 +2,7 @@ import re
 from datetime import date, datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.patent import PatentStatus
 
@@ -15,7 +15,7 @@ class PatentCreate(BaseModel):
     filing_date: date
     publication_date: date | None = None
     status: PatentStatus = PatentStatus.FILED
-    abstract: str | None = None
+    abstract: str | None = Field(None, max_length=2000)
     technological_sector: str | None = None
     country: str = Field(..., min_length=2, max_length=2)
     technology_id: UUID | None = None
@@ -41,7 +41,7 @@ class PatentUpdate(BaseModel):
     inventor: str | None = Field(None, min_length=1, max_length=200)
     publication_date: date | None = None
     status: PatentStatus | None = None
-    abstract: str | None = None
+    abstract: str | None = Field(None, max_length=2000)
     technological_sector: str | None = None
     country: str | None = Field(None, min_length=2, max_length=2)
     technology_id: UUID | None = None
@@ -72,4 +72,4 @@ class PatentResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)

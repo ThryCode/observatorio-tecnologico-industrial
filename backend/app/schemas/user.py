@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 VALID_ROLES = {"admin_mindus", "rep_cti", "analista", "cliente", "visitante"}
 
@@ -62,7 +62,7 @@ class ProfessionalProfileBrief(BaseModel):
     biografia: str | None
     intereses: list[str] | None
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserResponse(BaseModel):
@@ -84,4 +84,4 @@ class UserResponse(BaseModel):
     updated_at: datetime
     professional_profile: ProfessionalProfileBrief | None = None
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)

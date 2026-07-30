@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAlerts } from '@/hooks/useAlerts';
+import { roleLabels } from '@/utils/roles';
 import { usePatents } from '@/hooks/usePatents';
 import {
   LayoutDashboard,
@@ -76,14 +77,6 @@ export default function Sidebar() {
     .join('')
     .toUpperCase()
     .slice(0, 2) || 'AD';
-
-  const roleLabels: Record<string, string> = {
-    admin_mindus: 'Administrador MINDUS',
-    rep_cti: 'Representante CTI',
-    analista: 'Analista',
-    cliente: 'Cliente',
-    visitante: 'Visitante',
-  };
 
   const repNav = user?.role === 'rep_cti'
     ? [{ to: '/mi-empresa', label: 'Mi Empresa', icon: Building2 }]

@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { AxiosError } from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLogin } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -30,8 +30,7 @@ export default function Login() {
   });
 
   if (isAuthenticated) {
-    window.location.href = '/';
-    return null;
+    return <Navigate to="/" replace />;
   }
 
   const onSubmit = (data: LoginForm) => {

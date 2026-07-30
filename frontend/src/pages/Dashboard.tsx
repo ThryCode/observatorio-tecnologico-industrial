@@ -24,23 +24,11 @@ import { listBulletins } from '@/api/bulletins';
 import { getIndustrialSectors } from '@/api/industrialSectors';
 import { listAlerts } from '@/api/alerts';
 import { getDashboardKPIs, getTimelineEvents, getDashboardSectors } from '@/api/dashboard';
+import { mapSeverityToPriority } from '@/utils/alertUtils';
 import type { Alert, DashboardKPI, TimelineEvent, Organization } from '@/types';
 import type { BulletinListItem } from '@/api/bulletins';
 import type { Entity } from '@/components/EntityTable';
 import type { ProductCardProps } from '@/components/ProductCard';
-
-function mapSeverityToPriority(severity: Alert['severidad']): 'high' | 'medium' | 'low' {
-  switch (severity) {
-    case 'alta':
-      return 'high';
-    case 'media':
-      return 'medium';
-    case 'baja':
-      return 'low';
-    default:
-      return 'medium';
-  }
-}
 
 function mapAlertToAlertItem(alert: Alert) {
   return {

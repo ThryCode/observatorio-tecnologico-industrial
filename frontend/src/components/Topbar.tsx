@@ -3,6 +3,7 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { roleLabels } from '@/utils/roles';
 import { useAlerts } from '@/hooks/useAlerts';
 import {
   Search,
@@ -67,14 +68,6 @@ export default function Topbar() {
     currentPath += `/${part}`;
     breadcrumbs.push({ path: currentPath, label: routeNames[currentPath] || part });
   }
-
-  const roleLabels: Record<string, string> = {
-    admin_mindus: 'Administrador MINDUS',
-    rep_cti: 'Representante CTI',
-    analista: 'Analista',
-    cliente: 'Cliente',
-    visitante: 'Visitante',
-  };
 
   return (
     <header className="sticky top-0 z-20 h-topbar bg-white/92 backdrop-blur-[12px] saturate-[180%] border-b border-border">

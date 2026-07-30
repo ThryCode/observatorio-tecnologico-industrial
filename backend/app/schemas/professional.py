@@ -1,13 +1,13 @@
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProfessionalProfileCreate(BaseModel):
     especialidad: str = Field(..., min_length=1, max_length=100)
     grado_cientifico: str | None = Field(None, max_length=50)
     cv_url: str | None = Field(None, max_length=255)
-    biografia: str | None = None
+    biografia: str | None = Field(None, max_length=2000)
     intereses: list[str] | None = None
 
 
@@ -15,7 +15,7 @@ class ProfessionalProfileUpdate(BaseModel):
     especialidad: str | None = Field(None, min_length=1, max_length=100)
     grado_cientifico: str | None = Field(None, max_length=50)
     cv_url: str | None = Field(None, max_length=255)
-    biografia: str | None = None
+    biografia: str | None = Field(None, max_length=2000)
     intereses: list[str] | None = None
 
 
@@ -28,7 +28,7 @@ class ProfessionalProfileResponse(BaseModel):
     biografia: str | None
     intereses: list[str] | None
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ProfessionalListItem(BaseModel):
@@ -41,4 +41,4 @@ class ProfessionalListItem(BaseModel):
     organization_id: UUID | None
     profile: ProfessionalProfileResponse | None = None
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)

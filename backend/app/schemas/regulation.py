@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.regulation import RegulationCategory
 
@@ -13,7 +13,7 @@ class RegulationCreate(BaseModel):
     publication_date: date
     effective_date: date | None = None
     category: RegulationCategory
-    summary: str | None = None
+    summary: str | None = Field(None, max_length=2000)
     sector_codigo: str | None = Field(None, min_length=3, max_length=3)
     file_url: str | None = None
 
@@ -31,7 +31,7 @@ class RegulationUpdate(BaseModel):
     publication_date: date | None = None
     effective_date: date | None = None
     category: RegulationCategory | None = None
-    summary: str | None = None
+    summary: str | None = Field(None, max_length=2000)
     sector_codigo: str | None = Field(None, min_length=3, max_length=3)
     file_url: str | None = None
 
@@ -50,4 +50,4 @@ class RegulationResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)
