@@ -15,3 +15,9 @@ async def test_list_audit_logs_unauthorized(client, auth_headers):
     headers = await auth_headers("auditusr", role="user")
     resp = await client.get("/api/v1/audit-logs", headers=headers)
     assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_list_audit_logs_no_auth(client):
+    resp = await client.get("/api/v1/audit-logs")
+    assert resp.status_code == 401

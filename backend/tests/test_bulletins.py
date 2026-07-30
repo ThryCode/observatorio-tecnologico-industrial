@@ -1,5 +1,5 @@
+
 import pytest
-from datetime import datetime
 
 
 @pytest.fixture
@@ -80,8 +80,9 @@ async def test_delete_bulletin(client, bulletin_payload, auth_headers):
 
 @pytest.mark.asyncio
 async def test_delete_bulletin_unauthorized(client, bulletin_payload, auth_headers):
-    headers = await auth_headers("buldel2", role="user")
-    create = await client.post("/api/v1/bulletins", json=bulletin_payload, headers=headers)
+    create_headers = await auth_headers("buldel2create", role="admin_mindus")
+    delete_headers = await auth_headers("buldel2", role="user")
+    create = await client.post("/api/v1/bulletins", json=bulletin_payload, headers=create_headers)
     bid = create.json()["id"]
-    resp = await client.delete(f"/api/v1/bulletins/{bid}", headers=headers)
+    resp = await client.delete(f"/api/v1/bulletins/{bid}", headers=delete_headers)
     assert resp.status_code == 403
