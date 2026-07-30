@@ -281,7 +281,6 @@ export interface DashboardKPI {
   value: number;
   unit: string;
   change: number;
-  icon: string;
 }
 
 export interface TimelineEvent {

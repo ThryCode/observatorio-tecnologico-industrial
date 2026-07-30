@@ -56,26 +56,38 @@ function mapAlertToAlertItem(alert: Alert) {
   };
 }
 
+function labelToIconKey(label: string): 'users' | 'file-text' | 'book-open' | 'alert-triangle' {
+  const map: Record<string, 'users' | 'file-text' | 'book-open' | 'alert-triangle'> = {
+    Organizaciones: 'users',
+    Patentes: 'file-text',
+    Tecnologías: 'book-open',
+    Indicadores: 'alert-triangle',
+    Alertas: 'alert-triangle',
+  };
+  return map[label] || 'file-text';
+}
+
 function mapKPIToCardProps(kpi: DashboardKPI) {
   const iconMap: Record<string, React.ReactNode> = {
-    FileText: <FileText className="h-4 w-4" />,
-    BookOpen: <BookOpen className="h-4 w-4" />,
-    Users: <Users className="h-4 w-4" />,
-    AlertTriangle: <AlertTriangle className="h-4 w-4" />,
+    'file-text': <FileText className="h-4 w-4" />,
+    'book-open': <BookOpen className="h-4 w-4" />,
+    'users': <Users className="h-4 w-4" />,
+    'alert-triangle': <AlertTriangle className="h-4 w-4" />,
   };
   const iconBgMap: Record<string, 'blue' | 'orange' | 'green' | 'gold'> = {
-    FileText: 'blue',
-    BookOpen: 'orange',
-    Users: 'green',
-    AlertTriangle: 'gold',
+    'file-text': 'blue',
+    'book-open': 'orange',
+    'users': 'green',
+    'alert-triangle': 'gold',
   };
+  const iconKey = labelToIconKey(kpi.label);
   return {
     label: kpi.label,
     value: kpi.value.toLocaleString(),
     change: `${kpi.change >= 0 ? '+' : ''}${kpi.change}%`,
     changeType: kpi.change >= 0 ? 'positive' as const : 'negative' as const,
-    icon: iconMap[kpi.icon] || <FileText className="h-4 w-4" />,
-    iconBg: iconBgMap[kpi.icon] || 'blue',
+    icon: iconMap[iconKey] || <FileText className="h-4 w-4" />,
+    iconBg: iconBgMap[iconKey] || 'blue',
   };
 }
 
@@ -132,23 +144,27 @@ function getRelativeTime(date: Date): string {
   return 'Ahora';
 }
 
+async function fetchSafe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+  try { return await fn(); } catch { return fallback; }
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const [activeSector, setActiveSector] = useState('all');
   const [exporting, setExporting] = useState(false);
-  const { data: rawAlerts, isLoading: alertsLoading } = useAlerts();
-  const { data: kpis, isLoading: kpisLoading } = useDashboardKPIs();
-  const { data: rawTimeline, isLoading: timelineLoading } = useTimelineEvents();
-  const { data: sectorsData, isLoading: sectorsLoading } = useQuery({
+  const { data: rawAlerts, isLoading: alertsLoading, isError: alertsError } = useAlerts();
+  const { data: kpis, isLoading: kpisLoading, isError: kpisError } = useDashboardKPIs();
+  const { data: rawTimeline, isLoading: timelineLoading, isError: timelineError } = useTimelineEvents();
+  const { data: sectorsData, isLoading: sectorsLoading, isError: sectorsError } = useQuery({
     queryKey: ['dashboard', 'sectors'],
     queryFn: getDashboardSectors,
     staleTime: 5 * 60 * 1000,
   });
-  const { data: orgsData, isLoading: orgsLoading } = useQuery({
+  const { data: orgsData, isLoading: orgsLoading, isError: orgsError } = useQuery({
     queryKey: ['organizations', { page: 1, per_page: 5 }],
     queryFn: () => getOrganizations(1, 5),
   });
-  const { data: bulletinsData, isLoading: bulletinsLoading } = useQuery({
+  const { data: bulletinsData, isLoading: bulletinsLoading, isError: bulletinsError } = useQuery({
     queryKey: ['bulletins', { page: 1, per_page: 3 }],
     queryFn: () => listBulletins(1, 3),
   });
@@ -166,9 +182,6 @@ export default function Dashboard() {
   const handleExport = useCallback(async () => {
     setExporting(true);
     try {
-      async function fetchSafe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
-        try { return await fn(); } catch { return fallback; }
-      }
       const [
         kpisRes, patentsRes, techRes, orgsRes, regsRes,
         indicsRes, alertsRes, bullsRes, sectorsRes, timelineRes,
@@ -231,7 +244,9 @@ export default function Dashboard() {
         }
       />
 
-      {sectorsLoading ? (
+      {sectorsError ? (
+        <div className="text-center text-red-500 py-4">Error al cargar sectores</div>
+      ) : sectorsLoading ? (
         <div className="text-center text-text-muted py-4">Cargando sectores...</div>
       ) : (
         <SectorPills sectors={sectors} active={activeSector} onChange={setActiveSector} />
@@ -239,7 +254,9 @@ export default function Dashboard() {
 
       {/* Section 2 — KPIs */}
       <section>
-        {kpisLoading ? (
+        {kpisError ? (
+          <div className="text-center text-red-500 py-8">Error al cargar KPIs</div>
+        ) : kpisLoading ? (
           <div className="text-center text-text-muted py-8">Cargando KPIs...</div>
         ) : (
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
@@ -259,7 +276,9 @@ export default function Dashboard() {
           </div>
           <div>
             <h3 className="text-base font-bold text-foreground mb-3">Alertas Recientes</h3>
-            {alertsLoading ? (
+            {alertsError ? (
+              <div className="text-center text-red-500 py-8">Error al cargar alertas</div>
+            ) : alertsLoading ? (
               <div className="text-center text-text-muted py-8">Cargando alertas...</div>
             ) : (
               <AlertList alerts={alerts} />
@@ -280,7 +299,9 @@ export default function Dashboard() {
               </Button>
             </div>
             <div className="bg-surface rounded-lg border border-border flex-1">
-              {orgsLoading ? (
+              {orgsError ? (
+                <div className="text-center text-red-500 py-8">Error al cargar entidades</div>
+              ) : orgsLoading ? (
                 <div className="text-center text-text-muted py-8">Cargando entidades...</div>
               ) : (
                 <EntityTable entities={entities} />
@@ -292,7 +313,9 @@ export default function Dashboard() {
               <h3 className="text-base font-bold text-foreground">Actividad Reciente</h3>
             </div>
             <div className="bg-surface rounded-lg border border-border p-5 flex-1 mt-3">
-              {timelineLoading ? (
+              {timelineError ? (
+                <div className="text-center text-red-500 py-8">Error al cargar actividad reciente</div>
+              ) : timelineLoading ? (
                 <div className="text-center text-text-muted py-8">Cargando actividad reciente...</div>
               ) : (
                 <Timeline events={timelineEvents.slice(0, 6)} />
@@ -311,7 +334,9 @@ export default function Dashboard() {
             Ver todos
           </Button>
         </div>
-        {bulletinsLoading ? (
+        {bulletinsError ? (
+          <div className="text-center text-red-500 py-8">Error al cargar productos</div>
+        ) : bulletinsLoading ? (
           <div className="text-center text-text-muted py-8">Cargando productos...</div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

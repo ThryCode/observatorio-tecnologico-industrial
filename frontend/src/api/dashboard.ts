@@ -8,10 +8,10 @@ export interface SectorCountItem {
 }
 
 const MOCK_KPIS: DashboardKPI[] = [
-  { label: 'Organizaciones', value: 5, unit: 'entidades', change: 0, icon: 'Users' },
-  { label: 'Patentes', value: 6, unit: 'registradas', change: 0, icon: 'FileText' },
-  { label: 'Tecnologías', value: 0, unit: 'vigiladas', change: 0, icon: 'BookOpen' },
-  { label: 'Indicadores', value: 0, unit: 'activos', change: 0, icon: 'AlertTriangle' },
+  { label: 'Organizaciones', value: 5, unit: 'entidades', change: 0 },
+  { label: 'Patentes', value: 6, unit: 'registradas', change: 0 },
+  { label: 'Tecnologías', value: 0, unit: 'vigiladas', change: 0 },
+  { label: 'Indicadores', value: 0, unit: 'activos', change: 0 },
 ];
 
 const MOCK_TIMELINE: TimelineEvent[] = [
