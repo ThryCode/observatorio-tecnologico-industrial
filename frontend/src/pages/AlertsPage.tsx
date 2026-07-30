@@ -80,10 +80,6 @@ export default function AlertsPage() {
   const updateMutation = useUpdateAlert();
   const deleteMutation = useDeleteAlert();
 
-  useEffect(() => {
-    markAllRead.mutate();
-  }, []);
-
   const resetForm = () => {
     setFormData({ titulo: '', descripcion: '', severidad: 'media', fecha: new Date().toISOString().slice(0, 10), sector: '' });
   };
@@ -178,6 +174,11 @@ export default function AlertsPage() {
             <Button variant={proximasActive ? 'default' : 'outline'} size="sm" onClick={() => { setProximasActive(!proximasActive); setFechaDesde(proximasActive ? '' : today); setFechaHasta(''); setPage(1); }}>
               Próximas
             </Button>
+            {Array.isArray(rawAlerts) && rawAlerts.some(a => !a.leida) && (
+              <Button variant="outline" size="sm" onClick={() => markAllRead.mutate()} disabled={markAllRead.isPending}>
+                {markAllRead.isPending ? 'Marcando...' : 'Marcar todas como leídas'}
+              </Button>
+            )}
             {can('alerts', 'create') && (
               <Button className="gap-2" onClick={openCreate}>
                 <Plus className="h-4 w-4" />
