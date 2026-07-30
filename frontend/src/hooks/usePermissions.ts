@@ -1,7 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import type { UserRole } from '@/types';
 
-type Entity = 'technologies' | 'organizations' | 'patents' | 'regulations' | 'indicators' | 'alerts' | 'users' | 'settings' | 'research-publications';
+export type Entity = 'technologies' | 'organizations' | 'patents' | 'regulations' | 'indicators' | 'alerts' | 'users' | 'settings' | 'research-publications';
 type Action = 'create' | 'edit' | 'delete' | 'approve' | 'reject' | 'view';
 
 const PERMISSIONS: Record<UserRole, Partial<Record<Entity, Action[]>>> = {

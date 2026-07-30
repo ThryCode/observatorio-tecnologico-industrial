@@ -1,17 +1,15 @@
-from uuid import UUID
-
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import AppException
 from app.models.user import User
-from app.schemas.user import UserUpdate
-from app.services.query_helpers import apply_search, apply_sorting
+from app.schemas.user import UserCreate, UserUpdate
+from app.services.base import BaseService
+from app.services.query_helpers import apply_search
 
 
-class UserService:
+class UserService(BaseService[User, UserCreate, UserUpdate]):
     def __init__(self, db: AsyncSession):
-        self.db = db
+        super().__init__(User, db)
 
     async def list(self, page: int, per_page: int, q: str | None = None,
                    role: str | None = None, status: str | None = None,
@@ -33,9 +31,6 @@ class UserService:
             query = query.where(User.is_active == is_active)
             count_query = count_query.where(User.is_active == is_active)
 
-        total = (await self.db.execute(count_query)).scalar()
-        offset = (page - 1) * per_page
-
         allowed_sorts = {
             "full_name": User.full_name,
             "email": User.email,
@@ -43,32 +38,4 @@ class UserService:
             "role": User.role,
             "status": User.status,
         }
-        query = apply_sorting(query, User, sort_by, sort_order, allowed_sorts)
-        if not sort_by:
-            query = query.order_by(User.created_at.desc())
-
-        result = await self.db.execute(
-            query.offset(offset).limit(per_page)
-        )
-        items = result.scalars().all()
-        return items, total
-
-    async def get(self, user_id: UUID) -> User:
-        result = await self.db.execute(select(User).where(User.id == user_id))
-        user = result.scalar_one_or_none()
-        if not user:
-            raise AppException(404, "User not found")
-        return user
-
-    async def update(self, user_id: UUID, data: UserUpdate) -> User:
-        user = await self.get(user_id)
-        for key, val in data.model_dump(exclude_unset=True).items():
-            setattr(user, key, val)
-        await self.db.flush()
-        await self.db.refresh(user)
-        return user
-
-    async def delete(self, user_id: UUID) -> None:
-        user = await self.get(user_id)
-        await self.db.delete(user)
-        await self.db.flush()
+        return await self._paginate(count_query, query, page, per_page, sort_by, sort_order, allowed_sorts)
