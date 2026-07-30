@@ -47,16 +47,19 @@ class BaseService(Generic[M, C, U]):
     def _build_list_query(self):
         return select(self.model), select(func.count(self.model.id))
 
-    async def _paginate(self, page: int, per_page: int, query,
+    async def _paginate(self, count_query, list_query,
+                         page: int, per_page: int,
                          sort_by=None, sort_order="desc",
                          allowed_sorts=None, default_sort=None):
+        total = (await self.db.execute(count_query)).scalar()
         offset = (page - 1) * per_page
         if sort_by and allowed_sorts:
             from app.services.query_helpers import apply_sorting
-            query = apply_sorting(query, self.model, sort_by, sort_order, allowed_sorts)
+            list_query = apply_sorting(list_query, self.model, sort_by, sort_order, allowed_sorts)
         elif default_sort:
-            query = query.order_by(default_sort)
+            list_query = list_query.order_by(default_sort)
         else:
-            query = query.order_by(self.model.created_at.desc())
-        result = await self.db.execute(query.offset(offset).limit(per_page))
-        return result.scalars().all()
+            list_query = list_query.order_by(self.model.created_at.desc())
+        result = await self.db.execute(list_query.offset(offset).limit(per_page))
+        items = result.scalars().all()
+        return items, total
