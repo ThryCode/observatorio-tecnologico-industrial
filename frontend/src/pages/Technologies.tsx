@@ -24,6 +24,7 @@ const trlOptions = [
 
 export default function Technologies() {
   const [page, setPage] = useState(1);
+  const [q, setQ] = useState('');
   const [sector, setSector] = useState('all');
 
   const { data: sectorsData } = useQuery({
@@ -32,7 +33,7 @@ export default function Technologies() {
   });
 
   const sectorMap = new Map(sectorsData?.items?.map((s) => [s.codigo, s.nombre]) ?? []);
-  const queryResult = useTechnologies(page, 20, sector === 'all' ? undefined : sector);
+  const queryResult = useTechnologies(page, 20, sector === 'all' ? undefined : sector, q || undefined);
   const createMutation = useCreateTechnology();
   const updateMutation = useUpdateTechnology();
   const deleteMutation = useDeleteTechnology();
@@ -64,7 +65,7 @@ export default function Technologies() {
       page={page}
       onPageChange={setPage}
       searchPlaceholder="Buscar tecnologías..."
-      searchFilter={(item, q) => item.nombre.toLowerCase().includes(q.toLowerCase())}
+      onSearch={setQ}
       filterBar={
         <Select value={sector} onValueChange={(v) => { setSector(v); setPage(1); }}>
           <SelectTrigger className="w-[200px]"><SelectValue placeholder="Filtrar por sector" /></SelectTrigger>

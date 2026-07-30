@@ -17,10 +17,11 @@ const categoryVariants: Record<string, BadgeVariant> = { law: 'destructive', dec
 
 export default function Regulations() {
   const [page, setPage] = useState(1);
+  const [q, setQ] = useState('');
   const [category, setCategory] = useState('');
   const [selected, setSelected] = useState<Regulation | null>(null);
 
-  const queryResult = useRegulations(page, 20, category || undefined);
+  const queryResult = useRegulations(page, 20, category || undefined, q || undefined);
   const createMutation = useCreateRegulation();
   const updateMutation = useUpdateRegulation();
   const deleteMutation = useDeleteRegulation();
@@ -47,7 +48,7 @@ export default function Regulations() {
         page={page}
         onPageChange={setPage}
         searchPlaceholder="Buscar normativas..."
-        searchFilter={(item, q) => item.title.toLowerCase().includes(q.toLowerCase()) || item.regulation_number.toLowerCase().includes(q.toLowerCase())}
+        onSearch={setQ}
         filterBar={
           <Select value={category} onValueChange={(v) => { setCategory(v === 'all' ? '' : v); setPage(1); }}>
             <SelectTrigger className="w-[160px]"><SelectValue placeholder="Categoría" /></SelectTrigger>

@@ -95,7 +95,7 @@ async def update_alert(
 async def mark_alert_read(
     alert_id: UUID,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    _: User = Depends(get_current_user),
 ):
     return await AlertService(db).mark_read(alert_id)
 
@@ -103,7 +103,7 @@ async def mark_alert_read(
 @router.post("/read-all", response_model=Message)
 async def mark_all_alerts_read(
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    _: User = Depends(get_current_user),
 ):
     count = await AlertService(db).mark_all_read()
     return Message(detail=f"{count} alerts marked as read")

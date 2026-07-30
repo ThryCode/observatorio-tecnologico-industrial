@@ -35,6 +35,7 @@ interface CrudPageProps<T extends { id: string }> {
   formToPayload: (form: Record<string, any>, isEditing: boolean) => any;
   validateForm?: (form: Record<string, any>) => string | null;
   searchFilter?: (item: T, query: string) => boolean;
+  onSearch?: (query: string) => void;
   page: number;
   onPageChange: (page: number) => void;
 }
@@ -45,11 +46,16 @@ export default function CrudPage<T extends { id: string }>({
   queryResult: { data, isLoading, isError, refetch },
   createMutation, updateMutation, deleteMutation,
   renderForm, renderDetail, defaultForm,
-  formToPayload, validateForm, searchFilter,
+  formToPayload, validateForm, searchFilter, onSearch,
   page, onPageChange,
 }: CrudPageProps<T>) {
   const { can } = usePermissions();
   const [search, setSearch] = useState('');
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    onSearch?.(value);
+  };
   const [selected, setSelected] = useState<T | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -89,7 +95,7 @@ export default function CrudPage<T extends { id: string }>({
     refetch();
   };
 
-  const filteredItems = searchFilter && search ? (data?.items ?? []).filter((i) => searchFilter(i, search)) : data?.items ?? [];
+  const filteredItems = !onSearch && searchFilter && search ? (data?.items ?? []).filter((i) => searchFilter(i, search)) : data?.items ?? [];
 
   if (isError) return (
     <div className="space-y-6">
@@ -108,7 +114,7 @@ export default function CrudPage<T extends { id: string }>({
       <div className="flex items-center gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder={searchPlaceholder} className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <Input placeholder={searchPlaceholder} className="pl-9" value={search} onChange={(e) => handleSearchChange(e.target.value)} />
         </div>
         {filterBar}
       </div>

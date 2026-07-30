@@ -13,6 +13,7 @@ import type { ResearchPublication } from '@/types';
 
 export default function PublicationsPage() {
   const [page, setPage] = useState(1);
+  const [q, setQ] = useState('');
   const [sector, setSector] = useState('all');
 
   const { data: sectorsData } = useQuery({
@@ -21,7 +22,7 @@ export default function PublicationsPage() {
   });
 
   const sectorMap = new Map(sectorsData?.items?.map((s) => [s.codigo, s.nombre]) ?? []);
-  const queryResult = useResearchPublications(page, 20, sector === 'all' ? undefined : sector);
+  const queryResult = useResearchPublications(page, 20, sector === 'all' ? undefined : sector, q || undefined);
   const createMutation = useCreateResearchPublication();
   const updateMutation = useUpdateResearchPublication();
   const deleteMutation = useDeleteResearchPublication();
@@ -52,7 +53,7 @@ export default function PublicationsPage() {
       page={page}
       onPageChange={setPage}
       searchPlaceholder="Buscar publicaciones..."
-      searchFilter={(item, q) => item.titulo.toLowerCase().includes(q.toLowerCase()) || item.autores.toLowerCase().includes(q.toLowerCase())}
+      onSearch={setQ}
       filterBar={
         <Select value={sector} onValueChange={(v) => { setSector(v); setPage(1); }}>
           <SelectTrigger className="w-[200px]"><SelectValue placeholder="Filtrar por sector" /></SelectTrigger>
