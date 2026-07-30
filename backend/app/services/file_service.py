@@ -50,11 +50,3 @@ async def save_upload(file: UploadFile, subdir: str = "") -> dict:
         "size": len(content),
     }
 
-
-def delete_file(relative_path: str) -> None:
-    full = UPLOAD_DIR.parent / relative_path
-    try:
-        full.unlink(missing_ok=True)
-        logger.info("File deleted: {}", full)
-    except Exception as e:
-        logger.warning("Failed to delete file {}: {}", full, e)
