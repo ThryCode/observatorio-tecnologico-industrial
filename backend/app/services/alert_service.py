@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.alert import Alert
@@ -56,10 +56,11 @@ class AlertService(BaseService[Alert, AlertCreate, AlertUpdate]):
 
     async def mark_all_read(self) -> int:
         result = await self.db.execute(
-            select(Alert).where(Alert.leida == False)  # noqa: E712
+            select(func.count(Alert.id)).where(Alert.leida == False)  # noqa: E712
         )
-        alerts = result.scalars().all()
-        for alert in alerts:
-            alert.leida = True
+        count = result.scalar() or 0
+        await self.db.execute(
+            update(Alert).where(Alert.leida == False).values(leida=True)  # noqa: E712
+        )
         await self.db.flush()
-        return len(alerts)
+        return count

@@ -121,7 +121,6 @@ export default function Patents() {
       }
       setDialogOpen(false);
       resetForm();
-      refetch();
     } catch {
       setSaveError('Error al guardar la patente. Verifica los datos.');
     }
@@ -133,7 +132,6 @@ export default function Patents() {
     setDeleteDialogOpen(false);
     setPatentToDelete(null);
     if (selectedPatent?.id === patentToDelete.id) setSelectedPatent(null);
-    refetch();
   };
 
   if (isError) {

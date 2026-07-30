@@ -6,8 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppException
 from app.models.indicator import Indicator
-from app.schemas.indicator import IndicatorCreate, IndicatorResponse, IndicatorUpdate
-from app.services.cache import cache_key, get_cached, invalidate_pattern, set_cached
+from app.schemas.indicator import IndicatorCreate, IndicatorUpdate
+from app.services.cache import invalidate_pattern
 from app.services.query_helpers import apply_search, apply_sorting
 
 
@@ -19,14 +19,6 @@ class IndicatorService:
     async def list(self, page: int, per_page: int, sector: str | None = None,
                    period: str | None = None, q: str | None = None,
                    sort_by: str | None = None, sort_order: str = "desc") -> tuple[list[Indicator], int]:
-        key = cache_key(
-            "indicators:list", page, per_page,
-            sector=sector, period=period, q=q, sort_by=sort_by, sort_order=sort_order,
-        )
-        cached = await get_cached(self.redis, key)
-        if cached is not None:
-            return [IndicatorResponse(**item) for item in cached["items"]], cached["total"]
-
         query = select(Indicator)
         count_query = select(func.count(Indicator.id))
 
@@ -57,11 +49,6 @@ class IndicatorService:
             query.offset(offset).limit(per_page)
         )
         items = result.scalars().all()
-        serialized = [
-            IndicatorResponse.model_validate(i).model_dump(mode="json")
-            for i in items
-        ]
-        await set_cached(self.redis, key, {"items": serialized, "total": total}, ttl=300)
         return items, total
 
     async def get(self, indicator_id: UUID) -> Indicator:

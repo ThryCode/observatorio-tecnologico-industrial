@@ -60,7 +60,4 @@ export async function listBulletins(
   };
 }
 
-export async function getBulletin(id: string) {
-  const res = await client.get<BulletinApiItem>(`/bulletins/${id}`);
-  return mapBulletin(res.data);
-}
+

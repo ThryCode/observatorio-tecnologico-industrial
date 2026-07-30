@@ -2,12 +2,6 @@ import client, { USE_MOCK } from './client';
 
 const mockStore = new Map<string, File>();
 
-export function getMockDownloadUrl(filename: string): string | null {
-  const file = mockStore.get(filename);
-  if (!file) return null;
-  return URL.createObjectURL(file);
-}
-
 let mockId = 0;
 
 export async function uploadFile(file: File): Promise<{ filename: string; path: string; url: string; size: number }> {

@@ -1,13 +1,10 @@
-import os
-
 from fastapi import APIRouter, Depends, Query, Request
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppException
 from app.dependencies import get_current_user, get_db, require_role
+from app.limiter import limiter
 from app.models.organization import Organization
 from app.models.user import User, UserRole
 from app.schemas.auth import LoginRequest, RegisterRequest, RejectRequest, TokenResponse
@@ -18,9 +15,6 @@ from app.services.auth_service import AuthService
 from app.services.email_service import notify_approval, notify_rejection
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-_testing = os.getenv("TESTING", "0") == "1"
-limiter = Limiter(key_func=get_remote_address, enabled=not _testing)
 
 
 @router.post("/register", response_model=UserResponse, status_code=201)

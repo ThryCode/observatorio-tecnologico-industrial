@@ -58,11 +58,6 @@ export async function getResearchPublications(
   return res.data;
 }
 
-export async function getResearchPublication(id: string): Promise<ResearchPublication> {
-  const res = await client.get<ResearchPublication>(`/research-publications/${id}`);
-  return res.data;
-}
-
 export async function createResearchPublication(data: Partial<ResearchPublication>): Promise<ResearchPublication> {
   if (USE_MOCK) {
     const newPub: ResearchPublication = { ...data, id: String(Date.now()), created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as ResearchPublication;

@@ -7,14 +7,16 @@ router = APIRouter()
 
 
 @router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket, token: str | None = None):
-    payload = decode_token(token)
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    raw = await websocket.receive_text()
+    payload = decode_token(raw.strip())
     if payload is None:
         await websocket.close(code=4001)
         return
 
     user_id = payload.get("sub", "")
-    await manager.connect(websocket, user_id)
+    manager.register(websocket, user_id)
     try:
         while True:
             await websocket.receive_text()

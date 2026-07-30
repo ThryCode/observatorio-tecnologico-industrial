@@ -5,7 +5,6 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
-    async_sessionmaker,
     create_async_engine,
 )
 from sqlalchemy.pool import NullPool
@@ -34,9 +33,11 @@ async def engine():
 
 @pytest_asyncio.fixture
 async def db_session(engine):
-    session_factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-    async with session_factory() as session:
+    async with engine.connect() as conn:
+        transaction = await conn.begin()
+        session = AsyncSession(bind=conn, expire_on_commit=False)
         yield session
+        await transaction.rollback()
 
 
 @pytest_asyncio.fixture

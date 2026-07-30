@@ -96,7 +96,7 @@ function loadMockPatents(): Patent[] {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) return JSON.parse(saved);
-  } catch {}
+  } catch { /* ignore */ }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PATENTS));
   return [...DEFAULT_PATENTS];
 }
@@ -105,7 +105,7 @@ function saveMockPatents(patents: Patent[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(patents));
 }
 
-let MOCK_PATENTS = loadMockPatents();
+const MOCK_PATENTS = loadMockPatents();
 
 export async function getPatents(
   page = 1,

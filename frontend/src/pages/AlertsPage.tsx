@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import PageHeader from '@/components/PageHeader';
 import AlertList from '@/components/AlertList';
 import { Button } from '@/components/ui/button';
@@ -20,22 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { mapSeverityToPriority } from '@/utils/alertUtils';
+import { mapAlertToAlertItem } from '@/utils/alertUtils';
 import type { Alert } from '@/types';
-
-function mapAlertToAlertItem(alert: Alert) {
-  return {
-    id: alert.id,
-    priority: mapSeverityToPriority(alert.severidad),
-    title: alert.titulo,
-    description: alert.descripcion,
-    time: alert.fecha,
-    tag: {
-      label: alert.sector || 'General',
-      variant: 'accent' as const,
-    },
-  };
-}
 
 export default function AlertsPage() {
   const { can } = usePermissions();
@@ -55,14 +41,6 @@ export default function AlertsPage() {
   const today = new Date().toISOString().slice(0, 10);
   const unreadOnly = leidaFilter === 'no_leidas';
   const { data: rawAlerts, isLoading, refetch } = useAlerts(unreadOnly, page, 10, q || undefined, severidad, undefined, fechaDesde || undefined, fechaHasta || undefined, sortBy, sortOrder);
-
-  useEffect(() => {
-    import('@/api/alerts').then(({ listAlerts }) =>
-      listAlerts(false, 1, 1, undefined, undefined, undefined, today).then((alerts) => {
-        localStorage.setItem('lastAlertUpcomingCount', String(alerts.length));
-      })
-    );
-  }, []);
   const allAlerts = Array.isArray(rawAlerts)
     ? leidaFilter === 'leidas' ? rawAlerts.filter(a => a.leida) : rawAlerts
     : [];
@@ -112,14 +90,12 @@ export default function AlertsPage() {
     setDialogOpen(false);
     setEditingAlert(null);
     resetForm();
-    refetch();
   };
 
   const handleDeleteConfirm = async () => {
     if (!deleteAlertId) return;
     await deleteMutation.mutateAsync(deleteAlertId);
     setDeleteAlertId(null);
-    refetch();
   };
 
   const isSaving = createMutation.isPending || updateMutation.isPending;

@@ -14,7 +14,7 @@ function loadMockRegulations(): Regulation[] {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) return JSON.parse(saved);
-  } catch {}
+  } catch { /* ignore */ }
   localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_REGULATIONS));
   return [...DEFAULT_REGULATIONS];
 }
@@ -23,7 +23,7 @@ function saveMockRegulations(regs: Regulation[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(regs));
 }
 
-let MOCK_REGULATIONS = loadMockRegulations();
+const MOCK_REGULATIONS = loadMockRegulations();
 
 export async function getRegulations(
   page = 1,
@@ -65,11 +65,6 @@ export async function getRegulations(
   if (sortBy) params.set('sort_by', sortBy);
   if (sortOrder) params.set('sort_order', sortOrder);
   const res = await client.get<PaginatedResponse<Regulation>>(`/regulations?${params}`);
-  return res.data;
-}
-
-export async function getRegulation(id: string): Promise<Regulation> {
-  const res = await client.get<Regulation>(`/regulations/${id}`);
   return res.data;
 }
 

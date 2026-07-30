@@ -24,25 +24,11 @@ import { listBulletins } from '@/api/bulletins';
 import { getIndustrialSectors } from '@/api/industrialSectors';
 import { listAlerts } from '@/api/alerts';
 import { getDashboardKPIs, getTimelineEvents, getDashboardSectors } from '@/api/dashboard';
-import { mapSeverityToPriority } from '@/utils/alertUtils';
-import type { Alert, DashboardKPI, TimelineEvent, Organization } from '@/types';
+import { mapAlertToAlertItem } from '@/utils/alertUtils';
+import type { DashboardKPI, TimelineEvent, Organization } from '@/types';
 import type { BulletinListItem } from '@/api/bulletins';
 import type { Entity } from '@/components/EntityTable';
 import type { ProductCardProps } from '@/components/ProductCard';
-
-function mapAlertToAlertItem(alert: Alert) {
-  return {
-    id: alert.id,
-    priority: mapSeverityToPriority(alert.severidad),
-    title: alert.titulo,
-    description: alert.descripcion,
-    time: alert.fecha,
-    tag: {
-      label: alert.sector || 'General',
-      variant: 'accent' as const,
-    },
-  };
-}
 
 function labelToIconKey(label: string): 'users' | 'file-text' | 'book-open' | 'alert-triangle' {
   const map: Record<string, 'users' | 'file-text' | 'book-open' | 'alert-triangle'> = {

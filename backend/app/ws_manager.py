@@ -7,6 +7,9 @@ class ConnectionManager:
 
     async def connect(self, websocket: WebSocket, user_id: str) -> None:
         await websocket.accept()
+        self.register(websocket, user_id)
+
+    def register(self, websocket: WebSocket, user_id: str) -> None:
         if user_id not in self._connections:
             self._connections[user_id] = []
         self._connections[user_id].append(websocket)

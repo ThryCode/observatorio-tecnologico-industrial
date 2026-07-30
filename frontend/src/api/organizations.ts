@@ -96,11 +96,6 @@ export async function deleteOrganization(id: string): Promise<void> {
   await client.delete(`/organizations/${id}`);
 }
 
-export async function getOrganizationRepresentative(orgId: string): Promise<User> {
-  const res = await client.get<User>(`/organizations/${orgId}/representative`);
-  return res.data;
-}
-
 export async function getOrganizations(
   page = 1,
   perPage = 20,

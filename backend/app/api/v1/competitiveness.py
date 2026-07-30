@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_user, get_db, require_role
+from app.dependencies import get_db, require_role
 from app.models.user import User, UserRole
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.competitiveness import CompetitivenessCreate, CompetitivenessResponse, CompetitivenessUpdate
@@ -44,7 +44,7 @@ async def get_competitiveness(index_id: UUID, db: AsyncSession = Depends(get_db)
 async def create_competitiveness(
     data: CompetitivenessCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     return await CompetitivenessService(db).create(data)
 
@@ -54,7 +54,7 @@ async def update_competitiveness(
     index_id: UUID,
     data: CompetitivenessUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(get_current_user),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     return await CompetitivenessService(db).update(index_id, data)
 

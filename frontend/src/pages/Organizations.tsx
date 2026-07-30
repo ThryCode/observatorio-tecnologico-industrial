@@ -112,7 +112,6 @@ export default function Organizations() {
     await createMutation.mutateAsync(data);
     setDialogOpen(false);
     resetForm();
-    refetch();
   };
 
   const handleDelete = async () => {
@@ -121,7 +120,6 @@ export default function Organizations() {
     setDeleteDialogOpen(false);
     setOrgToDelete(null);
     if (selectedOrg?.id === orgToDelete.id) setSelectedOrg(null);
-    refetch();
   };
 
   if (isError) {

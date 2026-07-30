@@ -47,11 +47,6 @@ export async function getTechnologies(
   return res.data;
 }
 
-export async function getTechnology(id: string): Promise<Technology> {
-  const res = await client.get<Technology>(`/technologies/${id}`);
-  return res.data;
-}
-
 export async function createTechnology(data: Partial<Technology>): Promise<Technology> {
   if (USE_MOCK) {
     const newTech: Technology = { ...data, id: String(Date.now()), created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as Technology;

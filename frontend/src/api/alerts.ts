@@ -47,33 +47,12 @@ export async function listAlerts(
   return res.data.items;
 }
 
-export async function getAlert(id: string): Promise<Alert> {
-  if (USE_MOCK) {
-    const alert = MOCK_ALERTS.find(a => a.id === id);
-    if (!alert) throw new Error('Alert not found');
-    return alert;
-  }
-  const res = await client.get<Alert>(`/alerts/${id}`);
-  return res.data;
-}
-
 export async function markAllAlertsRead(): Promise<void> {
   if (USE_MOCK) {
     MOCK_ALERTS.forEach(a => { a.leida = true; });
     return;
   }
   await client.post('/alerts/read-all');
-}
-
-export async function markAlertRead(id: string): Promise<Alert> {
-  if (USE_MOCK) {
-    const alert = MOCK_ALERTS.find(a => a.id === id);
-    if (!alert) throw new Error('Alert not found');
-    alert.leida = true;
-    return alert;
-  }
-  const res = await client.patch<Alert>(`/alerts/${id}/read`);
-  return res.data;
 }
 
 export async function createAlert(data: Partial<Alert>): Promise<Alert> {

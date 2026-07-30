@@ -46,11 +46,6 @@ export async function getIndicators(
   return res.data;
 }
 
-export async function getIndicator(id: string): Promise<Indicator> {
-  const res = await client.get<Indicator>(`/indicators/${id}`);
-  return res.data;
-}
-
 export async function createIndicator(data: Partial<Indicator>): Promise<Indicator> {
   if (USE_MOCK) {
     const newInd: Indicator = { ...data, id: String(Date.now()), created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as Indicator;

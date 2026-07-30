@@ -91,7 +91,6 @@ export default function Indicators() {
     }
     setDialogOpen(false);
     resetForm();
-    refetch();
   };
 
   const handleDelete = async () => {
@@ -100,7 +99,6 @@ export default function Indicators() {
     setDeleteDialogOpen(false);
     setIndToDelete(null);
     if (selected?.id === indToDelete.id) setSelected(null);
-    refetch();
   };
 
   return (

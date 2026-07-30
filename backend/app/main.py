@@ -5,19 +5,17 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.db import close_db, startup_db
 from app.core.exceptions import register_exception_handlers
 from app.core.logging_config import setup_logging
+from app.limiter import limiter
 
 origins = json.loads(settings.backend_cors_origins)
-
-limiter = Limiter(key_func=get_remote_address)
 
 
 @asynccontextmanager
