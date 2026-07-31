@@ -280,6 +280,7 @@ export interface ResearchPublication {
   palabras_clave?: string[];
   sector_codigo?: string;
   url?: string;
+  created_by?: string;
   created_at: string;
   updated_at: string;
 }

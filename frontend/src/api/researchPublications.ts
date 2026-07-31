@@ -19,6 +19,7 @@ export async function getResearchPublications(
   fechaHasta?: string,
   sortBy?: string,
   sortOrder?: string,
+  mine?: boolean,
 ): Promise<PaginatedResponse<ResearchPublication>> {
   if (USE_MOCK) {
     let filtered = [...MOCK_PUBLICATIONS];
@@ -54,6 +55,7 @@ export async function getResearchPublications(
   if (fechaHasta) params.set('fecha_hasta', fechaHasta);
   if (sortBy) params.set('sort_by', sortBy);
   if (sortOrder) params.set('sort_order', sortOrder);
+  if (mine) params.set('mine', 'true');
   const res = await client.get<PaginatedResponse<ResearchPublication>>(`/research-publications?${params}`);
   return res.data;
 }

@@ -1,4 +1,5 @@
 from datetime import datetime
+import uuid
 
 from sqlalchemy import ARRAY, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
@@ -22,3 +23,6 @@ class ResearchPublication(Base, UUIDMixin, TimestampMixin):
         ForeignKey("industrial_sectores.codigo"), nullable=True
     )
     url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_by: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id"), nullable=True
+    )

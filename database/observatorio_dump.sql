@@ -17,6 +17,20 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
+-- Name: unaccent; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION unaccent; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION unaccent IS 'text search dictionary that removes accents';
+
+
+--
 -- Name: indicatorperiod; Type: TYPE; Schema: public; Owner: -
 --
 
@@ -297,7 +311,8 @@ CREATE TABLE public.research_publications (
     url character varying(500),
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    created_by uuid
 );
 
 
@@ -349,7 +364,7 @@ CREATE TABLE public.users (
 --
 
 COPY public.alembic_version (version_num) FROM stdin;
-d2e3f4a5b6c7
+4cb0cc2ebd70
 \.
 
 
@@ -512,6 +527,11 @@ dc1149c3-e926-4682-9079-7f669f6ea653	Proceso de obtención de biopolímeros a pa
 
 COPY public.professional_profiles (id, user_id, especialidad, grado_cientifico, cv_url, biografia, intereses, created_at, updated_at, linkedin_url, twitter_url, researchgate_url, orcid) FROM stdin;
 f28cd9cf-8e67-4a51-b012-d567b346bf2d	503feeb7-d8f4-4903-9d5c-badc07923627	Biotecnología	Dr.C	\N	\N	\N	2026-07-31 09:29:33.310315-04	2026-07-31 09:29:33.310315-04	https://es.linkedin.com/	https://x.com/?lang=es	https://www.researchgate.net/	
+5d41230d-61ba-4704-a66e-5097f09a9144	d8a8aa4f-458f-4a8c-9071-ab09baa9eb3f	Inteligencia Artificial	Doctora en Ciencias Técnicas	\N	\N	\N	2026-07-31 11:46:42.242845-04	2026-07-31 11:46:42.242845-04	\N	\N	\N	\N
+e1b15e95-0ec0-4575-93cb-cb216212bd08	e00f5c60-acfc-459d-9819-c8cb88ad06ef	Manufactura Aditiva	Master en Ingeniería Mecánica	\N	\N	\N	2026-07-31 11:46:42.464888-04	2026-07-31 11:46:42.464888-04	\N	\N	\N	\N
+4c6d6d41-2c22-49ac-9da2-fd16012fb4ab	dc0cd4cc-62d4-45fc-9cb1-0e14a13b977e	Biotecnología Industrial	Doctora en Ciencias Químicas	\N	\N	\N	2026-07-31 11:46:42.677125-04	2026-07-31 11:46:42.677125-04	\N	\N	\N	\N
+a90c4b59-2182-409c-ac88-5e1d2dc663f7	26ca44bf-abdf-4ef7-bad0-690b661b40d5	Energías Renovables	Doctor en Ciencias Energéticas	\N	\N	\N	2026-07-31 11:46:42.885274-04	2026-07-31 11:46:42.885274-04	\N	\N	\N	\N
+2b21c7db-0f2e-4c9f-aaff-ac903bb5779e	2ea0b94d-b909-43dd-b0ce-d4a24bc5ef4a	Materiales Avanzados	Doctora en Ciencia de Materiales	\N	\N	\N	2026-07-31 11:46:43.088349-04	2026-07-31 11:46:43.088349-04	\N	\N	\N	\N
 \.
 
 
@@ -527,13 +547,19 @@ COPY public.regulations (id, title, regulation_number, issuing_body, publication
 -- Data for Name: research_publications; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.research_publications (titulo, autores, resumen, doi, journal, fecha_publicacion, palabras_clave, sector_codigo, url, id, created_at, updated_at) FROM stdin;
-Modelo de optimización energética en procesos siderúrgicos mediante redes neuronales	Rodríguez, C.; Pérez, M.; González, L.	Se propone un modelo basado en redes neuronales artificiales para optimizar el consumo energético en hornos de arco eléctrico de la industria siderúrgica cubana. Los resultados muestran una reducción del 12% en el consumo específico de energía.	10.1234/steel.2026.001	Revista Cubana de Ingeniería Industrial	2026-03-15 00:00:00	{"redes neuronales","optimización energética",siderurgia,IA}	SID	https://doi.org/10.1234/steel.2026.001	9d76fbda-7d49-4702-b67d-67202f843bca	2026-07-29 12:01:45.944475-04	2026-07-29 12:01:45.944475-04
-Bioprospección de microorganismos para biorremediación de efluentes metalúrgicos	Martínez, A.; Fernández, R.; Díaz, T.	Se aislaron y caracterizaron cepas bacterianas nativas con capacidad de remover metales pesados en efluentes de la industria metalúrgica. La cepa Bacillus sp. MET-23 mostró una eficiencia de remoción del 87% para cromo hexavalente.	10.1234/met.2026.008	Biotecnología Aplicada	2026-05-20 00:00:00	{biorremediación,"metales pesados",microorganismos,metalurgia}	MET	https://doi.org/10.1234/met.2026.008	f68e4058-bd62-4784-9953-ac4d2ce4ddc5	2026-07-29 12:01:45.944475-04	2026-07-29 12:01:45.944475-04
-Desarrollo de un recubrimiento cerámico nanoestructurado para prótesis ortopédicas	Sánchez, P.; Herrera, J.; Cruz, E.	Se sintetizaron recubrimientos de hidroxiapatita nanoestructurada mediante deposición electroforética sobre sustratos de Ti-6Al-4V. Las pruebas in vitro demostraron excelente biocompatibilidad y resistencia a la corrosión.	10.1234/bio.2026.003	Materiales y Biomateriales	2026-02-10 00:00:00	{nanotecnología,biomateriales,recubrimientos,implantes}	BIO	\N	8102df48-b37b-4093-8fd9-32085686d342	2026-07-29 12:01:45.944475-04	2026-07-29 12:01:45.944475-04
-Sistema de control predictivo para microrredes eléctricas con penetración renovable	García, D.; López, S.; Torres, R.	Se implementó un controlador predictivo basado en modelo (MPC) para la gestión óptima de microrredes eléctricas con alta penetración de fuentes renovables. El sistema logró mantener la estabilidad de frecuencia con un error máximo del 0.5%.	10.1234/ele.2026.012	Ingeniería Eléctrica y Automática	2026-07-05 00:00:00	{microrredes,"control predictivo","energía renovable",MPC}	ELE	https://doi.org/10.1234/ele.2026.012	874fc569-c402-48a4-9202-2ee78a8f0b86	2026-07-29 12:01:45.944475-04	2026-07-29 12:01:45.944475-04
-Evaluación de la huella de carbono del biodiésel a partir de aceite de jatropha en Cuba	Torres, M.; Ramírez, O.; Medina, J.	Mediante análisis de ciclo de vida (LCA) se evaluó la huella de carbono de la producción de biodiésel a partir de Jatropha curcas en condiciones cubanas. Se obtuvo una reducción del 62% respecto al diésel fósil.	10.1234/qui.2026.005	Revista Cubana de Química	2026-04-28 00:00:00	{biodiésel,"huella de carbono",LCA,jatropha,sostenibilidad}	QUI	https://doi.org/10.1234/qui.2026.005	f2b515fb-5131-4036-95d0-0cb325cb9b54	2026-07-29 12:01:45.944475-04	2026-07-29 12:01:45.944475-04
-Arquitectura de control descentralizado para líneas de ensamblaje automotriz basada en ROS 2	Díaz, L.; Fernández, A.; Pérez, G.	Se propone una arquitectura modular de control descentralizado utilizando ROS 2 para líneas de ensamblaje en la industria automotriz. La implementación redujo el tiempo de ciclo en un 18% y mejoró la flexibilidad del sistema.	10.1234/aut.2026.009	Automatización Industrial	2026-06-15 00:00:00	{"ROS 2","control descentralizado",automotriz,"línea de ensamblaje"}	AUT	\N	2afb6e73-7b12-479d-bd82-9cf9f9c34040	2026-07-29 12:01:45.944475-04	2026-07-29 12:01:45.944475-04
+COPY public.research_publications (titulo, autores, resumen, doi, journal, fecha_publicacion, palabras_clave, sector_codigo, url, id, created_at, updated_at, created_by) FROM stdin;
+Aplicación de redes neuronales artificiales para la optimización de procesos de manufactura en la industria azucarera cubana	María Elena García López, Carlos Alejandro Rodríguez Pérez	Se presenta un modelo de red neuronal artificial para la predicción y optimización de parámetros críticos en la producción de azúcar, logrando una reducción del 15% en el consumo de energía.	10.1016/j.compchemeng.2025.108234	Computers & Chemical Engineering	2025-03-15 00:00:00	{"inteligencia artificial",manufactura,azúcar,optimización}	BIO	https://doi.org/10.1016/j.compchemeng.2025.108234	c0a23163-f91e-411a-bf61-30b5344b9c42	2026-07-31 16:18:12.384031-04	2026-07-31 16:18:12.384031-04	d8a8aa4f-458f-4a8c-9071-ab09baa9eb3f
+Manufactura aditiva de piezas metálicas mediante impresión 3D para la reparación de equipos industriales	Carlos Alejandro Rodríguez Pérez, Pedro Manuel Sánchez Díaz	Evaluación de técnicas de fabricación aditiva con metales para la producción de repuestos industriales, demostrando viabilidad técnica y económica para la industria cubana.	10.1016/j.addma.2025.03.012	Additive Manufacturing	2025-05-20 00:00:00	{"manufactura aditiva","impresión 3D",repuestos,metalurgia}	MET	https://doi.org/10.1016/j.addma.2025.03.012	ed345bc6-1734-4e9d-8fb7-1423480238e4	2026-07-31 16:18:12.415305-04	2026-07-31 16:18:12.415305-04	e00f5c60-acfc-459d-9819-c8cb88ad06ef
+Biorrefinería sostenible: producción de bioplásticos a partir de residuos agrícolas en Cuba	Ana Lucía Martínez Fernández, Laura Isabel Hernández Torres	Investigación sobre la obtención de polihidroxialcanoatos (PHA) a partir de subproductos de la agricultura cubana, como alternativa biodegradable a los plásticos convencionales.	10.1016/j.biortech.2025.130456	Bioresource Technology	2025-02-10 00:00:00	{bioplásticos,biorrefinería,"residuos agrícolas",sostenibilidad}	BIO	https://doi.org/10.1016/j.biortech.2025.130456	3654b231-e026-4903-9b84-12bb99d64504	2026-07-31 16:18:12.415305-04	2026-07-31 16:18:12.415305-04	dc0cd4cc-62d4-45fc-9cb1-0e14a13b977e
+Evaluación del potencial eólico para la generación distribuida en zonas industriales del occidente cubano	Pedro Manuel Sánchez Díaz, María Elena García López	Análisis de recursos eólicos y diseño de sistemas de generación distribuida para zonas industriales, logrando una factibilidad técnica del 78% para la integración de energía eólica.	10.1016/j.rser.2025.114789	Renewable and Sustainable Energy Reviews	2025-06-01 00:00:00	{"energía eólica","generación distribuida","zonas industriales",Cuba}	ENE	https://doi.org/10.1016/j.rser.2025.114789	ac613a32-e352-4ec3-893c-e589e7bd040a	2026-07-31 16:18:12.415305-04	2026-07-31 16:18:12.415305-04	26ca44bf-abdf-4ef7-bad0-690b661b40d5
+Nanocomposites de celulosa microcristalina: aplicaciones en la industria alimentaria cubana	Laura Isabel Hernández Torres, Ana Lucía Martínez Fernández	Desarrollo de nanocomposites derivados de celulosa microcristalina para envases alimentarios activos con propiedades antimicrobianas y barrera al oxígeno.	10.1016/j.carbpol.2025.122345	Carbohydrate Polymers	2025-04-18 00:00:00	{nanocomposites,celulosa,envases,"industria alimentaria"}	QUI	https://doi.org/10.1016/j.carbpol.2025.122345	7ef80744-1c70-41ac-97e8-2d1c3101226d	2026-07-31 16:18:12.415305-04	2026-07-31 16:18:12.415305-04	2ea0b94d-b909-43dd-b0ce-d4a24bc5ef4a
+Sistema de visión artificial para control de calidad en la producción de componentes electrónicos	María Elena García López, Ana Lucía Martínez Fernández, Carlos Alejandro Rodríguez Pérez	Implementación de un sistema de inspección automática basado en deep learning para la detección de defectos en líneas de ensamblaje electrónico, alcanzando un 97.3% de precisión.	10.1016/j.engappai.2025.110234	Engineering Applications of Artificial Intelligence	2025-07-05 00:00:00	{"visión artificial","deep learning","control de calidad",electrónica}	ELE	https://doi.org/10.1016/j.engappai.2025.110234	d44256a2-ef54-4746-af59-66251c709831	2026-07-31 16:18:12.415305-04	2026-07-31 16:18:12.415305-04	d8a8aa4f-458f-4a8c-9071-ab09baa9eb3f
+Optimización de procesos de fermentación para la producción de bioetanol de segunda generación	Ana Lucía Martínez Fernández, Pedro Manuel Sánchez Díaz	Optimización de condiciones de fermentación usando cepas mejoradas de Saccharomyces cerevisiae con residuos lignocelulósicos como sustrato, incrementando el rendimiento en un 23%.	10.1016/j.biombioe.2025.107890	Biomass and Bioenergy	2025-01-22 00:00:00	{bioetanol,fermentación,biomasa,"segunda generación"}	BIO	https://doi.org/10.1016/j.biombioe.2025.107890	43c1e27f-b05b-4585-b75a-20481b756c30	2026-07-31 16:18:12.415305-04	2026-07-31 16:18:12.415305-04	dc0cd4cc-62d4-45fc-9cb1-0e14a13b977e
+Recubrimientos anticorrosivos auto-reparables basados en microcápsulas para la protección de infraestructura industrial	Laura Isabel Hernández Torres, Carlos Alejandro Rodríguez Pérez	Diseño de recubrimientos inteligentes con microcápsulas de agentes reparadores que se activan ante daño mecánico, prolongando la vida útil de estructuras metálicas en ambientes agresivos.	10.1016/j.progpolymsci.2025.101890	Progress in Polymer Science	2025-08-12 00:00:00	{recubrimientos,auto-reparables,anticorrosivo,microcápsulas}	QUI	https://doi.org/10.1016/j.progpolymsci.2025.101890	fc8e0133-46c6-4141-93dc-04725e1abab3	2026-07-31 16:18:12.415305-04	2026-07-31 16:18:12.415305-04	2ea0b94d-b909-43dd-b0ce-d4a24bc5ef4a
+Simulación de procesos térmicos para la mejora de eficiencia en hornos industriales cubanos	Pedro Manuel Sánchez Díaz, María Elena García López, Laura Isabel Hernández Torres	Modelo de simulación computacional para la optimización del flujo de calor y la distribución de temperatura en hornos industriales, logrando ahorros energéticos del 18%.	10.1016/j.apenergy.2025.124567	Applied Energy	2025-05-30 00:00:00	{simulación,"hornos industriales","eficiencia energética","transferencia de calor"}	ENE	https://doi.org/10.1016/j.apenergy.2025.124567	a9eaeb64-eeab-437a-8cba-68cec174605b	2026-07-31 16:18:12.415305-04	2026-07-31 16:18:12.415305-04	26ca44bf-abdf-4ef7-bad0-690b661b40d5
+Plataforma IoT para el monitoreo en tiempo real de variables ambientales en plantas de procesamiento de alimentos	María Elena García López, Ana Lucía Martínez Fernández	Diseño e implementación de una plataforma de Internet de las Cosas para el monitoreo continuo de temperatura, humedad y calidad del aire en instalaciones de procesamiento alimentario.	10.1016/j.compag.2025.109876	Computers and Electronics in Agriculture	2025-03-08 00:00:00	{IoT,"monitoreo ambiental","industria alimentaria",sensores}	AUT	https://doi.org/10.1016/j.compag.2025.109876	e431d53b-cf12-4dcb-ac5d-2922d004e090	2026-07-31 16:18:12.415305-04	2026-07-31 16:18:12.415305-04	d8a8aa4f-458f-4a8c-9071-ab09baa9eb3f
+Hidrógeno verde como vector energético para la industria química cubana: análisis de viabilidad	Pedro Manuel Sánchez Díaz, Carlos Alejandro Rodríguez Pérez, Ana Lucía Martínez Fernández	Estudio de viabilidad técnica y económica para la producción de hidrógeno verde mediante electrólisis solar en la industria química cubana, con proyección a 2030.	10.1016/j.ijhydrogen.2025.04.023	International Journal of Hydrogen Energy	2025-06-25 00:00:00	{"hidrógeno verde",electrólisis,"energía solar","industria química"}	ENE	https://doi.org/10.1016/j.ijhydrogen.2025.04.023	fa53ea77-24e7-43d3-b89d-bc0b85ac82a5	2026-07-31 16:18:12.415305-04	2026-07-31 16:18:12.415305-04	26ca44bf-abdf-4ef7-bad0-690b661b40d5
+Materiales compuestos de fibra de coco para aplicaciones estructurales en la construcción civil cubana	Laura Isabel Hernández Torres, Pedro Manuel Sánchez Díaz	Caracterización mecánica de materiales compuestos reforzados con fibra de coco natural para uso en elementos estructurales no convencionales, con propiedades comparables a materiales sintéticos.	10.1016/j.compositesb.2025.110567	Composites Part B: Engineering	2025-04-02 00:00:00	{"materiales compuestos","fibra de coco",construcción,sostenibilidad}	SID	https://doi.org/10.1016/j.compositesb.2025.110567	563fcc6a-8fdd-43c6-93e1-299c2138d7d4	2026-07-31 16:18:12.415305-04	2026-07-31 16:18:12.415305-04	2ea0b94d-b909-43dd-b0ce-d4a24bc5ef4a
 \.
 
 
@@ -566,6 +592,11 @@ COPY public.users (id, username, email, hashed_password, full_name, role, phone,
 545f87a5-a46b-4eea-99da-d4f6bbc490ef	maria	maria@techno.cu	$2b$12$bSO8IA73X1w6caUfN.13CuiK/IT76mr5KvCL69qKi0k53XV2aQmOe	Maria Elena Garcia	rep_cti	\N	\N	48fb33ef-429a-4550-a434-8e0c00be96a7	t	f	2026-07-30 10:22:54.695843-04	2026-07-30 10:22:54.695843-04	representante	approved	\N	\N	\N
 cabd30a6-0330-4427-a575-1dba74f8c18d	paco	paco@gmail.com	$2b$12$CJQIzXfpmwfMt865dou5jOKRpWzUx0tjXUt1R0uSA3T7RrHVXQDO6	Paco Perez	profesional	\N	\N	\N	t	f	2026-07-28 11:05:53.714639-04	2026-07-28 11:05:53.714639-04	profesional	approved	\N	\N	\N
 503feeb7-d8f4-4903-9d5c-badc07923627	mario	profecional@gmail.com	$2b$12$5yFfAMQIDW/QMh2AfvZrbeONtEoP43TaBAEkk4NmmK0o.0DL.7auq	Mario Rodriguez	profesional	52345678	\N	\N	t	f	2026-07-31 09:29:33.310315-04	2026-07-31 09:30:10.850465-04	profesional	approved	\N	7a72d5e0-b057-4150-9e25-dc1d8df40788	2026-07-31 09:30:10.843761-04
+dc0cd4cc-62d4-45fc-9cb1-0e14a13b977e	ana.martinez	ana.martinez@mindus.gob.cu	$2b$12$B6CkJeQoikiaA0saQ0RpcOl3mP0kmNdu7vjafeskrTCIYr61Wxnja	Ana Lucía Martínez Fernández	profesional	\N	\N	\N	t	f	2026-07-31 11:46:42.677125-04	2026-07-31 11:46:42.677125-04	profesional	approved	\N	\N	\N
+e00f5c60-acfc-459d-9819-c8cb88ad06ef	carlos.rodriguez	carlos.rodriguez@mindus.gob.cu	$2b$12$B6CkJeQoikiaA0saQ0RpcOl3mP0kmNdu7vjafeskrTCIYr61Wxnja	Carlos Alejandro Rodríguez Pérez	profesional	\N	\N	\N	t	f	2026-07-31 11:46:42.464888-04	2026-07-31 11:46:42.464888-04	profesional	approved	\N	\N	\N
+2ea0b94d-b909-43dd-b0ce-d4a24bc5ef4a	laura.hernandez	laura.hernandez@mindus.gob.cu	$2b$12$B6CkJeQoikiaA0saQ0RpcOl3mP0kmNdu7vjafeskrTCIYr61Wxnja	Laura Isabel Hernández Torres	profesional	\N	\N	\N	t	f	2026-07-31 11:46:43.088349-04	2026-07-31 11:46:43.088349-04	profesional	approved	\N	\N	\N
+d8a8aa4f-458f-4a8c-9071-ab09baa9eb3f	maria.garcia	maria.garcia@mindus.gob.cu	$2b$12$B6CkJeQoikiaA0saQ0RpcOl3mP0kmNdu7vjafeskrTCIYr61Wxnja	María Elena García López	profesional	\N	\N	\N	t	f	2026-07-31 11:46:42.242845-04	2026-07-31 11:46:42.242845-04	profesional	approved	\N	\N	\N
+26ca44bf-abdf-4ef7-bad0-690b661b40d5	pedro.sanchez	pedro.sanchez@mindus.gob.cu	$2b$12$B6CkJeQoikiaA0saQ0RpcOl3mP0kmNdu7vjafeskrTCIYr61Wxnja	Pedro Manuel Sánchez Díaz	profesional	\N	\N	\N	t	f	2026-07-31 11:46:42.885274-04	2026-07-31 11:46:42.885274-04	profesional	approved	\N	\N	\N
 \.
 
 
@@ -1054,6 +1085,14 @@ ALTER TABLE ONLY public.professional_profiles
 
 ALTER TABLE ONLY public.regulations
     ADD CONSTRAINT regulations_sector_codigo_fkey FOREIGN KEY (sector_codigo) REFERENCES public.industrial_sectores(codigo);
+
+
+--
+-- Name: research_publications research_publications_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.research_publications
+    ADD CONSTRAINT research_publications_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.users(id);
 
 
 --

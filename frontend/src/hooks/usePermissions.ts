@@ -22,7 +22,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Entity, Action[]>>> = {
     indicators: ['create'],
   },
   profesional: {
-    'research-publications': ['create'],
+    'research-publications': ['create', 'edit', 'delete'],
   },
   cliente: {},
   visitante: {},

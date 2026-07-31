@@ -1,4 +1,4 @@
-from sqlalchemy import func, select
+from sqlalchemy import func, select, cast, String as SAString
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.research_publication import ResearchPublication
@@ -26,6 +26,7 @@ class ResearchPublicationService(
         fecha_hasta: str | None = None,
         sort_by: str | None = None,
         sort_order: str = "desc",
+        author_name: str | None = None,
     ) -> tuple[list[ResearchPublication], int]:
         query = select(ResearchPublication)
         count_query = select(func.count(ResearchPublication.id))
@@ -37,17 +38,29 @@ class ResearchPublicationService(
             count_query = count_query.where(
                 ResearchPublication.sector_codigo == sector_codigo
             )
+        if author_name:
+            query = query.where(
+                func.unaccent(ResearchPublication.autores).ilike(func.unaccent(f"%{author_name}%"))
+            )
+            count_query = count_query.where(
+                func.unaccent(ResearchPublication.autores).ilike(func.unaccent(f"%{author_name}%"))
+            )
         if q:
-            search_fields = [
+            like = f"%{q}%"
+            text_fields = [
                 ResearchPublication.titulo,
                 ResearchPublication.autores,
                 ResearchPublication.resumen,
-                ResearchPublication.palabras_clave,
+                ResearchPublication.doi,
+                ResearchPublication.journal,
+                ResearchPublication.sector_codigo,
             ]
-            query = apply_search(query, ResearchPublication, q, search_fields)
-            count_query = apply_search(
-                count_query, ResearchPublication, q, search_fields
-            )
+            cond = func.unaccent(text_fields[0]).ilike(func.unaccent(like))
+            for f in text_fields[1:]:
+                cond = cond | func.unaccent(f).ilike(func.unaccent(like))
+            cond = cond | func.unaccent(cast(ResearchPublication.palabras_clave, SAString)).ilike(func.unaccent(like))
+            query = query.where(cond)
+            count_query = count_query.where(cond)
 
         query = apply_date_range(
             query, ResearchPublication.fecha_publicacion, fecha_desde, fecha_hasta
