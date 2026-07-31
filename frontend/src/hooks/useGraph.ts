@@ -1,10 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
-import { getGraphStats, searchGraphNodes, exploreNode, getEnterpriseGraph } from '@/api/graph';
+import { getGraphStats, searchGraphNodes, exploreNode, queryGraph, getEnterpriseGraph, getOrgRecommendations } from '@/api/graph';
 
 export function useGraphStats() {
   return useQuery({
     queryKey: ['graph', 'stats'],
     queryFn: getGraphStats,
+    retry: false,
+  });
+}
+
+export function useGraphQuery(limit = 500) {
+  return useQuery({
+    queryKey: ['graph', 'query', limit],
+    queryFn: () => queryGraph(limit),
     retry: false,
   });
 }
@@ -29,5 +37,14 @@ export function useEnterpriseGraph() {
   return useQuery({
     queryKey: ['graph', 'enterprise'],
     queryFn: getEnterpriseGraph,
+  });
+}
+
+export function useOrgRecommendations(orgId: string | null, limit = 20) {
+  return useQuery({
+    queryKey: ['graph', 'recommendations', orgId, limit],
+    queryFn: () => getOrgRecommendations(orgId!, limit),
+    enabled: !!orgId,
+    retry: false,
   });
 }

@@ -1,13 +1,16 @@
 import { useState, useMemo } from 'react';
-import { useEnterpriseGraph } from '@/hooks/useGraph';
-import ForceGraph2D from '@/components/ForceGraph2D';
+import { useEnterpriseGraph, useOrgRecommendations } from '@/hooks/useGraph';
+import ForceGraph2D, { type ForceGraphNode } from '@/components/ForceGraph2D';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
+import { Lightbulb, Loader2 } from 'lucide-react';
 import type { EnterpriseGraphNode } from '@/types';
 
 export default function EnterpriseGraph() {
   const { data, isLoading } = useEnterpriseGraph();
   const [selected, setSelected] = useState<EnterpriseGraphNode | null>(null);
+  const { data: recs, isLoading: recsLoading } = useOrgRecommendations(selected?.id ?? null);
 
   const stats = useMemo(() => {
     if (!data) return null;
@@ -18,6 +21,23 @@ export default function EnterpriseGraph() {
     ).length;
     return { orgs, connections, isolated };
   }, [data]);
+
+  const graphNodes = useMemo<ForceGraphNode[]>(
+    () =>
+      (data?.nodes ?? []).map((n) => ({
+        id: n.id,
+        label: n.label,
+        nodeType: 'Organization',
+        subtitle: n.siglas,
+      })),
+    [data]
+  );
+
+  const handleNodeClick = (node: ForceGraphNode | null) => {
+    if (!node) return;
+    const full = data?.nodes.find((n) => n.id === node.id) ?? null;
+    setSelected(full);
+  };
 
   if (isLoading) {
     return (
@@ -68,9 +88,9 @@ export default function EnterpriseGraph() {
           <CardContent className="p-0">
             <div className="h-[600px]">
               <ForceGraph2D
-                nodes={data?.nodes ?? []}
+                nodes={graphNodes}
                 edges={data?.edges ?? []}
-                onNodeClick={(node) => setSelected(node)}
+                onNodeClick={handleNodeClick}
               />
             </div>
           </CardContent>
@@ -112,6 +132,47 @@ export default function EnterpriseGraph() {
             )}
           </CardContent>
         </Card>
+
+        {selected && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <Lightbulb className="h-4 w-4 text-amber-500" />
+                Sugerencias del grafo
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {recsLoading ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : recs && recs.items.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    Entidades del mismo sector que {recs.org_name || 'la empresa'} aún no sigue:
+                  </p>
+                  <ul className="space-y-2">
+                    {recs.items.map((item) => (
+                      <li key={item.id} className="rounded-md border border-border p-2.5 space-y-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-medium truncate">{item.label}</p>
+                          <Badge variant="secondary" className="shrink-0 text-xs">
+                            {item.type}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{item.reason}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No hay sugerencias disponibles para esta empresa.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

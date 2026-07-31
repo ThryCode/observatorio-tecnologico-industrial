@@ -3,9 +3,27 @@ from typing import Any
 from pydantic import BaseModel
 
 
-class GraphExploreResponse(BaseModel):
-    nodes: list[dict[str, Any]] | None = None
-    relationships: list[dict[str, Any]] | None = None
+class GraphQueryNode(BaseModel):
+    id: str
+    labels: list[str]
+    props: dict[str, Any]
+
+
+class GraphQueryEdge(BaseModel):
+    source: str
+    target: str
+    type: str
+
+
+class GraphQueryResponse(BaseModel):
+    nodes: list[GraphQueryNode]
+    edges: list[GraphQueryEdge]
+    total_nodes: int
+    total_edges: int
+
+
+class GraphExploreResponse(GraphQueryResponse):
+    pass
 
 
 class GraphSearchItem(BaseModel):
@@ -32,12 +50,29 @@ class GraphStatsResponse(BaseModel):
 class SyncResponse(BaseModel):
     nodes_merged: int
     relationships_merged: int
+    nodes_deleted: int = 0
 
 
 class ShortestPathResponse(BaseModel):
     node_ids: list[str] | None = None
     rel_types: list[str] | None = None
     weight: int | None = None
+
+
+class RecommendationItem(BaseModel):
+    id: str
+    labels: list[str]
+    type: str
+    label: str
+    reason: str
+    props: dict[str, Any]
+
+
+class RecommendationsResponse(BaseModel):
+    org_id: str
+    org_name: str | None = None
+    items: list[RecommendationItem]
+    total: int
 
 
 class EnterpriseGraphNode(BaseModel):

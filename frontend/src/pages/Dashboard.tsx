@@ -8,7 +8,7 @@ import KPICard from '@/components/KPICard';
 import SectorPills from '@/components/SectorPills';
 import AlertList from '@/components/AlertList';
 import EntityTable from '@/components/EntityTable';
-import Timeline from '@/components/Timeline';
+import DashboardTimeline from '@/components/DashboardTimeline';
 import KnowledgeGraph from '@/components/KnowledgeGraph';
 import ProductCard from '@/components/ProductCard';
 import FullExportPDF from '@/components/FullExportPDF';
@@ -25,7 +25,7 @@ import { getIndustrialSectors } from '@/api/industrialSectors';
 import { listAlerts } from '@/api/alerts';
 import { getDashboardKPIs, getTimelineEvents, getDashboardSectors } from '@/api/dashboard';
 import { mapAlertToAlertItem } from '@/utils/alertUtils';
-import type { DashboardKPI, TimelineEvent, Organization } from '@/types';
+import type { DashboardKPI, Organization } from '@/types';
 import type { BulletinListItem } from '@/api/bulletins';
 import type { Entity } from '@/components/EntityTable';
 import type { ProductCardProps } from '@/components/ProductCard';
@@ -76,15 +76,6 @@ function mapKPIToCardProps(kpi: DashboardKPI) {
     changeType: kpi.change >= 0 ? 'positive' as const : 'negative' as const,
     icon: iconMap[iconKey],
     iconBg: iconBgMap[iconKey],
-  };
-}
-
-function mapTimelineToEvent(event: TimelineEvent) {
-  return {
-    id: event.id,
-    content: event.titulo,
-    highlight: event.titulo.split(':')[0] || event.titulo,
-    time: new Date(event.fecha).toLocaleDateString('es-ES', { hour: '2-digit', minute: '2-digit' }),
   };
 }
 
@@ -161,7 +152,7 @@ export default function Dashboard() {
   });
 
   const alerts = rawAlerts?.map(mapAlertToAlertItem) || [];
-  const timelineEvents = rawTimeline?.map(mapTimelineToEvent) || [];
+  const timelineEvents = rawTimeline || [];
   const totalCount = sectorsData?.reduce((s, item) => s + item.count, 0) || 0;
   const sectors = [
     { id: 'all', label: 'Todos', count: totalCount },
@@ -315,7 +306,7 @@ export default function Dashboard() {
               ) : timelineLoading ? (
                 <div className="text-center text-text-muted py-8">Cargando actividad reciente...</div>
               ) : (
-                <Timeline events={timelineEvents.slice(0, 6)} />
+                <DashboardTimeline events={timelineEvents.slice(0, 6)} />
               )}
             </div>
           </div>

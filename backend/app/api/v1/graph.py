@@ -12,13 +12,28 @@ from app.schemas.graph import (
     EnterpriseGraphNode,
     EnterpriseGraphResponse,
     GraphExploreResponse,
+    GraphQueryResponse,
     GraphSearchResponse,
     GraphStatsResponse,
+    RecommendationsResponse,
     ShortestPathResponse,
     SyncResponse,
 )
 
 router = APIRouter(prefix="/graph", tags=["graph"])
+
+
+@router.get("/query", response_model=GraphQueryResponse)
+async def query_graph(
+    limit: int = Query(500, ge=1, le=2000),
+    neo4j=Depends(get_neo4j),
+    _: User = Depends(get_current_user),
+):
+    if not neo4j:
+        raise AppException(503, "Neo4j is not available")
+    from app.graph.repository import GraphRepository
+    repo = GraphRepository(neo4j)
+    return await repo.query_graph(limit)
 
 
 @router.get("/explore", response_model=GraphExploreResponse)
@@ -90,6 +105,32 @@ async def sync_enterprise_graph(
     from app.graph.repository import GraphRepository
     repo = GraphRepository(neo4j)
     return await repo.sync_enterprise_graph(db)
+
+
+@router.get("/recommendations/{org_id}", response_model=RecommendationsResponse)
+async def recommendations_for_org(
+    org_id: str,
+    limit: int = Query(20, ge=1, le=100),
+    db=Depends(get_db),
+    neo4j=Depends(get_neo4j),
+    _: User = Depends(get_current_user),
+):
+    if not neo4j:
+        raise AppException(503, "Neo4j is not available")
+
+    org = (
+        await db.execute(select(Organization).where(Organization.id == org_id))
+    ).scalar_one_or_none()
+
+    from app.graph.repository import GraphRepository
+    repo = GraphRepository(neo4j)
+    result = await repo.recommendations_for_org(org_id, limit)
+    return RecommendationsResponse(
+        org_id=org_id,
+        org_name=org.nombre if org else None,
+        items=result["items"],
+        total=result["total"],
+    )
 
 
 @router.get("/shortest-path", response_model=ShortestPathResponse)

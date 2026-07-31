@@ -1,18 +1,20 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, literal_column, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db
 from app.models.alert import Alert
 from app.models.bulletin import Bulletin
+from app.models.follow import Follow
 from app.models.indicator import Indicator
 from app.models.industrial_sector import IndustrialSector
 from app.models.organization import Organization
 from app.models.patent import Patent
 from app.models.regulation import Regulation
 from app.models.technology import Technology
+from app.models.user import User
 from app.schemas.dashboard import DashboardSummary, KPIItem, SectorCount, TimelineEvent
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
@@ -93,52 +95,60 @@ async def dashboard_sectors(
     return [SectorCount(codigo=r.codigo, nombre=r.nombre, count=r.count) for r in rows]
 
 
+def _timeline_query(
+    id_col,
+    fecha_col,
+    titulo_col,
+    tipo: str,
+    sector_col=None,
+    sector_codigo: str | None = None,
+):
+    query = select(
+        id_col.label("id"),
+        fecha_col.label("fecha"),
+        titulo_col.label("titulo"),
+        literal_column(f"'{tipo}'").label("tipo"),
+    )
+    if sector_col is not None and sector_codigo:
+        query = query.where(sector_col == sector_codigo)
+    return query
+
+
 @router.get("/timeline", response_model=list[TimelineEvent])
 async def dashboard_timeline(
-    limit: int = 20,
+    limit: int = Query(20, ge=1, le=100),
+    sector_codigo: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
     _=Depends(get_current_user),
 ):
-    alert_q = select(
-        Alert.id.label("id"),
-        Alert.fecha.label("fecha"),
-        Alert.titulo.label("titulo"),
-        literal_column("'alerta'").label("tipo"),
+    alert_q = _timeline_query(
+        Alert.id, Alert.fecha, Alert.titulo, "alerta",
+        Alert.sector_codigo, sector_codigo,
     )
 
-    pat_q = select(
-        Patent.id.label("id"),
-        Patent.created_at.label("fecha"),
-        Patent.title.label("titulo"),
-        literal_column("'patente'").label("tipo"),
+    pat_q = _timeline_query(
+        Patent.id, Patent.created_at, Patent.title, "patente",
+        Patent.technological_sector, sector_codigo,
     )
 
-    reg_q = select(
-        Regulation.id.label("id"),
-        Regulation.created_at.label("fecha"),
-        Regulation.title.label("titulo"),
-        literal_column("'regulacion'").label("tipo"),
+    reg_q = _timeline_query(
+        Regulation.id, Regulation.created_at, Regulation.title, "regulacion",
+        Regulation.sector_codigo, sector_codigo,
     )
 
-    bul_q = select(
-        Bulletin.id.label("id"),
-        Bulletin.created_at.label("fecha"),
-        Bulletin.titulo.label("titulo"),
-        literal_column("'boletin'").label("tipo"),
+    bul_q = _timeline_query(
+        Bulletin.id, Bulletin.created_at, Bulletin.titulo, "boletin",
+        Bulletin.sector_codigo, sector_codigo,
     )
 
-    tech_q = select(
-        Technology.id.label("id"),
-        Technology.created_at.label("fecha"),
-        Technology.nombre.label("titulo"),
-        literal_column("'tecnologia'").label("tipo"),
+    tech_q = _timeline_query(
+        Technology.id, Technology.created_at, Technology.nombre, "tecnologia",
+        Technology.sector_codigo, sector_codigo,
     )
 
-    ind_q = select(
-        Indicator.id.label("id"),
-        Indicator.created_at.label("fecha"),
-        Indicator.name.label("titulo"),
-        literal_column("'indicador'").label("tipo"),
+    ind_q = _timeline_query(
+        Indicator.id, Indicator.created_at, Indicator.name, "indicador",
+        Indicator.sector_codigo, sector_codigo,
     )
 
     union_q = alert_q.union_all(pat_q, reg_q, bul_q, tech_q, ind_q).cte("events")
@@ -152,7 +162,63 @@ async def dashboard_timeline(
     result = await db.execute(query)
     events = result.fetchall()
 
-    return [
+    timeline = [
         TimelineEvent(id=str(r.id), fecha=r.fecha or datetime.min, titulo=r.titulo, tipo=r.tipo)
         for r in events
     ]
+
+    follow_events = await _follow_events(db, sector_codigo)
+    timeline.extend(follow_events)
+    timeline.sort(key=lambda e: e.fecha, reverse=True)
+
+    return timeline[:limit]
+
+
+async def _follow_events(db: AsyncSession, sector_codigo: str | None) -> list[TimelineEvent]:
+    org_sel = select(
+        Organization.id, Organization.nombre, Organization.siglas, Organization.sector_codigo
+    )
+    orgs_result = await db.execute(org_sel)
+    org_rows = orgs_result.all()
+    org_map = {str(r.id): r for r in org_rows}
+
+    users_result = await db.execute(select(User.id, User.organization_id))
+    user_org_map = {
+        str(r.id): str(r.organization_id)
+        for r in users_result.all()
+        if r.organization_id
+    }
+
+    follows_result = await db.execute(
+        select(Follow.id, Follow.follower_id, Follow.follower_type, Follow.organization_id, Follow.created_at)
+        .order_by(Follow.created_at.desc())
+        .limit(100)
+    )
+    follow_rows = follows_result.all()
+
+    events: list[TimelineEvent] = []
+    for row in follow_rows:
+        target = org_map.get(str(row.organization_id))
+        if not target:
+            continue
+        if sector_codigo and (target.sector_codigo or "") != sector_codigo:
+            continue
+
+        if row.follower_type == "organization":
+            follower_org = org_map.get(str(row.follower_id))
+            follower_name = follower_org.nombre if follower_org else "Una organización"
+        elif row.follower_type == "user":
+            org_id = user_org_map.get(str(row.follower_id))
+            follower_org = org_map.get(org_id or "")
+            follower_name = follower_org.nombre if follower_org else "Un usuario"
+        else:
+            continue
+
+        events.append(TimelineEvent(
+            id=str(row.id),
+            fecha=row.created_at or datetime.min,
+            titulo=f"{follower_name} comenzó a seguir a {target.nombre}",
+            tipo="follow",
+        ))
+
+    return events

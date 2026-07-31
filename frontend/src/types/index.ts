@@ -190,6 +190,25 @@ export interface GraphStat {
   count: number;
 }
 
+export interface GraphQueryNode {
+  id: string;
+  labels: string[];
+  props: Record<string, unknown>;
+}
+
+export interface GraphQueryEdge {
+  source: string;
+  target: string;
+  type: string;
+}
+
+export interface GraphQueryResponse {
+  nodes: GraphQueryNode[];
+  edges: GraphQueryEdge[];
+  total_nodes: number;
+  total_edges: number;
+}
+
 export interface EnterpriseGraphNode {
   id: string;
   type: string;
@@ -215,6 +234,22 @@ export interface FollowCountResponse {
   followers_count: number;
   following_count: number;
   is_following: boolean;
+}
+
+export interface RecommendationItem {
+  id: string;
+  labels: string[];
+  type: string;
+  label: string;
+  reason: string;
+  props: Record<string, unknown>;
+}
+
+export interface RecommendationsResponse {
+  org_id: string;
+  org_name: string | null;
+  items: RecommendationItem[];
+  total: number;
 }
 
 export interface ProfessionalListItem {
@@ -287,5 +322,5 @@ export interface TimelineEvent {
   id: string;
   fecha: string;
   titulo: string;
-  tipo: 'patente' | 'regulacion' | 'indicador' | 'alerta';
+  tipo: 'patente' | 'regulacion' | 'indicador' | 'alerta' | 'boletin' | 'tecnologia' | 'follow';
 }

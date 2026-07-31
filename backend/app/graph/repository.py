@@ -54,6 +54,27 @@ class GraphRepository:
         except Exception:
             return False
 
+    @staticmethod
+    def _serialize_node(node) -> dict:
+        props = dict(node)
+        node_id = props.get("id") or props.get("codigo") or node.element_id
+        return {
+            "id": str(node_id),
+            "labels": list(node.labels),
+            "props": props,
+        }
+
+    @staticmethod
+    def _serialize_edge(rel) -> dict:
+        def nid(n) -> str:
+            props = dict(n)
+            return str(props.get("id") or props.get("codigo") or n.element_id)
+        return {
+            "source": nid(rel.start_node),
+            "target": nid(rel.end_node),
+            "type": rel.type,
+        }
+
     async def explore_node(self, node_id: str, depth: int = 2):
         async with self.driver.session() as session:
             apoc_ok = await self._apoc_available()
@@ -64,26 +85,124 @@ class GraphRepository:
                     WHERE elementId(n) = $node_id OR n.id = $node_id
                     CALL apoc.path.subgraphAll(n, {maxLevel: $depth})
                     YIELD nodes, relationships
-                    RETURN nodes, relationships
+                    RETURN [x IN nodes | {
+                        id: coalesce(x.id, x.codigo),
+                        labels: labels(x),
+                        props: properties(x)
+                    }] AS nodes,
+                    [r IN relationships | {
+                        source: coalesce(startNode(r).id, startNode(r).codigo),
+                        target: coalesce(endNode(r).id, endNode(r).codigo),
+                        type: type(r)
+                    }] AS edges
                     """,
                     node_id=node_id,
                     depth=depth,
                 )
                 record = await result.single()
-                return record.data() if record else None
+                if not record:
+                    return {"nodes": [], "edges": [], "total_nodes": 0, "total_edges": 0}
+                data = record.data()
+                nodes = data["nodes"]
+                edges = data["edges"]
+                return {
+                    "nodes": nodes,
+                    "edges": edges,
+                    "total_nodes": len(nodes),
+                    "total_edges": len(edges),
+                }
             result = await session.run(
-                """
-                MATCH path = (n)-[*1..$depth]-(m)
-                WHERE elementId(n) = $node_id OR n.id = $node_id
-                RETURN collect(DISTINCT n) + collect(DISTINCT m) AS nodes,
-                       collect(DISTINCT relationships(path)) AS relationships
-                LIMIT 1
+                f"""
+                MATCH (n)
+                WHERE elementId(n) = $node_id OR n.id = $node_id OR n.codigo = $node_id
+                OPTIONAL MATCH (n)-[*1..{depth}]-(m)
+                RETURN collect(DISTINCT n) + collect(DISTINCT m) AS all_nodes
                 """,
                 node_id=node_id,
-                depth=depth,
             )
             record = await result.single()
-            return record.data() if record else None
+            if not record:
+                return {"nodes": [], "edges": [], "total_nodes": 0, "total_edges": 0}
+            node_ids = [
+                x.get("id") or x.get("codigo")
+                for x in record["all_nodes"]
+                if x.get("id") or x.get("codigo")
+            ]
+            nodes = [
+                {
+                    "id": str(x["id"] or x["codigo"]),
+                    "labels": list(x.labels),
+                    "props": dict(x),
+                }
+                for x in record["all_nodes"]
+            ]
+            edges = []
+            if node_ids:
+                edge_result = await session.run(
+                    """
+                    MATCH (a)-[r]->(b)
+                    WHERE coalesce(a.id, a.codigo) IN $node_ids
+                      AND coalesce(b.id, b.codigo) IN $node_ids
+                    RETURN coalesce(a.id, a.codigo) AS source,
+                           coalesce(b.id, b.codigo) AS target,
+                           type(r) AS type
+                    """,
+                    node_ids=node_ids,
+                )
+                edges = [dict(row) async for row in edge_result]
+            return {
+                "nodes": nodes,
+                "edges": edges,
+                "total_nodes": len(nodes),
+                "total_edges": len(edges),
+            }
+
+    async def query_graph(self, limit: int = 500):
+        async with self.driver.session() as session:
+            nodes_result = await session.run(
+                """
+                MATCH (n)
+                RETURN n.id AS id, n.codigo AS codigo, labels(n) AS labels,
+                       properties(n) AS props
+                LIMIT $limit
+                """,
+                limit=limit,
+            )
+            nodes_data = await nodes_result.data()
+
+            edges_result = await session.run(
+                """
+                MATCH (a)-[r]->(b)
+                RETURN a.id AS sid, a.codigo AS scod, b.id AS tid, b.codigo AS tcod,
+                       type(r) AS type
+                LIMIT $limit
+                """,
+                limit=limit,
+            )
+            edges_data = await edges_result.data()
+
+        nodes = [
+            {
+                "id": str(n["id"] or n["codigo"]),
+                "labels": n["labels"],
+                "props": n["props"],
+            }
+            for n in nodes_data
+        ]
+        edges = [
+            {
+                "source": str(e["sid"] or e["scod"]),
+                "target": str(e["tid"] or e["tcod"]),
+                "type": e["type"],
+            }
+            for e in edges_data
+        ]
+        return {
+            "nodes": nodes,
+            "edges": edges,
+            "total_nodes": len(nodes),
+            "total_edges": len(edges),
+        }
 
     async def search_nodes(self, q: str, labels: list[str] | None = None, page: int = 1, per_page: int = 20):
         params = {"q": re.escape(q)}
@@ -394,14 +513,17 @@ class GraphRepository:
 
                 # Collect inventor data for Person nodes and IS_AUTHOR_OF relationships
                 for p in batch:
-                    inventors = [inv.strip() for inv in p.inventor.split(",") if inv.strip()]
-                    for inv_name in inventors:
-                        person_id = f"person-{inv_name.lower().replace(' ', '-')}"
+                    raw_inventors = p.inventor or ""
+                    for chunk in raw_inventors.split(";"):
+                        name = chunk.strip()
+                        if not name:
+                            continue
+                        person_id = f"person-{name.lower().replace(' ', '-')}"
                         if person_id not in seen_inventors:
                             seen_inventors.add(person_id)
                             all_inventor_nodes.append({
                                 "id": person_id,
-                                "name": inv_name,
+                                "name": name,
                             })
                         all_author_rels.append({
                             "person_id": person_id,
@@ -536,7 +658,138 @@ class GraphRepository:
                     )
                     rels_merged += len(sector_rels)
 
-            return {"nodes_merged": nodes_merged, "relationships_merged": rels_merged}
+            # --- WORKS_AT: Person -> Organization (from professional profiles) ---
+            from app.models.professional_profile import ProfessionalProfile
+            from app.models.user import User
+
+            profile_rows = (await db.execute(
+                select(ProfessionalProfile.user_id, User.full_name, User.organization_id)
+                .join(User, User.id == ProfessionalProfile.user_id)
+                .where(User.organization_id.isnot(None))
+            )).all()
+            person_nodes = [
+                {"id": f"person-user-{row[0]}", "name": row[1] or "Usuario"}
+                for row in profile_rows
+            ]
+            for i in range(0, len(person_nodes), batch_size):
+                batch = person_nodes[i:i+batch_size]
+                if not batch:
+                    continue
+                result = await session.run(
+                    """
+                    UNWIND $batch AS item
+                    MERGE (n:Person {id: item.id})
+                    SET n.name = item.name, n.role = 'profesional'
+                    RETURN count(*) AS merged
+                    """,
+                    batch=batch,
+                )
+                record = await result.single()
+                nodes_merged += record["merged"]
+
+            works_at_rels = [
+                {"person_id": f"person-user-{row[0]}", "org_id": str(row[2])}
+                for row in profile_rows
+            ]
+            for i in range(0, len(works_at_rels), batch_size):
+                batch = works_at_rels[i:i+batch_size]
+                if not batch:
+                    continue
+                await session.run(
+                    """
+                    UNWIND $batch AS item
+                    MATCH (p:Person {id: item.person_id})
+                    MATCH (o:Organization {id: item.org_id})
+                    MERGE (p)-[:WORKS_AT]->(o)
+                    """,
+                    batch=batch,
+                )
+                rels_merged += len(batch)
+
+            # --- Sector-based relationships: OPERATES_IN, REGULATES, MEASURES ---
+            tech_rows = (await db.execute(
+                select(Technology.id, Technology.sector_codigo)
+            )).all()
+            techs_by_sector: dict[str, list[str]] = {}
+            for tech_id, sector_codigo in tech_rows:
+                if sector_codigo:
+                    techs_by_sector.setdefault(sector_codigo, []).append(str(tech_id))
+
+            # OPERATES_IN: Organization -> Technology
+            org_rows = (await db.execute(
+                select(Organization.id, Organization.sector_codigo)
+            )).all()
+            operates_in_rels = []
+            for org_id, sector_codigo in org_rows:
+                for tech_id in techs_by_sector.get(sector_codigo or "", []):
+                    operates_in_rels.append({"org_id": str(org_id), "tech_id": tech_id})
+            for i in range(0, len(operates_in_rels), batch_size):
+                batch = operates_in_rels[i:i+batch_size]
+                if not batch:
+                    continue
+                await session.run(
+                    """
+                    UNWIND $batch AS item
+                    MATCH (o:Organization {id: item.org_id})
+                    MATCH (t:Technology {id: item.tech_id})
+                    MERGE (o)-[:OPERATES_IN]->(t)
+                    """,
+                    batch=batch,
+                )
+                rels_merged += len(batch)
+
+            # REGULATES: Regulation -> Technology
+            reg_rows = (await db.execute(
+                select(Regulation.id, Regulation.sector_codigo)
+            )).all()
+            regulates_rels = []
+            for reg_id, sector_codigo in reg_rows:
+                for tech_id in techs_by_sector.get(sector_codigo or "", []):
+                    regulates_rels.append({"reg_id": str(reg_id), "tech_id": tech_id})
+            for i in range(0, len(regulates_rels), batch_size):
+                batch = regulates_rels[i:i+batch_size]
+                if not batch:
+                    continue
+                await session.run(
+                    """
+                    UNWIND $batch AS item
+                    MATCH (r:Regulation {id: item.reg_id})
+                    MATCH (t:Technology {id: item.tech_id})
+                    MERGE (r)-[:REGULATES]->(t)
+                    """,
+                    batch=batch,
+                )
+                rels_merged += len(batch)
+
+            # MEASURES: Indicator -> Technology
+            ind_rows = (await db.execute(
+                select(Indicator.id, Indicator.sector_codigo)
+            )).all()
+            measures_rels = []
+            for ind_id, sector_codigo in ind_rows:
+                for tech_id in techs_by_sector.get(sector_codigo or "", []):
+                    measures_rels.append({"ind_id": str(ind_id), "tech_id": tech_id})
+            for i in range(0, len(measures_rels), batch_size):
+                batch = measures_rels[i:i+batch_size]
+                if not batch:
+                    continue
+                await session.run(
+                    """
+                    UNWIND $batch AS item
+                    MATCH (ind:Indicator {id: item.ind_id})
+                    MATCH (t:Technology {id: item.tech_id})
+                    MERGE (ind)-[:MEASURES]->(t)
+                    """,
+                    batch=batch,
+                )
+                rels_merged += len(batch)
+
+            deleted = await self._prune_stale_nodes(session, db)
+            return {
+                "nodes_merged": nodes_merged,
+                "relationships_merged": rels_merged,
+                "nodes_deleted": deleted,
+            }
 
     async def sync_enterprise_graph(self, db: AsyncSession):
         from app.models.follow import Follow
@@ -571,13 +824,16 @@ class GraphRepository:
                 for u in users if u.organization_id
             }
 
-            follows = (await db.execute(
-                select(Follow).where(Follow.follower_type == "user")
-            )).scalars().all()
+            follows = (await db.execute(select(Follow))).scalars().all()
 
             seen: set[tuple[str, str]] = set()
             for f in follows:
-                follower_org = user_org_map.get(str(f.follower_id))
+                if f.follower_type == "user":
+                    follower_org = user_org_map.get(str(f.follower_id))
+                elif f.follower_type == "organization":
+                    follower_org = str(f.follower_id)
+                else:
+                    continue
                 target_org = str(f.organization_id)
                 if not follower_org or follower_org == target_org:
                     continue
@@ -596,6 +852,73 @@ class GraphRepository:
 
             return {"nodes_merged": nodes_merged, "relationships_merged": rels_merged}
 
+    async def recommendations_for_org(self, org_id: str, limit: int = 20):
+        async with self.driver.session() as session:
+            result = await session.run(
+                """
+                MATCH (org:Organization {id: $org_id})-[:BELONGS_TO_SECTOR]->(s:IndustrialSector)
+                WITH org, s
+                MATCH (rec)-[:BELONGS_TO_SECTOR]->(s)
+                WHERE rec <> org
+                  AND NOT (org)-[:OPERATES_IN|HAS_PATENT|FOLLOWS]-(rec)
+                RETURN rec, labels(rec) AS labels, s.nombre AS sector
+                LIMIT $limit
+                """,
+                org_id=org_id,
+                limit=limit,
+            )
+            rows = [record.data() async for record in result]
+
+        items = []
+        for row in rows:
+            rec = row["rec"]
+            props = dict(rec)
+            node_id = str(props.get("id") or props.get("codigo") or props.get("element_id") or "")
+            labels = row.get("labels") or []
+            node_type = self._primary_label(labels)
+            label = (
+                props.get("nombre")
+                or props.get("name")
+                or props.get("title")
+                or props.get("siglas")
+                or node_id
+            )
+            reason = self._recommendation_reason(node_type, row.get("sector"))
+            items.append({
+                "id": node_id,
+                "labels": labels,
+                "type": node_type,
+                "label": str(label),
+                "reason": reason,
+                "props": props,
+            })
+        return {"items": items, "total": len(items)}
+
+    @staticmethod
+    def _primary_label(labels: list[str]) -> str:
+        priority = [
+            "Technology", "Organization", "IndustrialSector", "Person",
+            "Indicator", "Patent", "Regulation",
+        ]
+        for label in priority:
+            if label in labels:
+                return label
+        return labels[0] if labels else "Unknown"
+
+    @staticmethod
+    def _recommendation_reason(node_type: str, sector: str | None) -> str:
+        reasons = {
+            "Technology": "Tecnología del sector",
+            "Organization": "Empresa del sector",
+            "IndustrialSector": "Sector industrial relacionado",
+            "Person": "Persona vinculada al sector",
+            "Indicator": "Indicador del sector",
+            "Patent": "Patente del sector",
+            "Regulation": "Normativa del sector",
+        }
+        base = reasons.get(node_type, "Relacionado por sector")
+        return f"{base}: {sector}" if sector else base
+
     async def _ensure_constraints(self, session):
         constraints = [
             "CREATE CONSTRAINT IF NOT EXISTS FOR (n:Organization) REQUIRE n.id IS UNIQUE",
@@ -611,3 +934,84 @@ class GraphRepository:
                 await session.run(cql)
             except Exception:
                 pass
+
+    async def _prune_stale_nodes(self, session, db) -> int:
+        from app.models.indicator import Indicator
+        from app.models.industrial_sector import IndustrialSector
+        from app.models.organization import Organization
+        from app.models.patent import Patent
+        from app.models.professional_profile import ProfessionalProfile
+        from app.models.regulation import Regulation
+        from app.models.technology import Technology
+        from app.models.user import User
+
+        deleted = 0
+
+        sector_ids = [
+            s.codigo for s in (await db.execute(select(IndustrialSector))).scalars().all()
+        ]
+        deleted += await self._delete_missing(session, "IndustrialSector", "codigo", sector_ids)
+
+        org_ids = [
+            str(o.id) for o in (await db.execute(select(Organization))).scalars().all()
+        ]
+        deleted += await self._delete_missing(session, "Organization", "id", org_ids)
+
+        tech_ids = [
+            str(t.id) for t in (await db.execute(select(Technology))).scalars().all()
+        ]
+        deleted += await self._delete_missing(session, "Technology", "id", tech_ids)
+
+        pat_ids = [
+            str(p.id) for p in (await db.execute(select(Patent))).scalars().all()
+        ]
+        deleted += await self._delete_missing(session, "Patent", "id", pat_ids)
+
+        reg_ids = [
+            str(r.id) for r in (await db.execute(select(Regulation))).scalars().all()
+        ]
+        deleted += await self._delete_missing(session, "Regulation", "id", reg_ids)
+
+        ind_ids = [
+            str(i.id) for i in (await db.execute(select(Indicator))).scalars().all()
+        ]
+        deleted += await self._delete_missing(session, "Indicator", "id", ind_ids)
+
+        inventor_ids = [
+            f"person-{chunk.strip().lower().replace(' ', '-')}"
+            for p in (await db.execute(select(Patent))).scalars().all()
+            for chunk in (p.inventor or "").split(";")
+            if chunk.strip()
+        ]
+        profile_ids = [
+            f"person-user-{row.user_id}"
+            for row in (await db.execute(
+                select(ProfessionalProfile.user_id)
+                .join(User, User.id == ProfessionalProfile.user_id)
+                .where(User.organization_id.isnot(None))
+            )).all()
+        ]
+        person_ids = set(inventor_ids + profile_ids)
+        deleted += await self._delete_missing(session, "Person", "id", list(person_ids))
+
+        return deleted
+
+    @staticmethod
+    async def _delete_missing(session, label: str, key: str, valid_ids: list[str]) -> int:
+        if not valid_ids:
+            result = await session.run(
+                f"MATCH (n:{label}) DETACH DELETE n RETURN count(*) AS deleted"
+            )
+            record = await result.single()
+            return record["deleted"] if record else 0
+        result = await session.run(
+            f"""
+            MATCH (n:{label})
+            WHERE NOT coalesce(n.{key}, '') IN $valid_ids
+            DETACH DELETE n
+            RETURN count(*) AS deleted
+            """,
+            valid_ids=valid_ids,
+        )
+        record = await result.single()
+        return record["deleted"] if record else 0

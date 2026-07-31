@@ -83,7 +83,7 @@ async def test_repository_explore_without_apoc(mock_driver):
     session = mock_driver.session.return_value.__aenter__.return_value
     fallback_result = AsyncMock()
     fallback_record = MagicMock()
-    fallback_record.data.return_value = {"nodes": [], "relationships": []}
+    fallback_record.data.return_value = {"all_nodes": []}
     fallback_result.single = AsyncMock(return_value=fallback_record)
     session.run.side_effect = [RuntimeError("APOC not available"), fallback_result]
 
@@ -91,3 +91,35 @@ async def test_repository_explore_without_apoc(mock_driver):
     result = await repo.explore_node("test-id", 2)
     assert result is not None
     assert result["nodes"] == []
+    assert result["edges"] == []
+    assert result["total_nodes"] == 0
+    assert result["total_edges"] == 0
+
+
+@pytest.mark.asyncio
+async def test_graph_recommendations_no_auth(client):
+    resp = await client.get("/api/v1/graph/recommendations/some-org-id")
+    assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_repository_recommendations(mock_driver):
+    session = mock_driver.session.return_value.__aenter__.return_value
+    result = AsyncMock()
+    rec = MagicMock()
+    rec.data.return_value = {
+        "rec": {"id": "t1", "nombre": "Tecnologia X"},
+        "labels": ["Technology"],
+        "sector": "Siderurgia",
+    }
+    result.__aiter__.return_value = iter([rec])
+    session.run.return_value = result
+
+    repo = GraphRepository(mock_driver)
+    result_data = await repo.recommendations_for_org("org-1", 10)
+    assert result_data["total"] == 1
+    item = result_data["items"][0]
+    assert item["id"] == "t1"
+    assert item["type"] == "Technology"
+    assert item["label"] == "Tecnologia X"
+    assert "Siderurgia" in item["reason"]
