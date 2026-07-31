@@ -1,4 +1,4 @@
-from sqlalchemy import ColumnElement
+from sqlalchemy import ColumnElement, func
 from sqlalchemy.sql import asc, desc
 
 
@@ -13,9 +13,9 @@ def apply_search(query, model, q: str | None, fields: list[ColumnElement]):
     if not q:
         return query
     like = f"%{q}%"
-    cond = fields[0].ilike(like)
+    cond = func.unaccent(fields[0]).ilike(func.unaccent(like))
     for f in fields[1:]:
-        cond = cond | f.ilike(like)
+        cond = cond | func.unaccent(f).ilike(func.unaccent(like))
     return query.where(cond)
 
 

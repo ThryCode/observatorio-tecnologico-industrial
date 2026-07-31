@@ -38,6 +38,8 @@ interface CrudPageProps<T extends { id: string }> {
   onSearch?: (query: string) => void;
   page: number;
   onPageChange: (page: number) => void;
+  canEdit?: (item: T) => boolean;
+  canDelete?: (item: T) => boolean;
 }
 
 export default function CrudPage<T extends { id: string }>({
@@ -48,6 +50,7 @@ export default function CrudPage<T extends { id: string }>({
   renderForm, renderDetail, defaultForm,
   formToPayload, validateForm, searchFilter, onSearch,
   page, onPageChange,
+  canEdit: canEditFn, canDelete: canDeleteFn,
 }: CrudPageProps<T>) {
   const { can } = usePermissions();
   const [search, setSearch] = useState('');
@@ -83,7 +86,10 @@ export default function CrudPage<T extends { id: string }>({
       setDialogOpen(false);
       resetForm();
       refetch();
-    } catch { setSaveError('Error al guardar. Verifica los datos.'); }
+    } catch (e: any) {
+      const msg = e?.response?.data?.detail || e?.message || 'Error al guardar. Verifica los datos.';
+      setSaveError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    }
   };
 
   const handleDelete = async () => {
@@ -96,13 +102,6 @@ export default function CrudPage<T extends { id: string }>({
   };
 
   const filteredItems = !onSearch && searchFilter && search ? (data?.items ?? []).filter((i) => searchFilter(i, search)) : data?.items ?? [];
-
-  if (isError) return (
-    <div className="space-y-6">
-      <div><h2 className="text-2xl font-bold tracking-tight">{title}</h2><p className="text-muted-foreground">Error al cargar los datos.</p></div>
-      <Card><CardContent className="flex flex-col items-center gap-2 py-8"><p className="text-sm text-destructive">No se pudieron cargar los datos. Intente de nuevo más tarde.</p></CardContent></Card>
-    </div>
-  );
 
   return (
     <div className="space-y-6">
@@ -119,6 +118,9 @@ export default function CrudPage<T extends { id: string }>({
         {filterBar}
       </div>
 
+      {isError ? (
+        <Card><CardContent className="flex flex-col items-center gap-2 py-8"><p className="text-sm text-destructive">No se pudieron cargar los datos. Intente de nuevo más tarde.</p></CardContent></Card>
+      ) : (
       <Card>
         <CardContent className="p-0">
           <Table>
@@ -136,8 +138,8 @@ export default function CrudPage<T extends { id: string }>({
                   {columns.map((c) => <TableCell key={c.header}>{c.render(item)}</TableCell>)}
                   <TableCell>
                     <div className="flex gap-1">
-                      {can(permissionResource, 'edit') && <Button variant="ghost" size="sm" onClick={() => openEditDialog(item)}><Pencil className="h-4 w-4" /></Button>}
-                      {can(permissionResource, 'delete') && <Button variant="ghost" size="sm" onClick={() => { setItemToDelete(item); setDeleteDialogOpen(true); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                      {can(permissionResource, 'edit') && (!canEditFn || canEditFn(item)) && <Button variant="ghost" size="sm" onClick={() => openEditDialog(item)}><Pencil className="h-4 w-4" /></Button>}
+                      {can(permissionResource, 'delete') && (!canDeleteFn || canDeleteFn(item)) && <Button variant="ghost" size="sm" onClick={() => { setItemToDelete(item); setDeleteDialogOpen(true); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                       {renderDetail && <Button variant="ghost" size="sm" onClick={() => setSelected(item)}><ExternalLink className="h-4 w-4" /></Button>}
                     </div>
                   </TableCell>
@@ -149,6 +151,7 @@ export default function CrudPage<T extends { id: string }>({
           </Table>
         </CardContent>
       </Card>
+      )}
 
       {renderDetail && selected && !dialogOpen && !deleteDialogOpen && (
         <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>

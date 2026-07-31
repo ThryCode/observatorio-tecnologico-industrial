@@ -42,7 +42,6 @@ async def startup_db() -> None:
             await session.commit()
         except Exception:
             await session.rollback()
-            raise
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

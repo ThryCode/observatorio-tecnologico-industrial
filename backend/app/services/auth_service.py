@@ -7,7 +7,7 @@ from app.core.exceptions import AppException
 from app.core.security import create_access_token, get_password_hash, verify_password
 from app.models.organization import Organization
 from app.models.professional_profile import ProfessionalProfile
-from app.models.user import User, UserStatus
+from app.models.user import User, UserRole, UserStatus
 from app.schemas.auth import LoginRequest, RegisterRequest
 from app.schemas.user import UserCreate
 
@@ -63,7 +63,7 @@ class AuthService:
             organization_id=org_id,
             account_type=data.account_type,
             status=UserStatus.PENDING.value,
-            role="visitante",
+            role=UserRole.PROFESIONAL.value if data.account_type == "profesional" else "visitante",
         )
         self.db.add(user)
         await self.db.flush()
@@ -73,6 +73,10 @@ class AuthService:
                 user_id=user.id,
                 especialidad=data.especialidad,
                 grado_cientifico=data.grado_cientifico,
+                linkedin_url=data.linkedin_url,
+                twitter_url=data.twitter_url,
+                researchgate_url=data.researchgate_url,
+                orcid=data.orcid,
             )
             self.db.add(profile)
             await self.db.flush()

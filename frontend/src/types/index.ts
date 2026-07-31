@@ -1,4 +1,4 @@
-export type UserRole = 'admin_mindus' | 'rep_cti' | 'analista' | 'cliente' | 'visitante';
+export type UserRole = 'admin_mindus' | 'rep_cti' | 'analista' | 'profesional' | 'cliente' | 'visitante';
 
 export type PatentStatus = 'filed' | 'examination' | 'granted' | 'expired' | 'rejected';
 
@@ -209,6 +209,17 @@ export interface GraphQueryResponse {
   total_edges: number;
 }
 
+export interface EnterpriseGraphPatent {
+  id: string;
+  title: string;
+  patent_number: string;
+  status: string;
+  filing_date?: string;
+  publication_date?: string;
+  technological_sector?: string;
+  country?: string;
+}
+
 export interface EnterpriseGraphNode {
   id: string;
   type: string;
@@ -217,6 +228,9 @@ export interface EnterpriseGraphNode {
   sector?: string;
   tipo?: string;
   provincia?: string;
+  patents: EnterpriseGraphPatent[];
+  patents_active: number;
+  patents_pending: number;
 }
 
 export interface EnterpriseGraphEdge {
@@ -301,6 +315,7 @@ export interface ResearchPublication {
   palabras_clave?: string[];
   sector_codigo?: string;
   url?: string;
+  created_by?: string;
   created_at: string;
   updated_at: string;
 }

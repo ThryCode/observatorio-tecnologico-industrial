@@ -25,6 +25,20 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+const ESPECIALIDADES = [
+  'Biotecnología',
+  'Energía',
+  'Electrónica',
+  'Metalurgia',
+  'Química',
+  'Industria Alimentaria',
+  'Telecomunicaciones',
+  'Automatización',
+  'Medio Ambiente',
+  'Nanotecnología',
+  'Otro',
+];
+
 const registerSchema = z
   .object({
     account_type: z.enum(['representante', 'analista', 'profesional'], {
@@ -43,14 +57,31 @@ const registerSchema = z
     confirmPassword: z.string(),
     full_name: z.string().min(1, 'Nombre completo requerido'),
     phone: z.string().optional(),
-    job_title: z.string().min(1, 'Cargo requerido'),
     especialidad: z.string().optional(),
+    especialidad_custom: z.string().optional(),
     grado_cientifico: z.string().optional(),
+    linkedin_url: z.string().url('URL inválida').optional().or(z.literal('')),
+    twitter_url: z.string().url('URL inválida').optional().or(z.literal('')),
+    researchgate_url: z.string().url('URL inválida').optional().or(z.literal('')),
+    orcid: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Las contraseñas no coinciden',
     path: ['confirmPassword'],
-  });
+  })
+  .refine(
+    (data) => {
+      if (data.account_type === 'profesional') {
+        if (!data.especialidad) return false;
+        if (data.especialidad === 'Otro' && !data.especialidad_custom?.trim()) return false;
+      }
+      return true;
+    },
+    {
+      message: 'Especialidad requerida',
+      path: ['especialidad'],
+    },
+  );
 
 type RegisterForm = z.infer<typeof registerSchema>;
 
@@ -110,8 +141,15 @@ export default function Register() {
 
   const onSubmit = (data: RegisterForm) => {
     setServerError(null);
-    const { confirmPassword, ...payload } = data;
-    registerMutation.mutate({ ...payload, username: payload.username.toLowerCase() } as RegisterRequest);
+    const { confirmPassword, especialidad_custom, ...payload } = data;
+    const finalEspecialidad = payload.especialidad === 'Otro' && especialidad_custom?.trim()
+      ? especialidad_custom.trim()
+      : payload.especialidad;
+    registerMutation.mutate({
+      ...payload,
+      especialidad: finalEspecialidad,
+      username: payload.username.toLowerCase(),
+    } as RegisterRequest);
   };
 
   return (
@@ -199,28 +237,13 @@ export default function Register() {
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="job_title">Cargo</Label>
-                <Input
-                  id="job_title"
-                  placeholder="Especialista en CTI"
-                  {...register('job_title')}
-                />
-                {errors.job_title && (
-                  <p className="text-xs text-red-500">
-                    {errors.job_title.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Teléfono (opcional)</Label>
-                <Input
-                  id="phone"
-                  placeholder="+53 5555 5555"
-                  {...register('phone')}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Teléfono (opcional)</Label>
+              <Input
+                id="phone"
+                placeholder="+53 5555 5555"
+                {...register('phone')}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -261,14 +284,20 @@ export default function Register() {
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="especialidad">Especialidad *</Label>
-                    <Input
-                      id="especialidad"
-                      placeholder="Biotecnología, Energía, etc."
-                      {...register('especialidad', {
-                        required: accountType === 'profesional' ? 'Especialidad requerida' : false,
-                      })}
-                    />
+                    <Label>Especialidad *</Label>
+                    <Select
+                      value={watch('especialidad') || ''}
+                      onValueChange={(v) => setValue('especialidad', v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccione..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ESPECIALIDADES.map((e) => (
+                          <SelectItem key={e} value={e}>{e}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     {errors.especialidad && (
                       <p className="text-xs text-red-500">
                         {errors.especialidad.message}
@@ -282,6 +311,62 @@ export default function Register() {
                       placeholder="Dr.C., MSc., Ing."
                       {...register('grado_cientifico')}
                     />
+                  </div>
+                </div>
+                {watch('especialidad') === 'Otro' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="especialidad_custom">Escriba su especialidad *</Label>
+                    <Input
+                      id="especialidad_custom"
+                      placeholder="Ej: Robótica Agrícola"
+                      {...register('especialidad_custom', {
+                        required: watch('especialidad') === 'Otro' ? 'Escriba su especialidad' : false,
+                      })}
+                    />
+                    {errors.especialidad_custom && (
+                      <p className="text-xs text-red-500">
+                        {errors.especialidad_custom.message}
+                      </p>
+                    )}
+                  </div>
+                )}
+                <div className="space-y-3">
+                  <p className="text-xs font-medium text-muted-foreground">Redes sociales (opcionales)</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="linkedin_url" className="text-xs">LinkedIn</Label>
+                      <Input
+                        id="linkedin_url"
+                        placeholder="https://linkedin.com/in/..."
+                        {...register('linkedin_url')}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="twitter_url" className="text-xs">Twitter / X</Label>
+                      <Input
+                        id="twitter_url"
+                        placeholder="https://x.com/..."
+                        {...register('twitter_url')}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="researchgate_url" className="text-xs">ResearchGate</Label>
+                      <Input
+                        id="researchgate_url"
+                        placeholder="https://researchgate.net/profile/..."
+                        {...register('researchgate_url')}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="orcid" className="text-xs">ORCID</Label>
+                      <Input
+                        id="orcid"
+                        placeholder="0000-0000-0000-0000"
+                        {...register('orcid')}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

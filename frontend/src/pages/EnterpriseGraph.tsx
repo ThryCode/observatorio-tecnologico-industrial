@@ -123,6 +123,42 @@ export default function EnterpriseGraph() {
                     <span className="font-medium">{selected.provincia || '—'}</span>
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">Patentes</p>
+                  <div className="flex gap-2">
+                    <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                      {selected.patents_active} activas
+                    </span>
+                    <span className="inline-flex items-center rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-700 ring-1 ring-inset ring-yellow-600/20">
+                      {selected.patents_pending} pendientes
+                    </span>
+                  </div>
+                  {selected.patents.length > 0 ? (
+                    <div className="max-h-48 overflow-y-auto space-y-2">
+                      {selected.patents.map((p) => (
+                        <div key={p.id} className="rounded-md border border-border p-2 text-xs space-y-1">
+                          <p className="font-medium leading-tight">{p.title}</p>
+                          <div className="flex justify-between text-muted-foreground">
+                            <span>{p.patent_number}</span>
+                            <span className={`font-medium ${
+                              p.status === 'granted' ? 'text-green-600' :
+                              p.status === 'examination' ? 'text-blue-600' :
+                              p.status === 'filed' ? 'text-yellow-600' :
+                              'text-muted-foreground'
+                            }`}>{p.status}</span>
+                          </div>
+                          {p.filing_date && (
+                            <p className="text-muted-foreground">Presentada: {p.filing_date}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">No tiene patentes registradas</p>
+                  )}
+                </div>
+
                 <p className="text-xs text-muted-foreground pt-2">Haz clic en otro nodo para ver sus datos</p>
               </div>
             ) : (

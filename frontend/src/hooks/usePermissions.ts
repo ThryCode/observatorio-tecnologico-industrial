@@ -21,6 +21,9 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Entity, Action[]>>> = {
     patents: ['create'],
     indicators: ['create'],
   },
+  profesional: {
+    'research-publications': ['create', 'edit', 'delete'],
+  },
   cliente: {},
   visitante: {},
 };

@@ -6,15 +6,20 @@ import { useResearchPublications, useCreateResearchPublication, useUpdateResearc
 import { getIndustrialSectors } from '@/api/industrialSectors';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatDate } from '@/utils/formatters';
-import { FileText } from 'lucide-react';
+import { FileText, User } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import type { ResearchPublication } from '@/types';
+import AuthorAutocomplete from '@/components/AuthorAutocomplete';
 
 export default function PublicationsPage() {
   const [page, setPage] = useState(1);
   const [q, setQ] = useState('');
   const [sector, setSector] = useState('all');
+  const [mine, setMine] = useState(false);
+  const { user } = useAuth();
 
   const { data: sectorsData } = useQuery({
     queryKey: ['industrial-sectors'],
@@ -22,10 +27,14 @@ export default function PublicationsPage() {
   });
 
   const sectorMap = new Map(sectorsData?.items?.map((s) => [s.codigo, s.nombre]) ?? []);
-  const queryResult = useResearchPublications(page, 20, sector === 'all' ? undefined : sector, q || undefined);
+  const queryResult = useResearchPublications(page, 20, sector === 'all' ? undefined : sector, q || undefined, undefined, undefined, undefined, undefined, mine || undefined);
   const createMutation = useCreateResearchPublication();
   const updateMutation = useUpdateResearchPublication();
   const deleteMutation = useDeleteResearchPublication();
+
+  const isOwner = (pub: ResearchPublication) => Boolean(user && pub.created_by === user.id);
+  const isAuthor = (pub: ResearchPublication) => Boolean(user?.full_name && (pub.autores || '').toLowerCase().includes(user.full_name.toLowerCase()));
+  const isAdmin = user?.role === 'admin_mindus';
 
   const columns: CrudColumn<ResearchPublication>[] = [
     { header: 'Título', render: (p) => (
@@ -39,6 +48,9 @@ export default function PublicationsPage() {
     { header: 'Sector', className: 'whitespace-nowrap', render: (p) => sectorMap.get(p.sector_codigo ?? '') || p.sector_codigo || '-' },
     { header: 'Publicado', className: 'text-muted-foreground whitespace-nowrap', render: (p) => formatDate(p.fecha_publicacion) },
   ];
+
+  const canEdit = (pub: ResearchPublication) => isAdmin || isOwner(pub) || isAuthor(pub);
+  const canDelete = (pub: ResearchPublication) => isAdmin || isOwner(pub) || isAuthor(pub);
 
   return (
     <CrudPage
@@ -54,14 +66,22 @@ export default function PublicationsPage() {
       onPageChange={setPage}
       searchPlaceholder="Buscar publicaciones..."
       onSearch={setQ}
+      canEdit={canEdit}
+      canDelete={canDelete}
       filterBar={
-        <Select value={sector} onValueChange={(v) => { setSector(v); setPage(1); }}>
-          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Filtrar por sector" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos los sectores</SelectItem>
-            {sectorsData?.items?.map((s) => <SelectItem key={s.codigo} value={s.codigo}>{s.nombre}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Select value={sector} onValueChange={(v) => { setSector(v); setPage(1); }}>
+            <SelectTrigger className="w-[200px]"><SelectValue placeholder="Filtrar por sector" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los sectores</SelectItem>
+              {sectorsData?.items?.map((s) => <SelectItem key={s.codigo} value={s.codigo}>{s.nombre}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Button variant={mine ? 'default' : 'outline'} size="sm" onClick={() => { setMine(!mine); setPage(1); }} className="gap-1">
+            <User className="h-4 w-4" />
+            Mis publicaciones
+          </Button>
+        </div>
       }
       defaultForm={{ titulo: '', autores: '', resumen: '', doi: '', journal: '', fecha_publicacion: '', palabras_clave: '', sector_codigo: '', url: '' }}
       formToPayload={(form) => ({
@@ -75,11 +95,11 @@ export default function PublicationsPage() {
         sector_codigo: form.sector_codigo || undefined,
         url: form.url || undefined,
       })}
-      validateForm={(form) => !form.titulo ? 'El título es obligatorio' : !form.autores ? 'Los autores son obligatorios' : null}
+      validateForm={(form) => !form.titulo ? 'El título es obligatorio' : !form.autores ? 'Los autores son obligatorios' : !form.fecha_publicacion ? 'La fecha de publicación es obligatoria' : null}
       renderForm={({ data, onChange }) => (
         <div className="space-y-4">
           <div><label className="text-sm font-medium">Título *</label><Input value={data.titulo} onChange={(e) => onChange({ titulo: e.target.value })} placeholder="Título del artículo" /></div>
-          <div><label className="text-sm font-medium">Autores *</label><Input value={data.autores} onChange={(e) => onChange({ autores: e.target.value })} placeholder="Apellido, N.; Apellido, M." /></div>
+          <div><label className="text-sm font-medium">Autores *</label><AuthorAutocomplete value={data.autores} onChange={(v) => onChange({ autores: v })} placeholder="Buscar o escribir autores..." /></div>
           <div><label className="text-sm font-medium">Resumen</label><textarea className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" value={data.resumen} onChange={(e) => onChange({ resumen: e.target.value })} placeholder="Resumen del artículo" /></div>
           <div><label className="text-sm font-medium">DOI</label><Input value={data.doi} onChange={(e) => onChange({ doi: e.target.value })} placeholder="10.1234/ejemplo.2026.001" /></div>
           <div><label className="text-sm font-medium">Journal / Revista</label><Input value={data.journal} onChange={(e) => onChange({ journal: e.target.value })} placeholder="Nombre de la revista" /></div>

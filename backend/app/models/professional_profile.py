@@ -29,5 +29,9 @@ class ProfessionalProfile(Base, TimestampMixin, UUIDMixin):
     intereses: Mapped[list[str] | None] = mapped_column(
         ARRAY(String), nullable=True
     )
+    linkedin_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    twitter_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    researchgate_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    orcid: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     user: Mapped[User] = relationship("User", back_populates="professional_profile")

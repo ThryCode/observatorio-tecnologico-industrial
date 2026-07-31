@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getResearchPublications, createResearchPublication, updateResearchPublication, deleteResearchPublication } from '@/api/researchPublications';
 
-export function useResearchPublications(page = 1, perPage = 20, sector?: string, q?: string, fechaDesde?: string, fechaHasta?: string, sortBy?: string, sortOrder?: string) {
+export function useResearchPublications(page = 1, perPage = 20, sector?: string, q?: string, fechaDesde?: string, fechaHasta?: string, sortBy?: string, sortOrder?: string, mine?: boolean) {
   return useQuery({
-    queryKey: ['research-publications', page, perPage, sector, q, fechaDesde, fechaHasta, sortBy, sortOrder],
-    queryFn: () => getResearchPublications(page, perPage, sector, q, fechaDesde, fechaHasta, sortBy, sortOrder),
+    queryKey: ['research-publications', page, perPage, sector, q, fechaDesde, fechaHasta, sortBy, sortOrder, mine],
+    queryFn: () => getResearchPublications(page, perPage, sector, q, fechaDesde, fechaHasta, sortBy, sortOrder, mine),
   });
 }
 
