@@ -18,6 +18,7 @@ class UserRole(enum.StrEnum):
     ADMIN_MINDUS = "admin_mindus"
     REP_CTI = "rep_cti"
     ANALISTA = "analista"
+    PROFESIONAL = "profesional"
     CLIENTE = "cliente"
     VISITANTE = "visitante"
 

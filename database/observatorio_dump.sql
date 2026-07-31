@@ -349,7 +349,7 @@ CREATE TABLE public.users (
 --
 
 COPY public.alembic_version (version_num) FROM stdin;
-00e21cbe9692
+d2e3f4a5b6c7
 \.
 
 
@@ -558,14 +558,14 @@ COPY public.users (id, username, email, hashed_password, full_name, role, phone,
 3c831c5f-a56d-4a88-812d-3e1ce8203ada	usuario	usuario@mindus.gob.cu	$2b$12$XJXlzy9fiWmh2P.9HjgLa.Tn86ikPdcziYPwS.Bi35zlD6SPamx/S	Juan Perez Garcia	rep_cti	\N	\N	\N	t	f	2026-07-28 11:05:53.714639-04	2026-07-28 11:05:53.714639-04	representante	approved	\N	\N	\N
 72b209cd-2f89-4fac-a9a7-15075fefb133	analista	analista@mindus.gob.cu	$2b$12$yXM5ylh1DEM./9sydZxH2OqEbNPRn7yn3YjigBagBuKW0tvTG01Gm	Ana analista	analista	\N	\N	\N	t	f	2026-07-28 11:05:53.714639-04	2026-07-28 11:05:53.714639-04	analista	approved	\N	\N	\N
 7a72d5e0-b057-4150-9e25-dc1d8df40788	admin@mindus.gob.cu	admin@mindus.gob.cu	$2b$12$gccfufGji49dFvC820IMxeopiuES1KQlQYSRacxNHYOyGZYWBgvUe	Administrador MINDUS	admin_mindus	\N	\N	\N	t	t	2026-07-20 12:22:20.10449-04	2026-07-23 13:22:40.094292-04	\N	approved	\N	\N	\N
-cabd30a6-0330-4427-a575-1dba74f8c18d	paco	paco@gmail.com	$2b$12$CJQIzXfpmwfMt865dou5jOKRpWzUx0tjXUt1R0uSA3T7RrHVXQDO6	Paco Perez	visitante	\N	\N	\N	t	f	2026-07-28 11:05:53.714639-04	2026-07-28 11:05:53.714639-04	profesional	approved	\N	\N	\N
 4960f9bd-8c94-4f8c-92fb-1e4685719de8	enmanuel	prueba@gmail.com	$2b$12$HAqjAcW5cYYL7b5fQJlusO31SmaieZYwpGGmbCzr4w3o0iJOkacG.	Enmanuel Perez 	rep_cti	51234567	CEO	35fcc164-0b41-47ab-8bb0-a7e70b39021b	t	f	2026-07-23 10:07:40.286901-04	2026-07-23 13:24:45.910498-04	representante	approved	\N	7a72d5e0-b057-4150-9e25-dc1d8df40788	2026-07-23 10:07:54.345644-04
 367b6059-8601-4706-9f83-fe9d241d4638	carlos_mendez	carlos@bionova.cu	$2b$12$ajbN7XwtGpuiH3Yxymz4mOaJfDpjVbxdkrVz0MHH5sBzPu7Ex9bfO	Carlos Mendez	rep_cti	51234501	Director Tecnico	85fa07b0-01ef-4de6-8f3b-85274e9b8e65	t	f	2026-07-24 11:32:13.316937-04	2026-07-24 11:32:13.316937-04	representante	approved	\N	\N	2026-07-24 11:32:13.316937-04
 3aad5dfa-d731-449a-96b4-684567d8535a	ana_rodriguez	ana@autotech.cu	$2b$12$ajbN7XwtGpuiH3Yxymz4mOaJfDpjVbxdkrVz0MHH5sBzPu7Ex9bfO	Ana Rodriguez	rep_cti	51234502	Jefa de I+D	87f2bb74-64fa-42f2-a08d-e04753c23133	t	f	2026-07-24 11:32:13.316937-04	2026-07-24 11:32:13.316937-04	representante	approved	\N	\N	2026-07-24 11:32:13.316937-04
 8c3da74c-fbce-43d9-9e76-fd68dcca3811	pedro_castillo	pedro@quimicuba.cu	$2b$12$ajbN7XwtGpuiH3Yxymz4mOaJfDpjVbxdkrVz0MHH5sBzPu7Ex9bfO	Pedro Castillo	rep_cti	51234503	Gerente General	e290e6f8-5c11-4959-a470-6dfe8271ad91	t	f	2026-07-24 11:32:13.316937-04	2026-07-24 11:32:13.316937-04	representante	approved	\N	\N	2026-07-24 11:32:13.316937-04
 3a2f8438-3ff8-445e-aad4-ca4a258276ba	raul	raul@elevc.cu	$2b$12$Ah0D/28ntHSZeB90mbapF.ekSYgSxxPQ.NBwKTiuHEdthzS2tP6Fa	Raul Gutierrez	rep_cti	\N	\N	da424081-7494-4023-8b31-b57fb5114d87	t	f	2026-07-30 09:52:24.03706-04	2026-07-30 09:52:24.03706-04	representante	approved	\N	\N	\N
 545f87a5-a46b-4eea-99da-d4f6bbc490ef	maria	maria@techno.cu	$2b$12$bSO8IA73X1w6caUfN.13CuiK/IT76mr5KvCL69qKi0k53XV2aQmOe	Maria Elena Garcia	rep_cti	\N	\N	48fb33ef-429a-4550-a434-8e0c00be96a7	t	f	2026-07-30 10:22:54.695843-04	2026-07-30 10:22:54.695843-04	representante	approved	\N	\N	\N
-503feeb7-d8f4-4903-9d5c-badc07923627	mario	profecional@gmail.com	$2b$12$5yFfAMQIDW/QMh2AfvZrbeONtEoP43TaBAEkk4NmmK0o.0DL.7auq	Mario Rodriguez	visitante	52345678	\N	\N	t	f	2026-07-31 09:29:33.310315-04	2026-07-31 09:30:10.850465-04	profesional	approved	\N	7a72d5e0-b057-4150-9e25-dc1d8df40788	2026-07-31 09:30:10.843761-04
+cabd30a6-0330-4427-a575-1dba74f8c18d	paco	paco@gmail.com	$2b$12$CJQIzXfpmwfMt865dou5jOKRpWzUx0tjXUt1R0uSA3T7RrHVXQDO6	Paco Perez	profesional	\N	\N	\N	t	f	2026-07-28 11:05:53.714639-04	2026-07-28 11:05:53.714639-04	profesional	approved	\N	\N	\N
+503feeb7-d8f4-4903-9d5c-badc07923627	mario	profecional@gmail.com	$2b$12$5yFfAMQIDW/QMh2AfvZrbeONtEoP43TaBAEkk4NmmK0o.0DL.7auq	Mario Rodriguez	profesional	52345678	\N	\N	t	f	2026-07-31 09:29:33.310315-04	2026-07-31 09:30:10.850465-04	profesional	approved	\N	7a72d5e0-b057-4150-9e25-dc1d8df40788	2026-07-31 09:30:10.843761-04
 \.
 
 

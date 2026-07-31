@@ -63,7 +63,7 @@ class AuthService:
             organization_id=org_id,
             account_type=data.account_type,
             status=UserStatus.PENDING.value,
-            role="visitante",
+            role=UserRole.PROFESIONAL.value if data.account_type == "profesional" else "visitante",
         )
         self.db.add(user)
         await self.db.flush()

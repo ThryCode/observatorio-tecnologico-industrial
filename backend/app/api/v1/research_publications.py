@@ -54,7 +54,7 @@ async def get_research_publication(
 async def create_research_publication(
     data: ResearchPublicationCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS, UserRole.REP_CTI)),
+    _: User = Depends(require_role(UserRole.ADMIN_MINDUS, UserRole.PROFESIONAL)),
 ):
     return await ResearchPublicationService(db).create(data)
 

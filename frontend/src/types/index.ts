@@ -1,4 +1,4 @@
-export type UserRole = 'admin_mindus' | 'rep_cti' | 'analista' | 'cliente' | 'visitante';
+export type UserRole = 'admin_mindus' | 'rep_cti' | 'analista' | 'profesional' | 'cliente' | 'visitante';
 
 export type PatentStatus = 'filed' | 'examination' | 'granted' | 'expired' | 'rejected';
 
