@@ -40,6 +40,17 @@ class ShortestPathResponse(BaseModel):
     weight: int | None = None
 
 
+class EnterpriseGraphPatent(BaseModel):
+    id: str
+    title: str
+    patent_number: str
+    status: str
+    filing_date: str | None = None
+    publication_date: str | None = None
+    technological_sector: str | None = None
+    country: str | None = None
+
+
 class EnterpriseGraphNode(BaseModel):
     id: str
     type: str = "organization"
@@ -48,6 +59,9 @@ class EnterpriseGraphNode(BaseModel):
     sector: str | None = None
     tipo: str | None = None
     provincia: str | None = None
+    patents: list[EnterpriseGraphPatent] = []
+    patents_active: int = 0
+    patents_pending: int = 0
 
 
 class EnterpriseGraphEdge(BaseModel):

@@ -73,6 +73,10 @@ class AuthService:
                 user_id=user.id,
                 especialidad=data.especialidad,
                 grado_cientifico=data.grado_cientifico,
+                linkedin_url=data.linkedin_url,
+                twitter_url=data.twitter_url,
+                researchgate_url=data.researchgate_url,
+                orcid=data.orcid,
             )
             self.db.add(profile)
             await self.db.flush()

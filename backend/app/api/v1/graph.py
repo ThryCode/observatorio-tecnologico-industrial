@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
 
@@ -6,10 +8,12 @@ from app.core.exceptions import AppException
 from app.dependencies import get_current_user, get_neo4j, require_role
 from app.models.follow import Follow
 from app.models.organization import Organization
+from app.models.patent import Patent, PatentStatus
 from app.models.user import User, UserRole
 from app.schemas.graph import (
     EnterpriseGraphEdge,
     EnterpriseGraphNode,
+    EnterpriseGraphPatent,
     EnterpriseGraphResponse,
     GraphExploreResponse,
     GraphSearchResponse,
@@ -128,16 +132,49 @@ async def enterprise_graph(
     )
     follows = follows_result.scalars().all()
 
+    org_ids = list(orgs.keys())
+    patents_result = await db.execute(
+        select(Patent).where(Patent.organization_id.in_([uuid.UUID(oid) for oid in org_ids]))
+    )
+    all_patents = patents_result.scalars().all()
+
+    patents_by_org: dict[str, list[Patent]] = {}
+    for p in all_patents:
+        oid = str(p.organization_id)
+        if oid not in patents_by_org:
+            patents_by_org[oid] = []
+        patents_by_org[oid].append(p)
+
     nodes: list[EnterpriseGraphNode] = []
     for o in orgs.values():
+        oid = str(o.id)
+        org_patents = patents_by_org.get(oid, [])
+        patent_list = [
+            EnterpriseGraphPatent(
+                id=str(p.id),
+                title=p.title,
+                patent_number=p.patent_number,
+                status=p.status.value if p.status else "filed",
+                filing_date=str(p.filing_date) if p.filing_date else None,
+                publication_date=str(p.publication_date) if p.publication_date else None,
+                technological_sector=p.technological_sector,
+                country=p.country,
+            )
+            for p in org_patents
+        ]
+        active = sum(1 for p in org_patents if p.status in (PatentStatus.GRANTED, PatentStatus.EXAMINATION))
+        pending = sum(1 for p in org_patents if p.status == PatentStatus.FILED)
         nodes.append(EnterpriseGraphNode(
-            id=str(o.id),
+            id=oid,
             type="organization",
             label=f"{o.nombre} ({o.siglas})",
             siglas=o.siglas,
             sector=o.sector_codigo,
             tipo=o.tipo,
             provincia=o.provincia,
+            patents=patent_list,
+            patents_active=active,
+            patents_pending=pending,
         ))
 
     edges: list[EnterpriseGraphEdge] = []

@@ -45,17 +45,19 @@ export default function PendingApprovals() {
 
   const approveMutation = useMutation({
     mutationFn: (userId: string) => authApi.approveUser(userId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pending-users'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['pending-users'] });
+      await queryClient.refetchQueries({ queryKey: ['pending-users'] });
     },
   });
 
   const rejectMutation = useMutation({
     mutationFn: ({ userId, reason }: { userId: string; reason: string }) =>
       authApi.rejectUser(userId, { reason }),
-    onSuccess: () => {
+    onSuccess: async () => {
       setRejectDialog({ open: false, user: null, reason: '' });
-      queryClient.invalidateQueries({ queryKey: ['pending-users'] });
+      await queryClient.invalidateQueries({ queryKey: ['pending-users'] });
+      await queryClient.refetchQueries({ queryKey: ['pending-users'] });
     },
   });
 

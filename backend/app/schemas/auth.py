@@ -24,13 +24,17 @@ class RegisterRequest(BaseModel):
     password: str = Field(..., min_length=8, max_length=128)
     full_name: str = Field(..., min_length=1, max_length=200)
     phone: str | None = None
-    job_title: str = Field(..., min_length=1, max_length=100)
+    job_title: str | None = None
     organization_id: UUID | None = None
     new_organization_name: str | None = Field(None, max_length=200)
     new_organization_siglas: str | None = Field(None, max_length=20)
     sector_codigo: str | None = None
     especialidad: str | None = Field(None, max_length=100)
     grado_cientifico: str | None = Field(None, max_length=50)
+    linkedin_url: str | None = Field(None, max_length=255)
+    twitter_url: str | None = Field(None, max_length=255)
+    researchgate_url: str | None = Field(None, max_length=255)
+    orcid: str | None = Field(None, max_length=50)
 
     @field_validator("account_type")
     @classmethod

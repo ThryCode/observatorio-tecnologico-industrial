@@ -253,7 +253,11 @@ CREATE TABLE public.professional_profiles (
     biografia text,
     intereses character varying[],
     created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now()
+    updated_at timestamp with time zone DEFAULT now(),
+    linkedin_url character varying(255),
+    twitter_url character varying(255),
+    researchgate_url character varying(255),
+    orcid character varying(50)
 );
 
 
@@ -291,7 +295,7 @@ CREATE TABLE public.research_publications (
     palabras_clave character varying(50)[],
     sector_codigo character varying(3),
     url character varying(500),
-    id uuid NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -345,7 +349,7 @@ CREATE TABLE public.users (
 --
 
 COPY public.alembic_version (version_num) FROM stdin;
-bb9f93ba04fa
+00e21cbe9692
 \.
 
 
@@ -493,12 +497,12 @@ Nanomateriales	Cuba	MET	8	2026-Q2	decreciente	e7352b71-9893-4339-a7e6-77870cb3f8
 --
 
 COPY public.patents (id, title, patent_number, applicant, inventor, filing_date, publication_date, status, abstract, technological_sector, country, technology_id, organization_id, created_at, updated_at, file_url) FROM stdin;
-2c8147b5-0e4d-48c3-b8e2-6aa9efeb635c	Sistema de detección temprana de fallos en motores de vehículos mediante análisis de vibraciones	CU202600001	AutoTech Solutions	Pérez, G.; Rodríguez, L.; Hernández, M.	2024-08-15	2025-12-10	GRANTED	Sistema embebido basado en redes neuronales convolutional para el monitoreo en tiempo real de vibraciones en motores de combustión interna, capaz de detectar anomalías con un 94% de precisión antes de que ocurra una falla catastrófica.	AUT	Cuba	\N	\N	2026-07-29 12:01:45.944475-04	2026-07-29 12:01:45.944475-04	\N
-dc1149c3-e926-4682-9079-7f669f6ea653	Proceso de obtención de biopolímeros a partir de residuos de la industria azucarera	CU202600002	Centro de Biotecnología Industrial	García, A.; Martínez, R.; Fernández, T.	2024-05-20	2025-09-15	GRANTED	Método innovador para la conversión de bagazo de caña y otros residuos lignocelulósicos en biopolímeros biodegradables mediante fermentación bacteriana, con aplicaciones en empaques y dispositivos médicos.	BIO	Cuba	\N	\N	2026-07-29 12:01:45.944475-04	2026-07-29 12:01:45.944475-04	\N
-bce64f02-9801-45b2-afcd-d2c105b1f225	Dispositivo de iluminación LED de alta eficiencia con gestión inteligente de energía	CU202600003	Empresa Eléctrica de Villa Clara	López, D.; Torres, S.; Cruz, R.	2024-01-10	2025-06-20	GRANTED	Luminaria LED con módulo IoT integrado que ajusta automáticamente el flujo luminoso según la presencia de personas y la luz ambiental, logrando un ahorro energético superior al 60% respecto a luminarias convencionales.	ELE	Cuba	\N	\N	2026-07-29 12:01:45.944475-04	2026-07-29 12:01:45.944475-04	\N
-c1790b3e-d83d-4d2a-8f98-7afb5174b4f7	Método de recuperación de metales raros a partir de escorias metalúrgicas	CU202600004	Empresa de Metalurgia y Equipo Técnico Camagüey	Herrera, J.; Castillo, P.; Vega, M.	2024-11-05	2026-02-28	GRANTED	Proceso hidrometalúrgico combinado con extracción por solvente para la recuperación selectiva de metales de tierras raras contenidos en escorias de la industria metalúrgica, con una eficiencia de extracción del 91%.	MET	Cuba	\N	\N	2026-07-29 12:01:45.944475-04	2026-07-29 12:01:45.944475-04	\N
-9db2c509-dd97-49b1-9f8f-0a436d72b71d	Composición catalítica para la producción de amoníaco verde a baja temperatura	CU202600005	QuimiCuba Industrial	Medina, O.; Ramírez, E.; Sánchez, L.	2025-02-14	\N	EXAMINATION	Nuevo catalizador heterogéneo basado en nitruros metálicos soportados sobre carbón activado que permite la síntesis de amoníaco a temperaturas de 250-350°C, reduciendo significativamente el consumo energético del proceso Haber-Bosch.	QUI	Cuba	\N	\N	2026-07-29 12:01:45.944475-04	2026-07-29 12:01:45.944475-04	\N
-c4b26a4c-b7bc-44c3-8d45-fcfbae465205	Procedimiento de laminación en caliente para aceros de alta resistencia soldables	CU202600006	Instituto Nacional de Siderurgia y Industria del Duque	González, R.; Díaz, F.; Álvarez, P.	2024-09-30	2025-11-18	GRANTED	Procedimiento termomecánico de laminación en caliente controlada que produce aceros microaleados con límite elástico superior a 700 MPa y excelente soldabilidad, aptos para construcciones sismorresistentes.	SID	Cuba	\N	\N	2026-07-29 12:01:45.944475-04	2026-07-29 12:01:45.944475-04	\N
+2c8147b5-0e4d-48c3-b8e2-6aa9efeb635c	Sistema de detección temprana de fallos en motores de vehículos mediante análisis de vibraciones	CU202600001	AutoTech Solutions	Pérez, G.; Rodríguez, L.; Hernández, M.	2024-08-15	2025-12-10	GRANTED	Sistema embebido basado en redes neuronales convolutional para el monitoreo en tiempo real de vibraciones en motores de combustión interna, capaz de detectar anomalías con un 94% de precisión antes de que ocurra una falla catastrófica.	AUT	Cuba	\N	8c0ff2ea-817f-405e-b501-8071ca78e775	2026-07-29 12:01:45.944475-04	2026-07-31 08:58:27.238297-04	\N
+9db2c509-dd97-49b1-9f8f-0a436d72b71d	Composición catalítica para la producción de amoníaco verde a baja temperatura	CU202600005	QuimiCuba Industrial	Medina, O.; Ramírez, E.; Sánchez, L.	2025-02-14	\N	EXAMINATION	Nuevo catalizador heterogéneo basado en nitruros metálicos soportados sobre carbón activado que permite la síntesis de amoníaco a temperaturas de 250-350°C, reduciendo significativamente el consumo energético del proceso Haber-Bosch.	QUI	Cuba	\N	e74387e7-b579-4271-836b-fc7856b3ffd2	2026-07-29 12:01:45.944475-04	2026-07-31 08:58:27.238297-04	\N
+bce64f02-9801-45b2-afcd-d2c105b1f225	Dispositivo de iluminación LED de alta eficiencia con gestión inteligente de energía	CU202600003	Empresa Eléctrica de Villa Clara	López, D.; Torres, S.; Cruz, R.	2024-01-10	2025-06-20	GRANTED	Luminaria LED con módulo IoT integrado que ajusta automáticamente el flujo luminoso según la presencia de personas y la luz ambiental, logrando un ahorro energético superior al 60% respecto a luminarias convencionales.	ELE	Cuba	\N	da424081-7494-4023-8b31-b57fb5114d87	2026-07-29 12:01:45.944475-04	2026-07-31 08:58:27.238297-04	\N
+c1790b3e-d83d-4d2a-8f98-7afb5174b4f7	Método de recuperación de metales raros a partir de escorias metalúrgicas	CU202600004	Empresa de Metalurgia y Equipo Técnico Camagüey	Herrera, J.; Castillo, P.; Vega, M.	2024-11-05	2026-02-28	GRANTED	Proceso hidrometalúrgico combinado con extracción por solvente para la recuperación selectiva de metales de tierras raras contenidos en escorias de la industria metalúrgica, con una eficiencia de extracción del 91%.	MET	Cuba	\N	10f135e9-2a51-487b-ab88-bb8a63d6d278	2026-07-29 12:01:45.944475-04	2026-07-31 08:58:27.238297-04	\N
+c4b26a4c-b7bc-44c3-8d45-fcfbae465205	Procedimiento de laminación en caliente para aceros de alta resistencia soldables	CU202600006	Instituto Nacional de Siderurgia y Industria del Duque	González, R.; Díaz, F.; Álvarez, P.	2024-09-30	2025-11-18	GRANTED	Procedimiento termomecánico de laminación en caliente controlada que produce aceros microaleados con límite elástico superior a 700 MPa y excelente soldabilidad, aptos para construcciones sismorresistentes.	SID	Cuba	\N	78eab764-d745-4987-80af-e11db7ff7d88	2026-07-29 12:01:45.944475-04	2026-07-31 08:58:27.238297-04	\N
+dc1149c3-e926-4682-9079-7f669f6ea653	Proceso de obtención de biopolímeros a partir de residuos de la industria azucarera	CU202600002	Centro de Biotecnología Industrial	García, A.; Martínez, R.; Fernández, T.	2024-05-20	2025-09-15	GRANTED	Método innovador para la conversión de bagazo de caña y otros residuos lignocelulósicos en biopolímeros biodegradables mediante fermentación bacteriana, con aplicaciones en empaques y dispositivos médicos.	BIO	Cuba	\N	e74387e7-b579-4271-836b-fc7856b3ffd2	2026-07-29 12:01:45.944475-04	2026-07-31 08:58:27.238297-04	\N
 \.
 
 
@@ -506,7 +510,8 @@ c4b26a4c-b7bc-44c3-8d45-fcfbae465205	Procedimiento de laminación en caliente pa
 -- Data for Name: professional_profiles; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.professional_profiles (id, user_id, especialidad, grado_cientifico, cv_url, biografia, intereses, created_at, updated_at) FROM stdin;
+COPY public.professional_profiles (id, user_id, especialidad, grado_cientifico, cv_url, biografia, intereses, created_at, updated_at, linkedin_url, twitter_url, researchgate_url, orcid) FROM stdin;
+f28cd9cf-8e67-4a51-b012-d567b346bf2d	503feeb7-d8f4-4903-9d5c-badc07923627	Biotecnología	Dr.C	\N	\N	\N	2026-07-31 09:29:33.310315-04	2026-07-31 09:29:33.310315-04	https://es.linkedin.com/	https://x.com/?lang=es	https://www.researchgate.net/	
 \.
 
 
@@ -560,6 +565,7 @@ cabd30a6-0330-4427-a575-1dba74f8c18d	paco	paco@gmail.com	$2b$12$CJQIzXfpmwfMt865
 8c3da74c-fbce-43d9-9e76-fd68dcca3811	pedro_castillo	pedro@quimicuba.cu	$2b$12$ajbN7XwtGpuiH3Yxymz4mOaJfDpjVbxdkrVz0MHH5sBzPu7Ex9bfO	Pedro Castillo	rep_cti	51234503	Gerente General	e290e6f8-5c11-4959-a470-6dfe8271ad91	t	f	2026-07-24 11:32:13.316937-04	2026-07-24 11:32:13.316937-04	representante	approved	\N	\N	2026-07-24 11:32:13.316937-04
 3a2f8438-3ff8-445e-aad4-ca4a258276ba	raul	raul@elevc.cu	$2b$12$Ah0D/28ntHSZeB90mbapF.ekSYgSxxPQ.NBwKTiuHEdthzS2tP6Fa	Raul Gutierrez	rep_cti	\N	\N	da424081-7494-4023-8b31-b57fb5114d87	t	f	2026-07-30 09:52:24.03706-04	2026-07-30 09:52:24.03706-04	representante	approved	\N	\N	\N
 545f87a5-a46b-4eea-99da-d4f6bbc490ef	maria	maria@techno.cu	$2b$12$bSO8IA73X1w6caUfN.13CuiK/IT76mr5KvCL69qKi0k53XV2aQmOe	Maria Elena Garcia	rep_cti	\N	\N	48fb33ef-429a-4550-a434-8e0c00be96a7	t	f	2026-07-30 10:22:54.695843-04	2026-07-30 10:22:54.695843-04	representante	approved	\N	\N	\N
+503feeb7-d8f4-4903-9d5c-badc07923627	mario	profecional@gmail.com	$2b$12$5yFfAMQIDW/QMh2AfvZrbeONtEoP43TaBAEkk4NmmK0o.0DL.7auq	Mario Rodriguez	visitante	52345678	\N	\N	t	f	2026-07-31 09:29:33.310315-04	2026-07-31 09:30:10.850465-04	profesional	approved	\N	7a72d5e0-b057-4150-9e25-dc1d8df40788	2026-07-31 09:30:10.843761-04
 \.
 
 
