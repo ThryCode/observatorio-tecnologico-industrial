@@ -42,14 +42,17 @@ El Observatorio Tecnológico Industrial es un sistema de inteligencia estratégi
 
 ## Funcionalidades
 
-- **Grafo de conocimiento industrial** — Modela relaciones entre tecnologías, empresas, patentes, normativas e indicadores usando Neo4j con APOC y GDS.
-- **Análisis de patentes** — Registro, búsqueda y clasificación de patentes por sector tecnológico y país.
+- **Grafo de conocimiento interactivo** — Navegación "una sola vista" con pan/zoom, drill-in por sector, aristas curvas por fan-in/out y etiquetas en español. Modela relaciones entre tecnologías, empresas, patentes, normativas e indicadores usando Neo4j con APOC y GDS.
+- **Sincronización Neo4j completa** — `sync_all()` crea las 11 relaciones ontológicas (WORKS_AT, OPERATES_IN, REGULATES, MEASURES, BELONGS_TO_SECTOR, IS_AUTHOR_OF, HAS_PATENT, RELATES_TO, etc.) y `sync_enterprise_graph()` sincroniza follows organización→organización, todo idempotente con MERGE.
+- **Recomendaciones CTI** — `GET /api/v1/graph/recommendations/{org_id}` sugiere entidades por conexiones mutuas con razón explicada.
+- **Análisis de patentes** — Registro, búsqueda y clasificación de patentes por sector tecnológico y país, incluidas patentes empresariales.
 - **Vigilancia normativa** — Seguimiento de leyes, decretos, resoluciones y normas del ecosistema industrial.
 - **Indicadores sectoriales** — Dashboard de indicadores industriales con soporte multiperíodo (mensual, trimestral, anual).
 - **Alertas tempranas** — Motor de reglas sobre el grafo de conocimiento para detectar cambios relevantes.
-- **Recomendaciones CTI** — Sugerencias de colaboración entre entidades basadas en el análisis del grafo.
-- **Registro de usuarios** — Solicitud pública con aprobación/rechazo por administrador.
-- **Sistema de roles** — Admin MINDUS, representante CTI, analista, visitante con permisos diferenciados.
+- **Timeline del Dashboard** — Línea temporal de eventos reales unificando patentes, normativas, boletines, alertas, tecnologías e indicadores.
+- **Publicaciones de investigación** — CRUD con filtro por autor, autocompletado y búsqueda accent-insensitive; el rol profesional puede crear publicaciones.
+- **Registro de usuarios** — Solicitud pública con aprobación/rechazo por administrador; registro de redes sociales en perfiles profesionales.
+- **Sistema de roles** — Admin MINDUS, representante CTI, analista, profesional y visitante con permisos diferenciados (RBAC con `require_role`).
 - **Health check** — Endpoint `/api/v1/health` verifica estado de PostgreSQL, Neo4j y Redis.
 - **Rate limiting** — Protección contra abuso en endpoints de autenticación (slowapi).
 

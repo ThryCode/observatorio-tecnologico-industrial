@@ -5,7 +5,48 @@
 
 ---
 
-## v0.1.0 (Current)
+## v0.2.0 (Current) — Fase 5: Refactorización y Estabilización + Grafo de Conocimiento
+
+### Added
+- **Grafo de conocimiento interactivo** — navegación "una sola vista" con pan/zoom y drill-in por sector:
+  - `graphNav.ts`: vista galaxy (sectores agrupadores) y vista system (subgrafo expandible de vecinos directos)
+  - Drill-in al hacer clic en un nodo (`focusNode`/`goBack`), subtítulo "Sistema de: X", botón "Ver grafo completo"
+  - `ForceGraph2D.tsx` con física circular, nodos de colores por tipo, aristas curvas por fan-in/fan-out, backdrop con pan/zoom nativo (rueda no-pasiva sin scroll de página)
+  - Etiquetas de aristas y títulos de nodos en español (pertenece al sector, opera en, mide, es autor de, etc.)
+  - `KnowledgeGraph.tsx` y `GraphExplorer.tsx` con búsqueda accent-insensitive, autocompletado de autores y traducción de tipos de nodo al español
+- **Sincronización Neo4j completa** — `sync_all()` en `app/graph/repository.py` ahora crea las 11 relaciones ontológicas:
+  - `WORKS_AT` (Person → Organization), `OPERATES_IN` (Organization → Technology), `REGULATES` (Regulation → Technology), `MEASURES` (Indicator → Technology)
+  - `sync_enterprise_graph()` sincroniza follows organización → organización además de user → org, con `MERGE` idempotente
+- **Recomendaciones** — `GET /api/v1/graph/recommendations/{org_id}` con conexiones mutuas y razón por tipo de nodo
+- **Timeline del Dashboard** — `GET /api/v1/dashboard/timeline` unifica alertas, patentes, normativas, boletines, tecnologías e indicadores; componente `DashboardTimeline.tsx`
+- **Research publications** — CRUD completo con filtro por autor, autocompletado (`AuthorAutocomplete.tsx`), búsqueda accent-insensitive
+- **Rol profesional** — usuarios profesionales pueden crear publicaciones de investigación; permisos por rol en `usePermissions.ts`
+- **Enterprise patents** — patentes de empresas con registro de redes sociales en perfiles profesionales
+- **Optimización OPT-001** — 63 hallazgos corregidos (bugs, seguridad, dead code, testing, config)
+- **Tests** — 29 tests nuevos cubriendo 8 módulos endpoint (f5-12) y cobertura adicional de grupos de endpoints (f5-08)
+- **Database dump** — `database/observatorio_dump.sql` con esquema completo + seed data
+
+### Changed
+- `ForceGraph2D.tsx` migrado de layout estático con pool de física a layout circular centrado automáticamente (`centeredView`)
+- Fonts del grafo aumentadas (títulos 4, conexiones 4, subtítulos 2.8) y tipos de nodo traducidos al español
+- `graph/repository.py` y `sync_enterprise_graph` reescritos con relaciones completas e idempotencia
+- BaseService + CrudPage reducen el boilerplate CRUD (f5-06), parámetros de paginación corregidos (f5-06)
+- Búsqueda en list endpoints con `query_helpers.apply_search` / `apply_date_range` (f5-07)
+
+### Fixed
+- ProtectedRoute/file serving autenticado sustituye StaticFiles público sin auth (f5-03)
+- `IndicatorService` evita crash de caché con serialización Pydantic (f5-01)
+- `AlertsPage` ya no marca todas las alertas como leídas al montar (f5-02)
+- Dashboard sin iconos hardcodeados y con estados de error (f5-09, f5-10)
+- Bug del remoto: `UserRole` sin importar en `auth_service.py`; tipos `canEdit`/`canDelete` boolean en `PublicationsPage.tsx`
+
+### Docs
+- Este changelog actualizado
+- AGENTS.md con convenciones de tres niveles (always / ask-first / never)
+
+---
+
+## v0.1.0 — Fase: Registro de Usuarios
 
 ### Added
 - User registration workflow: public registration with approval/rejection by superuser
