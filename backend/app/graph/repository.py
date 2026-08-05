@@ -157,29 +157,59 @@ class GraphRepository:
                 "total_edges": len(edges),
             }
 
-    async def query_graph(self, limit: int = 500):
+    async def query_graph(self, limit: int = 500, sector_codigo: str | None = None):
         async with self.driver.session() as session:
-            nodes_result = await session.run(
-                """
-                MATCH (n)
-                RETURN n.id AS id, n.codigo AS codigo, labels(n) AS labels,
-                       properties(n) AS props
-                LIMIT $limit
-                """,
-                limit=limit,
-            )
-            nodes_data = await nodes_result.data()
+            if sector_codigo:
+                nodes_result = await session.run(
+                    """
+                    MATCH (n)
+                    WHERE n.codigo = $sector
+                       OR exists((n)-[:BELONGS_TO_SECTOR]->({codigo: $sector}))
+                    RETURN n.id AS id, n.codigo AS codigo, labels(n) AS labels,
+                           properties(n) AS props
+                    LIMIT $limit
+                    """,
+                    sector=sector_codigo,
+                    limit=limit,
+                )
+                nodes_data = await nodes_result.data()
 
-            edges_result = await session.run(
-                """
-                MATCH (a)-[r]->(b)
-                RETURN a.id AS sid, a.codigo AS scod, b.id AS tid, b.codigo AS tcod,
-                       type(r) AS type
-                LIMIT $limit
-                """,
-                limit=limit,
-            )
-            edges_data = await edges_result.data()
+                edges_result = await session.run(
+                    """
+                    MATCH (a)-[r]->(b)
+                    WHERE a.codigo = $sector OR b.codigo = $sector
+                       OR exists((a)-[:BELONGS_TO_SECTOR]->({codigo: $sector}))
+                       OR exists((b)-[:BELONGS_TO_SECTOR]->({codigo: $sector}))
+                    RETURN a.id AS sid, a.codigo AS scod, b.id AS tid, b.codigo AS tcod,
+                           type(r) AS type
+                    LIMIT $limit
+                    """,
+                    sector=sector_codigo,
+                    limit=limit,
+                )
+                edges_data = await edges_result.data()
+            else:
+                nodes_result = await session.run(
+                    """
+                    MATCH (n)
+                    RETURN n.id AS id, n.codigo AS codigo, labels(n) AS labels,
+                           properties(n) AS props
+                    LIMIT $limit
+                    """,
+                    limit=limit,
+                )
+                nodes_data = await nodes_result.data()
+
+                edges_result = await session.run(
+                    """
+                    MATCH (a)-[r]->(b)
+                    RETURN a.id AS sid, a.codigo AS scod, b.id AS tid, b.codigo AS tcod,
+                           type(r) AS type
+                    LIMIT $limit
+                    """,
+                    limit=limit,
+                )
+                edges_data = await edges_result.data()
 
         nodes = [
             {
@@ -249,16 +279,29 @@ class GraphRepository:
             items = [record.data() async for record in result]
             return {"items": items, "total": total, "page": page, "per_page": per_page}
 
-    async def stats(self):
+    async def stats(self, sector_codigo: str | None = None):
         async with self.driver.session() as session:
-            result = await session.run(
-                """
-                MATCH (n)
-                UNWIND labels(n) AS label
-                RETURN label, count(*) AS count
-                ORDER BY count DESC
-                """
-            )
+            if sector_codigo:
+                result = await session.run(
+                    """
+                    MATCH (n)
+                    WHERE n.codigo = $sector
+                       OR exists((n)-[:BELONGS_TO_SECTOR]->({codigo: $sector}))
+                    UNWIND labels(n) AS label
+                    RETURN label, count(*) AS count
+                    ORDER BY count DESC
+                    """,
+                    sector=sector_codigo,
+                )
+            else:
+                result = await session.run(
+                    """
+                    MATCH (n)
+                    UNWIND labels(n) AS label
+                    RETURN label, count(*) AS count
+                    ORDER BY count DESC
+                    """
+                )
             return [record.data() async for record in result]
 
     async def shortest_path(self, from_id: str, to_id: str, max_depth: int = 10):

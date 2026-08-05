@@ -1,13 +1,17 @@
 import client from './client';
 import type { EnterpriseGraphResponse, GraphQueryResponse, GraphStat, RecommendationsResponse } from '@/types';
 
-export async function getGraphStats(): Promise<GraphStat[]> {
-  const res = await client.get<{ items: GraphStat[] }>('/graph/stats');
+export async function getGraphStats(sectorCodigo?: string): Promise<GraphStat[]> {
+  const params = new URLSearchParams();
+  if (sectorCodigo) params.set('sector_codigo', sectorCodigo);
+  const qs = params.toString();
+  const res = await client.get<{ items: GraphStat[] }>(`/graph/stats${qs ? `?${qs}` : ''}`);
   return res.data.items;
 }
 
-export async function queryGraph(limit = 500): Promise<GraphQueryResponse> {
+export async function queryGraph(limit = 500, sectorCodigo?: string): Promise<GraphQueryResponse> {
   const params = new URLSearchParams({ limit: String(limit) });
+  if (sectorCodigo) params.set('sector_codigo', sectorCodigo);
   const res = await client.get<GraphQueryResponse>(`/graph/query?${params}`);
   return res.data;
 }

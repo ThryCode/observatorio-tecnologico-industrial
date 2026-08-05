@@ -254,7 +254,7 @@ export default function Dashboard() {
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <h3 className="text-base font-bold text-foreground mb-3">Grafo de Conocimiento Industrial</h3>
-            <KnowledgeGraph height={620} className="rounded-lg border border-border" />
+            <KnowledgeGraph height={620} className="rounded-lg border border-border" sectorCodigo={sectorParam} />
           </div>
           <div>
             <div className="flex items-center justify-between mb-3">

@@ -22,28 +22,21 @@ router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 @router.get("/summary", response_model=DashboardSummary)
 async def dashboard_summary(
+    sector_codigo: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
     _=Depends(get_current_user),
 ):
-    org_count = (await db.execute(
-        select(func.count()).select_from(Organization)
-    )).scalar() or 0
+    def _count(model, sector_col=None):
+        q = select(func.count()).select_from(model)
+        if sector_col is not None and sector_codigo:
+            q = q.where(sector_col == sector_codigo)
+        return q
 
-    pat_count = (await db.execute(
-        select(func.count()).select_from(Patent)
-    )).scalar() or 0
-
-    tech_count = (await db.execute(
-        select(func.count()).select_from(Technology)
-    )).scalar() or 0
-
-    ind_count = (await db.execute(
-        select(func.count()).select_from(Indicator)
-    )).scalar() or 0
-
-    alert_count = (await db.execute(
-        select(func.count()).select_from(Alert)
-    )).scalar() or 0
+    org_count = (await db.execute(_count(Organization, Organization.sector_codigo))).scalar() or 0
+    pat_count = (await db.execute(_count(Patent, Patent.technological_sector))).scalar() or 0
+    tech_count = (await db.execute(_count(Technology, Technology.sector_codigo))).scalar() or 0
+    ind_count = (await db.execute(_count(Indicator, Indicator.sector_codigo))).scalar() or 0
+    alert_count = (await db.execute(_count(Alert, Alert.sector_codigo))).scalar() or 0
 
     return DashboardSummary(kpis=[
         KPIItem(label="Organizaciones", value=org_count, unit="entidades", change=0),

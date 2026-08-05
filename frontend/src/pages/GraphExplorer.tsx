@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useGraphStats, useGraphSearch, useGraphQuery } from '@/hooks/useGraph';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ForceGraph2D, { type ForceGraphNode } from '@/components/ForceGraph2D';
 import { buildGalaxy, buildSystem, primaryType, nodeTypeSpanish } from '@/lib/graphNav';
-import { Search, Network, AlertCircle, Loader2, ArrowLeft, MousePointerClick, X } from 'lucide-react';
+import { Search, Network, AlertCircle, Loader2, ArrowLeft, MousePointerClick, X, Filter } from 'lucide-react';
+import { getIndustrialSectors } from '@/api/industrialSectors';
 
 const LEGEND_COLORS: Record<string, string> = {
   Technology: '#3b82f6',
@@ -38,10 +41,18 @@ export default function GraphExplorer() {
   const [centerId, setCenterId] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<ForceGraphNode | null>(null);
   const [history, setHistory] = useState<string[]>([]);
+  const [sectorFilter, setSectorFilter] = useState('all');
 
-  const { data: stats, isLoading: statsLoading } = useGraphStats();
+  const sectorParam = sectorFilter !== 'all' ? sectorFilter.toUpperCase() : undefined;
+
+  const { data: sectorsData } = useQuery({
+    queryKey: ['industrial-sectors'],
+    queryFn: () => getIndustrialSectors(1, 100),
+  });
+
+  const { data: stats, isLoading: statsLoading } = useGraphStats(sectorParam);
   const { data: searchResults, isLoading: searchLoading } = useGraphSearch(activeQuery);
-  const { data: graphData, isLoading: graphLoading } = useGraphQuery(500);
+  const { data: graphData, isLoading: graphLoading } = useGraphQuery(500, sectorParam);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -250,22 +261,41 @@ export default function GraphExplorer() {
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Buscar en el Grafo</CardTitle>
+              <div className="flex items-center justify-between gap-3">
+                <CardTitle className="text-lg">Buscar en el Grafo</CardTitle>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Filter className="h-3.5 w-3.5" />
+                  Sector
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    placeholder="Tecnologia, patente, organizacion..."
-                    className="pl-9"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
+              <div className="space-y-2">
+                <Select value={sectorFilter} onValueChange={setSectorFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos los sectores" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los sectores</SelectItem>
+                    {sectorsData?.items?.map((s) => (
+                      <SelectItem key={s.codigo} value={s.codigo}>{s.nombre}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Tecnologia, patente, organizacion..."
+                      className="pl-9"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  <Button onClick={() => setActiveQuery(debouncedQuery)} disabled={!debouncedQuery}>
+                    Buscar
+                  </Button>
                 </div>
-                <Button onClick={() => setActiveQuery(debouncedQuery)} disabled={!debouncedQuery}>
-                  Buscar
-                </Button>
               </div>
             </CardContent>
           </Card>
