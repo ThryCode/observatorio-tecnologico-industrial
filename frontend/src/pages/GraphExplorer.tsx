@@ -6,11 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import ForceGraph2D, { type ForceGraphNode } from '@/components/ForceGraph2D';
 import { buildGalaxy, buildSystem, primaryType, nodeTypeSpanish } from '@/lib/graphNav';
 import { Search, Network, AlertCircle, Loader2, ArrowLeft, MousePointerClick, X, Filter } from 'lucide-react';
 import { getIndustrialSectors } from '@/api/industrialSectors';
+import SectorPills from '@/components/SectorPills';
 
 const LEGEND_COLORS: Record<string, string> = {
   Technology: '#3b82f6',
@@ -41,9 +41,9 @@ export default function GraphExplorer() {
   const [centerId, setCenterId] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<ForceGraphNode | null>(null);
   const [history, setHistory] = useState<string[]>([]);
-  const [sectorFilter, setSectorFilter] = useState('all');
+  const [activeSectors, setActiveSectors] = useState<string[]>([]);
 
-  const sectorParam = sectorFilter !== 'all' ? sectorFilter.toUpperCase() : undefined;
+  const sectorParam = activeSectors.length > 0 ? activeSectors.map((s) => s.toUpperCase()) : undefined;
 
   const { data: sectorsData } = useQuery({
     queryKey: ['industrial-sectors'],
@@ -271,17 +271,11 @@ export default function GraphExplorer() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <Select value={sectorFilter} onValueChange={setSectorFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todos los sectores" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos los sectores</SelectItem>
-                    {sectorsData?.items?.map((s) => (
-                      <SelectItem key={s.codigo} value={s.codigo}>{s.nombre}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SectorPills
+                  sectors={(sectorsData?.items ?? []).map((s) => ({ id: s.codigo, label: s.nombre, count: 0 }))}
+                  active={activeSectors}
+                  onChange={setActiveSectors}
+                />
                 <div className="flex gap-2">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

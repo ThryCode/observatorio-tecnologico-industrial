@@ -8,20 +8,28 @@ interface Sector {
 
 interface SectorPillsProps {
   sectors: Sector[];
-  active: string;
-  onChange: (id: string) => void;
+  active: string[];
+  onChange: (ids: string[]) => void;
   className?: string;
 }
 
 export default function SectorPills({ sectors, active, onChange, className }: SectorPillsProps) {
+  const toggle = (id: string) => {
+    if (active.includes(id)) {
+      onChange(active.filter((s) => s !== id));
+    } else {
+      onChange([...active, id]);
+    }
+  };
+
   return (
     <div className={cn('flex flex-wrap gap-2', className)} role="group" aria-label="Filtros por sector tecnológico">
       {sectors.map((sector) => {
-        const isActive = sector.id === active;
+        const isActive = active.includes(sector.id);
         return (
           <button
             key={sector.id}
-            onClick={() => onChange(sector.id)}
+            onClick={() => toggle(sector.id)}
             className={cn(
               'inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold transition-all duration-150 border',
               isActive

@@ -157,19 +157,22 @@ class GraphRepository:
                 "total_edges": len(edges),
             }
 
-    async def query_graph(self, limit: int = 500, sector_codigo: str | None = None):
+    async def query_graph(self, limit: int = 500, sector_codigos: list[str] | None = None):
         async with self.driver.session() as session:
-            if sector_codigo:
+            if sector_codigos:
                 nodes_result = await session.run(
                     """
                     MATCH (n)
-                    WHERE n.codigo = $sector
-                       OR exists((n)-[:BELONGS_TO_SECTOR]->({codigo: $sector}))
+                    WHERE n.codigo IN $sectors
+                       OR EXISTS {
+                           MATCH (n)-[:BELONGS_TO_SECTOR]->(s)
+                           WHERE s.codigo IN $sectors
+                         }
                     RETURN n.id AS id, n.codigo AS codigo, labels(n) AS labels,
                            properties(n) AS props
                     LIMIT $limit
                     """,
-                    sector=sector_codigo,
+                    sectors=sector_codigos,
                     limit=limit,
                 )
                 nodes_data = await nodes_result.data()
@@ -177,14 +180,20 @@ class GraphRepository:
                 edges_result = await session.run(
                     """
                     MATCH (a)-[r]->(b)
-                    WHERE a.codigo = $sector OR b.codigo = $sector
-                       OR exists((a)-[:BELONGS_TO_SECTOR]->({codigo: $sector}))
-                       OR exists((b)-[:BELONGS_TO_SECTOR]->({codigo: $sector}))
+                    WHERE a.codigo IN $sectors OR b.codigo IN $sectors
+                       OR EXISTS {
+                           MATCH (a)-[:BELONGS_TO_SECTOR]->(s)
+                           WHERE s.codigo IN $sectors
+                         }
+                       OR EXISTS {
+                           MATCH (b)-[:BELONGS_TO_SECTOR]->(s)
+                           WHERE s.codigo IN $sectors
+                         }
                     RETURN a.id AS sid, a.codigo AS scod, b.id AS tid, b.codigo AS tcod,
                            type(r) AS type
                     LIMIT $limit
                     """,
-                    sector=sector_codigo,
+                    sectors=sector_codigos,
                     limit=limit,
                 )
                 edges_data = await edges_result.data()
@@ -279,19 +288,22 @@ class GraphRepository:
             items = [record.data() async for record in result]
             return {"items": items, "total": total, "page": page, "per_page": per_page}
 
-    async def stats(self, sector_codigo: str | None = None):
+    async def stats(self, sector_codigos: list[str] | None = None):
         async with self.driver.session() as session:
-            if sector_codigo:
+            if sector_codigos:
                 result = await session.run(
                     """
                     MATCH (n)
-                    WHERE n.codigo = $sector
-                       OR exists((n)-[:BELONGS_TO_SECTOR]->({codigo: $sector}))
+                    WHERE n.codigo IN $sectors
+                       OR EXISTS {
+                           MATCH (n)-[:BELONGS_TO_SECTOR]->(s)
+                           WHERE s.codigo IN $sectors
+                         }
                     UNWIND labels(n) AS label
                     RETURN label, count(*) AS count
                     ORDER BY count DESC
                     """,
-                    sector=sector_codigo,
+                    sectors=sector_codigos,
                 )
             else:
                 result = await session.run(

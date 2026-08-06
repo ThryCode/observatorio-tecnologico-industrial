@@ -35,14 +35,17 @@ export async function listAlerts(
       filtered = filtered.filter(a => a.titulo.toLowerCase().includes(term) || (a.descripcion && a.descripcion.toLowerCase().includes(term)));
     }
     if (severidad) filtered = filtered.filter(a => a.severidad === severidad);
-    if (sector) filtered = filtered.filter(a => !a.sector_codigo || a.sector_codigo === sector);
+    if (sector) {
+      const codes = sector.split(',');
+      filtered = filtered.filter(a => !a.sector_codigo || codes.includes(a.sector_codigo));
+    }
     return filtered;
   }
   const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
   if (unreadOnly) params.set('unread_only', 'true');
   if (q) params.set('q', q);
   if (severidad) params.set('severidad', severidad);
-  if (sector) params.set('sector_codigo', sector);
+  if (sector) params.set('sector_codigos', sector);
   if (fechaDesde) params.set('fecha_desde', fechaDesde);
   if (fechaHasta) params.set('fecha_hasta', fechaHasta);
   if (sortBy) params.set('sort_by', sortBy);

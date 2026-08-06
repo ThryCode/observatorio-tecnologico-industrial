@@ -108,7 +108,10 @@ export async function getOrganizations(
 ): Promise<PaginatedResponse<Organization>> {
   if (USE_MOCK) {
     let filtered = [...MOCK_ORGANIZATIONS];
-    if (sectorCodigo) filtered = filtered.filter((o) => o.sector_codigo === sectorCodigo);
+    if (sectorCodigo) {
+      const codes = sectorCodigo.split(',');
+      filtered = filtered.filter((o) => o.sector_codigo && codes.includes(o.sector_codigo));
+    }
     if (q) {
       const term = q.toLowerCase();
       filtered = filtered.filter((o) =>
@@ -126,7 +129,7 @@ export async function getOrganizations(
     };
   }
   const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
-  if (sectorCodigo) params.set('sector_codigo', sectorCodigo);
+  if (sectorCodigo) params.set('sector_codigos', sectorCodigo);
   if (q) params.set('q', q);
   if (pais) params.set('pais', pais);
   if (provincia) params.set('provincia', provincia);

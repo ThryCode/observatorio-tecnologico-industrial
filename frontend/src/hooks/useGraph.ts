@@ -1,18 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
 import { getGraphStats, searchGraphNodes, exploreNode, queryGraph, getEnterpriseGraph, getOrgRecommendations } from '@/api/graph';
 
-export function useGraphStats(sectorCodigo?: string) {
+export function useGraphStats(sectorCodigos?: string[]) {
   return useQuery({
-    queryKey: ['graph', 'stats', sectorCodigo],
-    queryFn: () => getGraphStats(sectorCodigo),
+    queryKey: ['graph', 'stats', sectorCodigos],
+    queryFn: () => getGraphStats(sectorCodigos),
     retry: false,
   });
 }
 
-export function useGraphQuery(limit = 500, sectorCodigo?: string) {
+export function useGraphQuery(limit = 500, sectorCodigos?: string[]) {
   return useQuery({
-    queryKey: ['graph', 'query', limit, sectorCodigo],
-    queryFn: () => queryGraph(limit, sectorCodigo),
+    queryKey: ['graph', 'query', limit, sectorCodigos],
+    queryFn: () => queryGraph(limit, sectorCodigos),
     retry: false,
   });
 }

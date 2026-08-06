@@ -68,21 +68,22 @@ const MOCK_SECTORS: SectorCountItem[] = [
   { codigo: 'SID', nombre: 'Siderurgia', count: 7 },
 ];
 
-export async function getDashboardKPIs(sectorCodigo?: string): Promise<DashboardKPI[]> {
+export async function getDashboardKPIs(sectorCodigos?: string): Promise<DashboardKPI[]> {
   if (USE_MOCK) {
-    return MOCK_KPIS_BY_SECTOR[sectorCodigo || 'all'] || MOCK_KPIS_BY_SECTOR.all;
+    return MOCK_KPIS_BY_SECTOR[sectorCodigos || 'all'] || MOCK_KPIS_BY_SECTOR.all;
   }
-  const params = sectorCodigo ? `?sector_codigo=${sectorCodigo}` : '';
+  const params = sectorCodigos ? `?sector_codigos=${sectorCodigos}` : '';
   const res = await client.get<{ kpis: DashboardKPI[] }>(`/dashboard/summary${params}`);
   return res.data.kpis;
 }
 
-export async function getTimelineEvents(sectorCodigo?: string): Promise<TimelineEvent[]> {
+export async function getTimelineEvents(sectorCodigos?: string): Promise<TimelineEvent[]> {
   if (USE_MOCK) {
-    if (!sectorCodigo) return MOCK_TIMELINE;
-    return MOCK_TIMELINE.filter((e) => !e.sector || e.sector === sectorCodigo);
+    if (!sectorCodigos) return MOCK_TIMELINE;
+    const codes = sectorCodigos.split(',');
+    return MOCK_TIMELINE.filter((e) => !e.sector || codes.includes(e.sector));
   }
-  const params = sectorCodigo ? `?sector_codigo=${sectorCodigo}` : '';
+  const params = sectorCodigos ? `?sector_codigos=${sectorCodigos}` : '';
   const res = await client.get<TimelineEvent[]>(`/dashboard/timeline${params}`);
   return res.data;
 }

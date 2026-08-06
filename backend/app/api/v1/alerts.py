@@ -22,7 +22,7 @@ async def list_alerts(
     unread_only: bool = Query(False),
     q: str | None = Query(None),
     severidad: str | None = Query(None),
-    sector_codigo: str | None = Query(None),
+    sector_codigos: str | None = Query(None),
     fecha_desde: datetime | None = Query(None),
     fecha_hasta: datetime | None = Query(None),
     sort_by: str | None = Query(None),
@@ -30,8 +30,9 @@ async def list_alerts(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
+    codes = [c.strip() for c in sector_codigos.split(",")] if sector_codigos else None
     items, total = await AlertService(db).list(
-        page, per_page, unread_only, q, severidad, sector_codigo,
+        page, per_page, unread_only, q, severidad, codes,
         fecha_desde, fecha_hasta, sort_by, sort_order,
     )
     return PaginatedResponse(

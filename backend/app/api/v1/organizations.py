@@ -20,7 +20,7 @@ async def list_organizations(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
     tipo: str | None = Query(None),
-    sector_codigo: str | None = Query(None),
+    sector_codigos: str | None = Query(None),
     q: str | None = Query(None),
     pais: str | None = Query(None),
     provincia: str | None = Query(None),
@@ -28,8 +28,9 @@ async def list_organizations(
     sort_order: str = Query("desc"),
     db: AsyncSession = Depends(get_db),
 ):
+    codes = [c.strip() for c in sector_codigos.split(",")] if sector_codigos else None
     items, total = await OrganizationService(db).list(
-        page, per_page, tipo, sector_codigo, q, pais, provincia, sort_by, sort_order
+        page, per_page, tipo, codes, q, pais, provincia, sort_by, sort_order
     )
     return PaginatedResponse(
         items=items,

@@ -131,9 +131,9 @@ async function fetchSafe<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [activeSector, setActiveSector] = useState('all');
+  const [activeSectors, setActiveSectors] = useState<string[]>([]);
   const [exporting, setExporting] = useState(false);
-  const sectorParam = activeSector !== 'all' ? activeSector.toUpperCase() : undefined;
+  const sectorParam = activeSectors.length > 0 ? activeSectors.map((s) => s.toUpperCase()).join(',') : undefined;
   const { data: rawAlerts, isLoading: alertsLoading, isError: alertsError } = useAlerts(false, 1, 20, undefined, undefined, sectorParam);
   const { data: kpis, isLoading: kpisLoading, isError: kpisError } = useDashboardKPIs(sectorParam);
   const { data: rawTimeline, isLoading: timelineLoading, isError: timelineError } = useTimelineEvents(sectorParam);
@@ -231,7 +231,7 @@ export default function Dashboard() {
       ) : sectorsLoading ? (
         <div className="text-center text-text-muted py-4">Cargando sectores...</div>
       ) : (
-        <SectorPills sectors={sectors} active={activeSector} onChange={setActiveSector} />
+        <SectorPills sectors={sectors} active={activeSectors} onChange={setActiveSectors} />
       )}
 
       {/* Section 2 — KPIs */}
@@ -254,7 +254,7 @@ export default function Dashboard() {
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <h3 className="text-base font-bold text-foreground mb-3">Grafo de Conocimiento Industrial</h3>
-            <KnowledgeGraph height={620} className="rounded-lg border border-border" sectorCodigo={sectorParam} />
+            <KnowledgeGraph height={620} className="rounded-lg border border-border" sectorCodigos={activeSectors.map((s) => s.toUpperCase())} />
           </div>
           <div>
             <div className="flex items-center justify-between mb-3">

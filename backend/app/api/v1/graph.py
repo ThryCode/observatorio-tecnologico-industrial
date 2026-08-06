@@ -30,7 +30,7 @@ router = APIRouter(prefix="/graph", tags=["graph"])
 @router.get("/query", response_model=GraphQueryResponse)
 async def query_graph(
     limit: int = Query(500, ge=1, le=2000),
-    sector_codigo: str | None = Query(None),
+    sector_codigos: str | None = Query(None),
     neo4j=Depends(get_neo4j),
     _: User = Depends(get_current_user),
 ):
@@ -38,7 +38,8 @@ async def query_graph(
         raise AppException(503, "Neo4j is not available")
     from app.graph.repository import GraphRepository
     repo = GraphRepository(neo4j)
-    return await repo.query_graph(limit, sector_codigo)
+    codes = [c.strip() for c in sector_codigos.split(",")] if sector_codigos else None
+    return await repo.query_graph(limit, codes)
 
 
 @router.get("/explore", response_model=GraphExploreResponse)
@@ -75,7 +76,7 @@ async def search_nodes(
 
 @router.get("/stats", response_model=GraphStatsResponse)
 async def graph_stats(
-    sector_codigo: str | None = Query(None),
+    sector_codigos: str | None = Query(None),
     neo4j=Depends(get_neo4j),
     _: User = Depends(get_current_user),
 ):
@@ -83,7 +84,8 @@ async def graph_stats(
         raise AppException(503, "Neo4j is not available")
     from app.graph.repository import GraphRepository
     repo = GraphRepository(neo4j)
-    items = await repo.stats(sector_codigo)
+    codes = [c.strip() for c in sector_codigos.split(",")] if sector_codigos else None
+    items = await repo.stats(codes)
     return {"items": items}
 
 

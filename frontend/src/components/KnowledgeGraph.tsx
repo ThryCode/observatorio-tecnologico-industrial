@@ -9,7 +9,7 @@ import { buildGalaxy } from '@/lib/graphNav';
 interface KnowledgeGraphProps {
   className?: string;
   height?: number;
-  sectorCodigo?: string;
+  sectorCodigos?: string[];
 }
 
 const legendItems: { type: string; label: string }[] = [
@@ -22,9 +22,9 @@ const legendItems: { type: string; label: string }[] = [
   { type: 'Regulation', label: 'Regulaciones' },
 ];
 
-export default function KnowledgeGraph({ className, height = 400, sectorCodigo }: KnowledgeGraphProps) {
+export default function KnowledgeGraph({ className, height = 400, sectorCodigos }: KnowledgeGraphProps) {
   const navigate = useNavigate();
-  const { data, isLoading } = useGraphQuery(400, sectorCodigo);
+  const { data, isLoading } = useGraphQuery(400, sectorCodigos);
 
   const { graphNodes, graphEdges, hiddenCounts, nodeCount, edgeCount } = useMemo(() => {
     if (!data) return { graphNodes: [], graphEdges: [], hiddenCounts: {}, nodeCount: 0, edgeCount: 0 };

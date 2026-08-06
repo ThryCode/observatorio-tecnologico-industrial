@@ -13,7 +13,7 @@ class OrganizationService(BaseService[Organization, OrganizationCreate, Organiza
 
     async def list(
         self, page: int, per_page: int, tipo: str | None = None,
-        sector_codigo: str | None = None, q: str | None = None,
+        sector_codigos: list[str] | None = None, q: str | None = None,
         pais: str | None = None, provincia: str | None = None,
         sort_by: str | None = None, sort_order: str = "desc",
     ) -> tuple[list[Organization], int]:
@@ -23,9 +23,9 @@ class OrganizationService(BaseService[Organization, OrganizationCreate, Organiza
         if tipo:
             query = query.where(Organization.tipo == tipo)
             count_query = count_query.where(Organization.tipo == tipo)
-        if sector_codigo:
-            query = query.where(Organization.sector_codigo == sector_codigo)
-            count_query = count_query.where(Organization.sector_codigo == sector_codigo)
+        if sector_codigos:
+            query = query.where(Organization.sector_codigo.in_(sector_codigos))
+            count_query = count_query.where(Organization.sector_codigo.in_(sector_codigos))
         if q:
             query = apply_search(query, Organization, q, [Organization.nombre, Organization.siglas])
             count_query = apply_search(count_query, Organization, q, [Organization.nombre, Organization.siglas])

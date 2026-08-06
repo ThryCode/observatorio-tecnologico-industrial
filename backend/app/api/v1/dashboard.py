@@ -22,14 +22,16 @@ router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 @router.get("/summary", response_model=DashboardSummary)
 async def dashboard_summary(
-    sector_codigo: str | None = Query(None),
+    sector_codigos: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
     _=Depends(get_current_user),
 ):
+    codes = [c.strip() for c in sector_codigos.split(",")] if sector_codigos else None
+
     def _count(model, sector_col=None):
         q = select(func.count()).select_from(model)
-        if sector_col is not None and sector_codigo:
-            q = q.where(sector_col == sector_codigo)
+        if codes and sector_col is not None:
+            q = q.where(sector_col.in_(codes))
         return q
 
     org_count = (await db.execute(_count(Organization, Organization.sector_codigo))).scalar() or 0
@@ -94,7 +96,7 @@ def _timeline_query(
     titulo_col,
     tipo: str,
     sector_col=None,
-    sector_codigo: str | None = None,
+    sector_codigos: list[str] | None = None,
 ):
     query = select(
         id_col.label("id"),
@@ -102,46 +104,48 @@ def _timeline_query(
         titulo_col.label("titulo"),
         literal_column(f"'{tipo}'").label("tipo"),
     )
-    if sector_col is not None and sector_codigo:
-        query = query.where(sector_col == sector_codigo)
+    if sector_col is not None and sector_codigos:
+        query = query.where(sector_col.in_(sector_codigos))
     return query
 
 
 @router.get("/timeline", response_model=list[TimelineEvent])
 async def dashboard_timeline(
     limit: int = Query(20, ge=1, le=100),
-    sector_codigo: str | None = Query(None),
+    sector_codigos: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
     _=Depends(get_current_user),
 ):
+    codes = [c.strip() for c in sector_codigos.split(",")] if sector_codigos else None
+
     alert_q = _timeline_query(
         Alert.id, Alert.fecha, Alert.titulo, "alerta",
-        Alert.sector_codigo, sector_codigo,
+        Alert.sector_codigo, codes,
     )
 
     pat_q = _timeline_query(
         Patent.id, Patent.created_at, Patent.title, "patente",
-        Patent.technological_sector, sector_codigo,
+        Patent.technological_sector, codes,
     )
 
     reg_q = _timeline_query(
         Regulation.id, Regulation.created_at, Regulation.title, "regulacion",
-        Regulation.sector_codigo, sector_codigo,
+        Regulation.sector_codigo, codes,
     )
 
     bul_q = _timeline_query(
         Bulletin.id, Bulletin.created_at, Bulletin.titulo, "boletin",
-        Bulletin.sector_codigo, sector_codigo,
+        Bulletin.sector_codigo, codes,
     )
 
     tech_q = _timeline_query(
         Technology.id, Technology.created_at, Technology.nombre, "tecnologia",
-        Technology.sector_codigo, sector_codigo,
+        Technology.sector_codigo, codes,
     )
 
     ind_q = _timeline_query(
         Indicator.id, Indicator.created_at, Indicator.name, "indicador",
-        Indicator.sector_codigo, sector_codigo,
+        Indicator.sector_codigo, codes,
     )
 
     union_q = alert_q.union_all(pat_q, reg_q, bul_q, tech_q, ind_q).cte("events")
@@ -160,14 +164,14 @@ async def dashboard_timeline(
         for r in events
     ]
 
-    follow_events = await _follow_events(db, sector_codigo)
+    follow_events = await _follow_events(db, codes)
     timeline.extend(follow_events)
     timeline.sort(key=lambda e: e.fecha, reverse=True)
 
     return timeline[:limit]
 
 
-async def _follow_events(db: AsyncSession, sector_codigo: str | None) -> list[TimelineEvent]:
+async def _follow_events(db: AsyncSession, sector_codigos: list[str] | None) -> list[TimelineEvent]:
     org_sel = select(
         Organization.id, Organization.nombre, Organization.siglas, Organization.sector_codigo
     )
@@ -194,7 +198,7 @@ async def _follow_events(db: AsyncSession, sector_codigo: str | None) -> list[Ti
         target = org_map.get(str(row.organization_id))
         if not target:
             continue
-        if sector_codigo and (target.sector_codigo or "") != sector_codigo:
+        if sector_codigos and (target.sector_codigo or "") not in sector_codigos:
             continue
 
         if row.follower_type == "organization":

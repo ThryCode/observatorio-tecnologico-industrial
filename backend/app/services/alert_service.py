@@ -17,7 +17,7 @@ class AlertService(BaseService[Alert, AlertCreate, AlertUpdate]):
     async def list(
         self, page: int, per_page: int, unread_only: bool = False,
         q: str | None = None, severidad: str | None = None,
-        sector_codigo: str | None = None,
+        sector_codigos: list[str] | None = None,
         fecha_desde: datetime | None = None, fecha_hasta: datetime | None = None,
         sort_by: str | None = None, sort_order: str = "desc",
     ) -> tuple[list[Alert], int]:
@@ -30,9 +30,9 @@ class AlertService(BaseService[Alert, AlertCreate, AlertUpdate]):
         if severidad:
             query = query.where(Alert.severidad == severidad)
             count_query = count_query.where(Alert.severidad == severidad)
-        if sector_codigo:
-            query = query.where(or_(Alert.sector_codigo == sector_codigo, Alert.sector_codigo.is_(None)))
-            count_query = count_query.where(or_(Alert.sector_codigo == sector_codigo, Alert.sector_codigo.is_(None)))
+        if sector_codigos:
+            query = query.where(or_(Alert.sector_codigo.in_(sector_codigos), Alert.sector_codigo.is_(None)))
+            count_query = count_query.where(or_(Alert.sector_codigo.in_(sector_codigos), Alert.sector_codigo.is_(None)))
 
         query = apply_search(query, Alert, q, [Alert.titulo, Alert.descripcion])
         count_query = apply_search(count_query, Alert, q, [Alert.titulo, Alert.descripcion])
