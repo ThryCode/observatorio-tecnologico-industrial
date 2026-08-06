@@ -2,8 +2,9 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_list_research_publications(client):
-    resp = await client.get("/api/v1/research-publications")
+async def test_list_research_publications(client, auth_headers):
+    headers = await auth_headers("rplist", is_superuser=True)
+    resp = await client.get("/api/v1/research-publications", headers=headers)
     assert resp.status_code == 200
     data = resp.json()
     assert "items" in data

@@ -49,12 +49,17 @@ describe('alerts API client', () => {
     );
   });
 
-  it('listAlerts calls GET without param when unreadOnly=false', async () => {
+  it('listAlerts calls GET without unread_only param when unreadOnly=false', async () => {
     const client = (await import('@/api/client')).default;
     const { listAlerts } = await import('@/api/alerts');
 
     await listAlerts(false);
 
-    expect(client.get).toHaveBeenCalledWith('/alerts');
+    expect(client.get).toHaveBeenCalledWith(
+      expect.stringContaining('/alerts'),
+    );
+    expect(client.get).not.toHaveBeenCalledWith(
+      expect.stringContaining('unread_only'),
+    );
   });
 });
