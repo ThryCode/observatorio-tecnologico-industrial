@@ -29,3 +29,27 @@ export async function getIndustrialSectors(
   const res = await client.get<PaginatedResponse<IndustrialSector>>(`/industrial-sectors?${params}`);
   return res.data;
 }
+
+export async function createIndustrialSector(data: { codigo: string; nombre: string; descripcion?: string }): Promise<IndustrialSector> {
+  if (USE_MOCK) {
+    const now = new Date().toISOString();
+    return { ...data, descripcion: data.descripcion || '', created_at: now, updated_at: now };
+  }
+  const res = await client.post<IndustrialSector>('/industrial-sectors', data);
+  return res.data;
+}
+
+export async function updateIndustrialSector(codigo: string, data: { nombre?: string; descripcion?: string }): Promise<IndustrialSector> {
+  if (USE_MOCK) {
+    const existing = MOCK_SECTORS.find((s) => s.codigo === codigo);
+    if (!existing) throw new Error('Not found');
+    return { ...existing, ...data, updated_at: new Date().toISOString() };
+  }
+  const res = await client.put<IndustrialSector>(`/industrial-sectors/${codigo}`, data);
+  return res.data;
+}
+
+export async function deleteIndustrialSector(codigo: string): Promise<void> {
+  if (USE_MOCK) return;
+  await client.delete(`/industrial-sectors/${codigo}`);
+}
