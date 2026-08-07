@@ -21,7 +21,7 @@ origins = json.loads(settings.backend_cors_origins)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logging()
-    logger.info("Starting Observatorio Tecnológico Industrial API")
+    logger.bind(component="startup").info("Starting Observatorio Tecnologico Industrial API")
 
     await startup_db()
 
@@ -31,9 +31,9 @@ async def lifespan(app: FastAPI):
     try:
         from app.neo4j_client import create_neo4j_driver
         neo4j = create_neo4j_driver(settings)
-        logger.info("Neo4j driver created")
+        logger.bind(component="startup").info("Neo4j driver created")
     except Exception:
-        logger.warning("Neo4j not available, graph features disabled")
+        logger.bind(component="startup").warning("Neo4j not available, graph features disabled")
 
     try:
         from app.redis_client import create_redis_client
