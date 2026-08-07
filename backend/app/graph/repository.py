@@ -111,13 +111,14 @@ class GraphRepository:
                     "total_nodes": len(nodes),
                     "total_edges": len(edges),
                 }
+            # Cypher does not support parameterized variable-length ranges (*1..$depth).
+            # depth is validated by FastAPI (ge=1, le=5) and cast to int here for safety.
+            safe_depth = int(depth)
             result = await session.run(
-                f"""
-                MATCH (n)
-                WHERE elementId(n) = $node_id OR n.id = $node_id OR n.codigo = $node_id
-                OPTIONAL MATCH (n)-[*1..{depth}]-(m)
-                RETURN collect(DISTINCT n) + collect(DISTINCT m) AS all_nodes
-                """,
+                "MATCH (n) "
+                "WHERE elementId(n) = $node_id OR n.id = $node_id OR n.codigo = $node_id "
+                f"OPTIONAL MATCH (n)-[*1..{safe_depth}]-(m) "  # noqa: S608 — Cypher limitation
+                "RETURN collect(DISTINCT n) + collect(DISTINCT m) AS all_nodes",
                 node_id=node_id,
             )
             record = await result.single()
@@ -244,47 +245,34 @@ class GraphRepository:
         }
 
     async def search_nodes(self, q: str, labels: list[str] | None = None, page: int = 1, per_page: int = 20):
-        params = {"q": re.escape(q)}
-        label_filter = ""
+        params: dict = {"q": re.escape(q)}
+        label_clause = ""
         if labels:
-            label_filter = "AND any(lbl IN labels(n) WHERE lbl IN $labels)"
+            label_clause = "AND any(lbl IN labels(n) WHERE lbl IN $labels)"
             params["labels"] = labels
         skip = (page - 1) * per_page
 
+        # label_clause is built from a fixed string template, not user input
+        where_clause = (
+            "WHERE (toLower(n.name) CONTAINS toLower($q) OR "
+            "toLower(n.title) CONTAINS toLower($q) OR "
+            "toLower(n.code) CONTAINS toLower($q) OR "
+            "toLower(n.nombre) CONTAINS toLower($q))"
+        )
+
         async with self.driver.session() as session:
             count_result = await session.run(
-                f"""
-                MATCH (n)
-                WHERE (
-                    toLower(n.name) CONTAINS toLower($q) OR
-                    toLower(n.title) CONTAINS toLower($q) OR
-                    toLower(n.code) CONTAINS toLower($q) OR
-                    toLower(n.nombre) CONTAINS toLower($q)
-                )
-                {label_filter}
-                RETURN count(*) AS total
-                """,
+                f"MATCH (n) {where_clause} {label_clause} RETURN count(*) AS total",  # noqa: S608
                 params,
             )
             total_record = await count_result.single()
             total = total_record["total"] if total_record else 0
 
-            result = await session.run(
-                f"""
-                MATCH (n)
-                WHERE (
-                    toLower(n.name) CONTAINS toLower($q) OR
-                    toLower(n.title) CONTAINS toLower($q) OR
-                    toLower(n.code) CONTAINS toLower($q) OR
-                    toLower(n.nombre) CONTAINS toLower($q)
-                )
-                {label_filter}
-                RETURN n, labels(n) AS node_labels
-                SKIP $skip
-                LIMIT $per_page
-                """,
-                params | {"skip": skip, "per_page": per_page},
+            cypher = (
+                f"MATCH (n) {where_clause} {label_clause} "  # noqa: S608
+                "RETURN n, labels(n) AS node_labels SKIP $skip LIMIT $per_page"
             )
+            result = await session.run(cypher, params | {"skip": skip, "per_page": per_page})
             items = [record.data() async for record in result]
             return {"items": items, "total": total, "page": page, "per_page": per_page}
 
@@ -1051,22 +1039,31 @@ class GraphRepository:
 
         return deleted
 
-    @staticmethod
-    async def _delete_missing(session, label: str, key: str, valid_ids: list[str]) -> int:
+    VALID_NODE_LABELS = frozenset({
+        "Organization", "Patent", "Technology", "Regulation",
+        "Indicator", "IndustrialSector", "Person",
+    })
+    VALID_NODE_KEYS = frozenset({"id", "codigo"})
+
+    @classmethod
+    async def _delete_missing(cls, session, label: str, key: str, valid_ids: list[str]) -> int:
+        # Validate against whitelists to prevent injection via internal constants
+        if label not in cls.VALID_NODE_LABELS:
+            raise ValueError(f"Invalid node label: {label!r}")
+        if key not in cls.VALID_NODE_KEYS:
+            raise ValueError(f"Invalid node key: {key!r}")
+
         if not valid_ids:
             result = await session.run(
-                f"MATCH (n:{label}) DETACH DELETE n RETURN count(*) AS deleted"
+                f"MATCH (n:{label}) DETACH DELETE n RETURN count(*) AS deleted"  # noqa: S608 — validated label
             )
             record = await result.single()
             return record["deleted"] if record else 0
-        result = await session.run(
-            f"""
-            MATCH (n:{label})
-            WHERE NOT coalesce(n.{key}, '') IN $valid_ids
-            DETACH DELETE n
-            RETURN count(*) AS deleted
-            """,
-            valid_ids=valid_ids,
+        # label and key are validated against whitelists above
+        cypher = (
+            f"MATCH (n:{label}) WHERE NOT coalesce(n.{key}, '') IN $valid_ids "  # noqa: S608
+            "DETACH DELETE n RETURN count(*) AS deleted"
         )
+        result = await session.run(cypher, valid_ids=valid_ids)
         record = await result.single()
         return record["deleted"] if record else 0
