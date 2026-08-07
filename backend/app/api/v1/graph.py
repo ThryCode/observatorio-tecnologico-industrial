@@ -1,5 +1,7 @@
 from fastapi import APIRouter, Depends, Query
+from neo4j import AsyncDriver
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_db
 from app.core.exceptions import AppException
@@ -24,7 +26,7 @@ router = APIRouter(prefix="/graph", tags=["graph"])
 async def query_graph(
     limit: int = Query(500, ge=1, le=2000),
     sector_codigos: str | None = Query(None),
-    neo4j=Depends(get_neo4j),
+    neo4j: AsyncDriver | None = Depends(get_neo4j),
     _: User = Depends(get_current_user),
 ):
     if not neo4j:
@@ -39,7 +41,7 @@ async def query_graph(
 async def explore_node(
     node_id: str = Query(...),
     depth: int = Query(2, ge=1, le=5),
-    neo4j=Depends(get_neo4j),
+    neo4j: AsyncDriver | None = Depends(get_neo4j),
     _: User = Depends(get_current_user),
 ):
     if not neo4j:
@@ -56,7 +58,7 @@ async def search_nodes(
     labels: str | None = Query(None),
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
-    neo4j=Depends(get_neo4j),
+    neo4j: AsyncDriver | None = Depends(get_neo4j),
     _: User = Depends(get_current_user),
 ):
     if not neo4j:
@@ -70,7 +72,7 @@ async def search_nodes(
 @router.get("/stats", response_model=GraphStatsResponse)
 async def graph_stats(
     sector_codigos: str | None = Query(None),
-    neo4j=Depends(get_neo4j),
+    neo4j: AsyncDriver | None = Depends(get_neo4j),
     _: User = Depends(get_current_user),
 ):
     if not neo4j:
@@ -84,8 +86,8 @@ async def graph_stats(
 
 @router.post("/sync", response_model=SyncResponse)
 async def sync_graph(
-    neo4j=Depends(get_neo4j),
-    db=Depends(get_db),
+    neo4j: AsyncDriver | None = Depends(get_neo4j),
+    db: AsyncSession = Depends(get_db),
     _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     if not neo4j:
@@ -97,8 +99,8 @@ async def sync_graph(
 
 @router.post("/sync-enterprise", response_model=SyncResponse)
 async def sync_enterprise_graph(
-    neo4j=Depends(get_neo4j),
-    db=Depends(get_db),
+    neo4j: AsyncDriver | None = Depends(get_neo4j),
+    db: AsyncSession = Depends(get_db),
     _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     if not neo4j:
@@ -112,8 +114,8 @@ async def sync_enterprise_graph(
 async def recommendations_for_org(
     org_id: str,
     limit: int = Query(20, ge=1, le=100),
-    db=Depends(get_db),
-    neo4j=Depends(get_neo4j),
+    db: AsyncSession = Depends(get_db),
+    neo4j: AsyncDriver | None = Depends(get_neo4j),
     _: User = Depends(get_current_user),
 ):
     if not neo4j:
@@ -139,7 +141,7 @@ async def find_shortest_path(
     from_id: str = Query(..., alias="from"),
     to_id: str = Query(..., alias="to"),
     max_depth: int = Query(10, ge=1, le=50),
-    neo4j=Depends(get_neo4j),
+    neo4j: AsyncDriver | None = Depends(get_neo4j),
     _: User = Depends(get_current_user),
 ):
     if not neo4j:
@@ -152,7 +154,7 @@ async def find_shortest_path(
 
 @router.get("/enterprise", response_model=EnterpriseGraphResponse)
 async def enterprise_graph(
-    db=Depends(get_db),
+    db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
     from app.services.graph_service import GraphService
