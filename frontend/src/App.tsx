@@ -13,6 +13,7 @@ const Indicators = lazy(() => import('@/pages/Indicators'));
 const Regulations = lazy(() => import('@/pages/Regulations'));
 const GraphExplorer = lazy(() => import('@/pages/GraphExplorer'));
 const EnterpriseGraph = lazy(() => import('@/pages/EnterpriseGraph'));
+const GraphAnalytics = lazy(() => import('@/pages/GraphAnalytics'));
 const Profile = lazy(() => import('@/pages/Profile'));
 const Register = lazy(() => import('@/pages/Register'));
 const PendingApprovals = lazy(() => import('@/pages/PendingApprovals'));
@@ -53,6 +54,11 @@ export default function App() {
             <Route path="/enterprise-graph" element={
               <ProtectedRoute requiredRoles={['admin_mindus']}>
                 <EnterpriseGraph />
+              </ProtectedRoute>
+            } />
+            <Route path="/graph-analytics" element={
+              <ProtectedRoute requiredRoles={['admin_mindus']}>
+                <GraphAnalytics />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={<Profile />} />
