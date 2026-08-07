@@ -1,5 +1,7 @@
 from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from neo4j import AsyncDriver
+from redis.asyncio import Redis
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,11 +13,11 @@ from app.models.user import User
 security_scheme = HTTPBearer()
 
 
-async def get_neo4j(request: Request):
+async def get_neo4j(request: Request) -> AsyncDriver | None:
     return getattr(request.app.state, "neo4j", None)
 
 
-async def get_redis(request: Request):
+async def get_redis(request: Request) -> Redis | None:
     return getattr(request.app.state, "redis", None)
 
 
