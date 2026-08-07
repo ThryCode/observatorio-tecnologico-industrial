@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -26,13 +25,19 @@ interface CrudPageProps<T extends { id: string }> {
   searchPlaceholder?: string;
   filterBar?: React.ReactNode;
   queryResult: { data?: PaginatedResponse<T>; isLoading: boolean; isError: boolean; refetch: () => void };
-  createMutation: { mutateAsync: (data: any) => Promise<any>; isPending: boolean };
-  updateMutation: { mutateAsync: (data: any) => Promise<any>; isPending: boolean };
-  deleteMutation: { mutateAsync: (data: any) => Promise<any>; isPending: boolean };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  createMutation: { mutateAsync: (data: any) => Promise<T>; isPending: boolean };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  updateMutation: { mutateAsync: (data: any) => Promise<T>; isPending: boolean };
+  deleteMutation: { mutateAsync: (id: string) => Promise<unknown>; isPending: boolean };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   renderForm: (props: { data: Record<string, any>; onChange: (patch: Record<string, any>) => void; isEditing: boolean }) => React.ReactNode;
   renderDetail?: (item: T) => React.ReactNode;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   defaultForm: Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   formToPayload: (form: Record<string, any>, isEditing: boolean) => any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   validateForm?: (form: Record<string, any>) => string | null;
   searchFilter?: (item: T, query: string) => boolean;
   onSearch?: (query: string) => void;
@@ -40,6 +45,17 @@ interface CrudPageProps<T extends { id: string }> {
   onPageChange: (page: number) => void;
   canEdit?: (item: T) => boolean;
   canDelete?: (item: T) => boolean;
+  nameField?: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getDisplayName(item: Record<string, any> | null, nameField?: string): string {
+  if (!item) return '';
+  if (nameField && typeof item[nameField] === 'string') return item[nameField] as string;
+  if ('nombre' in item && typeof item.nombre === 'string') return item.nombre;
+  if ('title' in item && typeof item.title === 'string') return item.title;
+  if ('titulo' in item && typeof item.titulo === 'string') return item.titulo;
+  return '';
 }
 
 export default function CrudPage<T extends { id: string }>({
@@ -51,6 +67,7 @@ export default function CrudPage<T extends { id: string }>({
   formToPayload, validateForm, searchFilter, onSearch,
   page, onPageChange,
   canEdit: canEditFn, canDelete: canDeleteFn,
+  nameField,
 }: CrudPageProps<T>) {
   const { can } = usePermissions();
   const [search, setSearch] = useState('');
@@ -64,6 +81,7 @@ export default function CrudPage<T extends { id: string }>({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<T | null>(null);
   const [editingItem, setEditingItem] = useState<T | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [form, setForm] = useState<Record<string, any>>(defaultForm);
   const [saveError, setSaveError] = useState('');
 
@@ -71,6 +89,7 @@ export default function CrudPage<T extends { id: string }>({
 
   const openCreateDialog = () => { resetForm(); setDialogOpen(true); };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const openEditDialog = (item: T) => { setEditingItem(item); setForm({ ...item } as Record<string, any>); setDialogOpen(true); };
 
   const handleSave = async () => {
@@ -80,14 +99,18 @@ export default function CrudPage<T extends { id: string }>({
     }
     setSaveError('');
     try {
-      await (editingItem ? updateMutation : createMutation).mutateAsync(
-        editingItem ? { id: editingItem.id, data: formToPayload(form, true) } : formToPayload(form, false)
-      );
+      const payload = formToPayload(form, !!editingItem);
+      if (editingItem) {
+        await updateMutation.mutateAsync({ id: editingItem.id, ...payload });
+      } else {
+        await createMutation.mutateAsync(payload);
+      }
       setDialogOpen(false);
       resetForm();
       refetch();
-    } catch (e: any) {
-      const msg = e?.response?.data?.detail || e?.message || 'Error al guardar. Verifica los datos.';
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { detail?: unknown } }; message?: string };
+      const msg = err?.response?.data?.detail || err?.message || 'Error al guardar. Verifica los datos.';
       setSaveError(typeof msg === 'string' ? msg : JSON.stringify(msg));
     }
   };
@@ -156,7 +179,8 @@ export default function CrudPage<T extends { id: string }>({
       {renderDetail && selected && !dialogOpen && !deleteDialogOpen && (
         <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
           <DialogContent className="max-w-md">
-            <DialogHeader><DialogTitle>{(selected as any).nombre || (selected as any).title || 'Detalles'}</DialogTitle></DialogHeader>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <DialogHeader><DialogTitle>{getDisplayName(selected as any, nameField) || 'Detalles'}</DialogTitle></DialogHeader>
             {renderDetail(selected)}
           </DialogContent>
         </Dialog>
@@ -176,7 +200,8 @@ export default function CrudPage<T extends { id: string }>({
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="max-w-sm">
-          <DialogHeader><DialogTitle>Confirmar eliminación</DialogTitle><DialogDescription>¿Está seguro de eliminar &quot;{(itemToDelete as any)?.nombre || (itemToDelete as any)?.title}&quot;? Esta acción no se puede deshacer.</DialogDescription></DialogHeader>
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <DialogHeader><DialogTitle>Confirmar eliminación</DialogTitle><DialogDescription>¿Está seguro de eliminar &quot;{getDisplayName(itemToDelete as any, nameField)}&quot;? Esta acción no se puede deshacer.</DialogDescription></DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancelar</Button>
             <Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>Eliminar</Button>
