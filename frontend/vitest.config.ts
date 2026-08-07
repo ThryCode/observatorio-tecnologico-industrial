@@ -14,5 +14,11 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     css: false,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      include: ['src/hooks/**', 'src/api/**'],
+      exclude: ['src/test/**', 'src/**/*.d.ts', 'src/api/client.ts', 'src/api/uploads.ts', 'src/api/follows.ts'],
+    },
   },
 });
