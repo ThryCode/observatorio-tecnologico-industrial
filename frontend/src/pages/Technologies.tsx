@@ -7,6 +7,7 @@ import { getIndustrialSectors } from '@/api/industrialSectors';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { formatDate } from '@/utils/formatters';
 import type { Technology } from '@/types';
 
@@ -92,7 +93,7 @@ export default function Technologies() {
           </div>
           <div>
             <label className="text-sm font-medium">Descripción</label>
-            <textarea className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" value={data.descripcion} onChange={(e) => onChange({ descripcion: e.target.value })} placeholder="Descripción de la tecnología" />
+            <Textarea value={data.descripcion} onChange={(e) => onChange({ descripcion: e.target.value })} placeholder="Descripción de la tecnología" />
           </div>
           <div>
             <label className="text-sm font-medium">Sector</label>

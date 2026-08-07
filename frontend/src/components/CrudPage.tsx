@@ -170,9 +170,9 @@ export default function CrudPage<T extends { id: string }>({
                   {columns.map((c) => <TableCell key={c.header}>{c.render(item)}</TableCell>)}
                   <TableCell>
                     <div className="flex gap-1">
-                      {can(permissionResource, 'edit') && (!canEditFn || canEditFn(item)) && <Button variant="ghost" size="sm" onClick={() => openEditDialog(item)}><Pencil className="h-4 w-4" /></Button>}
-                      {can(permissionResource, 'delete') && (!canDeleteFn || canDeleteFn(item)) && <Button variant="ghost" size="sm" onClick={() => { setItemToDelete(item); setDeleteDialogOpen(true); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
-                      {renderDetail && <Button variant="ghost" size="sm" onClick={() => setSelected(item)}><ExternalLink className="h-4 w-4" /></Button>}
+                      {can(permissionResource, 'edit') && (!canEditFn || canEditFn(item)) && <Button variant="ghost" size="sm" onClick={() => openEditDialog(item)} aria-label="Editar"><Pencil className="h-4 w-4" /></Button>}
+                      {can(permissionResource, 'delete') && (!canDeleteFn || canDeleteFn(item)) && <Button variant="ghost" size="sm" onClick={() => { setItemToDelete(item); setDeleteDialogOpen(true); }} aria-label="Eliminar"><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                      {renderDetail && <Button variant="ghost" size="sm" onClick={() => setSelected(item)} aria-label="Ver detalle"><ExternalLink className="h-4 w-4" /></Button>}
                     </div>
                   </TableCell>
                 </TableRow>
