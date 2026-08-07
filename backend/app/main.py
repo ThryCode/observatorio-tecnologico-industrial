@@ -13,6 +13,7 @@ from app.core.config import settings
 from app.core.db import close_db, startup_db
 from app.core.exceptions import register_exception_handlers
 from app.core.logging_config import setup_logging
+from app.core.middleware import RequestIDMiddleware
 from app.limiter import limiter
 
 origins = json.loads(settings.backend_cors_origins)
@@ -77,8 +78,9 @@ app.add_middleware(
     allow_origins=origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
 )
+app.add_middleware(RequestIDMiddleware)
 
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
