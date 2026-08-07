@@ -3,7 +3,6 @@ import uuid
 from datetime import date
 
 from sqlalchemy import Date, ForeignKey, String, Text
-from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin, UUIDMixin
@@ -26,7 +25,7 @@ class Patent(Base, UUIDMixin, TimestampMixin):
     inventor: Mapped[str] = mapped_column(String(200))
     filing_date: Mapped[date] = mapped_column(Date)
     publication_date: Mapped[date | None] = mapped_column(Date, nullable=True)
-    status: Mapped[PatentStatus] = mapped_column(SAEnum(PatentStatus), default=PatentStatus.FILED)
+    status: Mapped[str] = mapped_column(String(20), default=PatentStatus.FILED.value)
     abstract: Mapped[str | None] = mapped_column(Text, nullable=True)
     technological_sector: Mapped[str | None] = mapped_column(String(100), nullable=True)
     country: Mapped[str] = mapped_column(String(50))

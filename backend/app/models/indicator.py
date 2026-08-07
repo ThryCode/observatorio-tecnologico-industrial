@@ -1,7 +1,6 @@
 import enum
 from decimal import Decimal
 
-from sqlalchemy import Enum as SAEnum
 from sqlalchemy import ForeignKey, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -23,7 +22,7 @@ class Indicator(Base, UUIDMixin, TimestampMixin):
     unit: Mapped[str] = mapped_column(String(50))
     value: Mapped[Decimal] = mapped_column(Numeric(14, 4))
     source: Mapped[str] = mapped_column(String(200))
-    period: Mapped[IndicatorPeriod] = mapped_column(SAEnum(IndicatorPeriod))
+    period: Mapped[str] = mapped_column(String(20))
     sector_codigo: Mapped[str | None] = mapped_column(
         ForeignKey("industrial_sectores.codigo"), nullable=True
     )
