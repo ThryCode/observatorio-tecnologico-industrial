@@ -130,21 +130,53 @@ Get-Content logs\observatorio.log
 
 ### 9. Deploy a produccion
 
+#### Pre-requisitos
+- Python 3.11 instalado
+- Node.js 20 LTS instalado
+- PostgreSQL 15 corriendo
+- Neo4j 5 corriendo (opcional)
+- Redis corriendo (opcional)
+
+#### Pasos de deploy
 ```powershell
-# 1. Ejecutar tests
-cd backend && python -m pytest tests/ -v
-cd frontend && npx vitest run
+# 1. Actualizar codigo
+git pull origin main
 
-# 2. Build frontend
-cd frontend
-npm run build
-
-# 3. Ejecutar migraciones
+# 2. Actualizar dependencias backend
 cd backend
+.\venv\Scripts\pip.exe install -r requirements.txt
+
+# 3. Ejecutar tests
+python -m pytest tests/ -v
+
+# 4. Ejecutar migraciones
 alembic upgrade head
 
-# 4. Iniciar backend en produccion
+# 5. Build frontend
+cd ..\frontend
+& "G:\Proyects\Observatorio\tools\nodejs\node-v20.18.3-win-x64\npm.cmd" run build
+
+# 6. Sincronizar grafo (si Neo4j disponible)
+cd ..\backend
+$login = Invoke-RestMethod -Uri "http://localhost:8000/api/v1/auth/login" -Method Post -ContentType "application/json" -Body '{"username":"admin@mindus.gob.cu","password":"admin123"}'
+$headers = @{"Authorization"="Bearer $($login.access_token)"}
+Invoke-RestMethod -Uri "http://localhost:8000/api/v1/graph/sync" -Method Post -Headers $headers
+
+# 7. Reiniciar backend
+# Detener proceso existente y ejecutar:
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+```
+
+#### Variables de entorno para produccion
+```bash
+# backend/.env
+DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/observatorio
+SECRET_KEY=<clave-segura-256-bits>
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=<password-neo4j>
+REDIS_URL=redis://localhost:6379/0
+CORS_ORIGINS=["https://yourdomain.com"]
 ```
 
 ### 10. Monitoreo
