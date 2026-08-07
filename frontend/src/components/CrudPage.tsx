@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useDeferredValue, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -71,10 +71,19 @@ export default function CrudPage<T extends { id: string }>({
 }: CrudPageProps<T>) {
   const { can } = usePermissions();
   const [search, setSearch] = useState('');
+  const deferredSearch = useDeferredValue(search);
+
+  useEffect(() => {
+    if (onSearch) {
+      onSearch(deferredSearch);
+    }
+  }, [deferredSearch, onSearch]);
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
-    onSearch?.(value);
+    if (value !== search) {
+      onPageChange(1);
+    }
   };
   const [selected, setSelected] = useState<T | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -124,7 +133,7 @@ export default function CrudPage<T extends { id: string }>({
     refetch();
   };
 
-  const filteredItems = !onSearch && searchFilter && search ? (data?.items ?? []).filter((i) => searchFilter(i, search)) : data?.items ?? [];
+  const filteredItems = !onSearch && searchFilter && deferredSearch ? (data?.items ?? []).filter((i) => searchFilter(i, deferredSearch)) : data?.items ?? [];
 
   return (
     <div className="space-y-6">
