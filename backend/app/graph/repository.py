@@ -5,47 +5,10 @@ from neo4j import AsyncDriver
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.schemas.graph import EnterpriseGraphEdge, EnterpriseGraphNode, EnterpriseGraphResponse
-
 
 class GraphRepository:
     def __init__(self, driver: AsyncDriver):
         self.driver = driver
-
-    async def get_enterprise_graph(self) -> EnterpriseGraphResponse | None:
-        async with self.driver.session() as session:
-            nodes_result = await session.run(
-                "MATCH (n:Enterprise) RETURN n.id AS id, n.nombre AS nombre, n.siglas AS siglas, "
-                "n.sector_codigo AS sector, n.tipo AS tipo, n.provincia AS provincia ORDER BY n.id"
-            )
-            nodes_data = await nodes_result.data()
-
-            edges_result = await session.run(
-                "MATCH (a:Enterprise)-[:FOLLOWS]->(b:Enterprise) "
-                "RETURN a.id AS source, b.id AS target"
-            )
-            edges_data = await edges_result.data()
-
-        if not nodes_data:
-            return None
-
-        nodes = [
-            EnterpriseGraphNode(
-                id=n["id"],
-                type="organization",
-                label=f'{n.get("nombre", "")} ({n.get("siglas", "")})',
-                siglas=n.get("siglas"),
-                sector=n.get("sector"),
-                tipo=n.get("tipo"),
-                provincia=n.get("provincia"),
-            )
-            for n in nodes_data
-        ]
-        edges = [
-            EnterpriseGraphEdge(source=e["source"], target=e["target"], type="FOLLOWS")
-            for e in edges_data
-        ]
-        return EnterpriseGraphResponse(nodes=nodes, edges=edges)
 
     async def _apoc_available(self) -> bool:
         try:
