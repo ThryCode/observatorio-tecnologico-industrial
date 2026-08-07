@@ -37,4 +37,6 @@ RELATIONSHIPS: list[tuple[str, str, str]] = [
     ("Technology", "BELONGS_TO_SECTOR", "IndustrialSector"),
     ("Regulation", "BELONGS_TO_SECTOR", "IndustrialSector"),
     ("Indicator", "BELONGS_TO_SECTOR", "IndustrialSector"),
+    ("Organization", "COLLABORATES_WITH", "Organization"),
+    ("Technology", "DEPENDS_ON", "Technology"),
 ]
