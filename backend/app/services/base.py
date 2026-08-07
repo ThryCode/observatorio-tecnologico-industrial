@@ -1,7 +1,7 @@
 from typing import Generic, TypeVar
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppException
@@ -44,16 +44,20 @@ class BaseService(Generic[M, C, U]):
         await self.db.delete(obj)
         await self.db.flush()
 
-    def _build_list_query(self):
-        return select(self.model), select(func.count(self.model.id))
-
-    async def _paginate(self, count_query, list_query,
-                         page: int, per_page: int,
-                         sort_by=None, sort_order="desc",
-                         allowed_sorts=None, default_sort=None):
+    async def _paginate(
+        self,
+        count_query,
+        list_query,
+        page: int,
+        per_page: int,
+        sort_by: str | None = None,
+        sort_order: str = "desc",
+        allowed_sorts: dict | None = None,
+        default_sort=None,
+    ) -> tuple[list[M], int]:
         total = (await self.db.execute(count_query)).scalar()
         offset = (page - 1) * per_page
-        if sort_by and allowed_sorts:
+        if sort_by and allowed_sorts and sort_by in allowed_sorts:
             from app.services.query_helpers import apply_sorting
             list_query = apply_sorting(list_query, self.model, sort_by, sort_order, allowed_sorts)
         elif default_sort is not None:
