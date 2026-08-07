@@ -280,7 +280,7 @@ Usuario público                Sistema                    Administrador
 │   │       ├── 0001_*.py        # Schema inicial
 │   │       ├── 0002_*.py        # Performance indexes
 │   │       └── 0003_*.py        # User registration fields
-│   ├── tests/                   # pytest (90 tests)
+│   ├── tests/                   # pytest (175 tests)
 │   ├── requirements.txt
 │   └── .env
 ├── frontend/
@@ -310,7 +310,7 @@ Usuario público                Sistema                    Administrador
 │       │   └── AuthContext.tsx   # Auth state + localStorage
 │       ├── types/
 │       │   └── index.ts         # TypeScript interfaces
-│       ├── test/                # Vitest (10 tests)
+│       ├── test/                # Vitest (86 tests, with coverage)
 │       └── lib/utils.ts         # cn() utility
 ├── docs/
 │   └── instalacion-windows.md
@@ -329,13 +329,14 @@ Usuario público                Sistema                    Administrador
 ## Testing
 
 ```bash
-# Backend (111 tests)
+# Backend (175 tests)
 cd backend
 pytest -v
 
-# Frontend (18 tests)
+# Frontend (86 tests, with coverage)
 cd frontend
 npx vitest run
+npx vitest run --coverage
 
 # Lint backend
 ruff check backend/
@@ -347,26 +348,37 @@ npx eslint src/
 ### Cobertura de tests
 
 | Suite | Tests | Framework | Archivos |
-|---|---|---|---|---|
-| Auth | 10 | pytest | test_auth.py |
-| Users | 5 | pytest | test_users.py |
-| Technologies | 15 | pytest | test_technologies.py |
-| Patents | 12 | pytest | test_patents.py |
-| Organizations | 10 | pytest | test_organizations.py |
-| Indicators | 8 | pytest | test_indicators.py |
-| Regulations | 8 | pytest | test_regulations.py |
+|---|---|---|---|
+| Auth | 12 | pytest | test_auth.py |
+| Users | 7 | pytest | test_users.py |
+| Technologies | 13 | pytest | test_technologies.py |
+| Patents | 9 | pytest | test_patents.py |
+| Organizations | 8 | pytest | test_organizations.py |
+| Indicators | 10 | pytest | test_indicators.py |
+| Regulations | 10 | pytest | test_regulations.py |
 | Industrial Sectors | 8 | pytest | test_industrial_sectors.py |
 | Validators | 10 | pytest | test_validators.py |
 | Health | 1 | pytest | test_health.py |
-| Graph | 8 | pytest | test_graph.py |
+| Graph | 11 | pytest | test_graph.py |
 | Follows | 6 | pytest | test_follows.py |
 | Alerts | 8 | pytest | test_alerts.py |
-| App render | 1 | Vitest | App.test.tsx |
+| Bulletins | 8 | pytest | test_bulletins.py |
+| Competitiveness | 8 | pytest | test_competitiveness.py |
+| Dashboard | 7 | pytest | test_dashboard.py |
+| Patent Maps | 8 | pytest | test_patent_maps.py |
+| Research Pubs | 9 | pytest | test_research_publications.py |
+| Professionals | 4 | pytest | test_professionals.py |
+| Audit Logs | 3 | pytest | test_audit_logs.py |
+| WebSocket | 3 | pytest | test_ws.py |
+| Uploads | 5 | pytest | test_uploads.py |
+| Auth Register | 3 | pytest | test_auth_register.py |
+| App render | 4 | Vitest | App.test.tsx |
 | Button | 3 | Vitest | Button.test.tsx |
-| Utils | 3 | Vitest | utils.test.tsx |
-| API clients | 2 | Vitest | api-clients.test.ts |
-| Hooks | 2 | Vitest | hooks.test.tsx |
-| **Total** | **129** | | |
+| Utils | 3 | Vitest | utils.test.ts |
+| Graph Nav | 9 | Vitest | graphNav.test.ts |
+| API clients | 48 | Vitest | api-clients.test.ts |
+| Hooks | 19 | Vitest | hooks.test.tsx |
+| **Total** | **261** | | |
 
 ## Cómo contribuir
 
