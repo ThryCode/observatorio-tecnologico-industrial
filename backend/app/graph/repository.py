@@ -131,7 +131,7 @@ class GraphRepository:
             ]
             nodes = [
                 {
-                    "id": str(x["id"] or x["codigo"]),
+                    "id": str(x.get("id") or x.get("codigo") or x.element_id),
                     "labels": list(x.labels),
                     "props": dict(x),
                 }
