@@ -279,7 +279,7 @@ describe('auth API client', () => {
   it('registerPublic calls POST on /auth/register/public', async () => {
     const client = (await import('@/api/client')).default;
     const { registerPublic } = await import('@/api/auth');
-    await registerPublic({ username: 'test', email: 't@t.com', password: 'pass', full_name: 'Test', account_type: 'cliente' });
+    await registerPublic({ username: 'test', email: 't@t.com', password: 'pass', full_name: 'Test', account_type: 'profesional', job_title: 'Engineer' });
     expect(client.post).toHaveBeenCalledWith('/auth/register/public', expect.any(Object));
   });
 

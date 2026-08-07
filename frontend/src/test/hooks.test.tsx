@@ -10,14 +10,6 @@ function createWrapper() {
   );
 }
 
-const MOCK_PAGINATED = {
-  items: [{ id: '1', nombre: 'Test' }],
-  total: 1,
-  page: 1,
-  per_page: 20,
-  total_pages: 1,
-};
-
 vi.mock('@/api/professionals', () => ({
   listProfessionals: vi.fn().mockResolvedValue({
     items: [{ id: '1', full_name: 'Test User', username: 'test', email: 'test@test.com', profile: { especialidad: 'Test', grado_cientifico: '', user_id: '1', id: '1' } }],

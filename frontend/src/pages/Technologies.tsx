@@ -84,6 +84,11 @@ export default function Technologies() {
         trl_nivel: form.trl_nivel ? Number(form.trl_nivel) : undefined,
         palabras_clave: form.palabras_clave ? form.palabras_clave.split(',').map((s: string) => s.trim()).filter(Boolean) : undefined,
       })}
+      transformEditItem={(item) => ({
+        ...item,
+        palabras_clave: (item.palabras_clave ?? []).join(', '),
+        trl_nivel: item.trl_nivel ? String(item.trl_nivel) : '',
+      })}
       validateForm={(form) => !form.nombre ? 'El nombre es obligatorio' : null}
       renderForm={({ data, onChange }) => (
         <div className="space-y-4">

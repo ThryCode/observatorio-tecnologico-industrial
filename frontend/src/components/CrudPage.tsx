@@ -38,6 +38,8 @@ interface CrudPageProps<T extends { id: string }> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   formToPayload: (form: Record<string, any>, isEditing: boolean) => any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  transformEditItem?: (item: T) => Record<string, any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   validateForm?: (form: Record<string, any>) => string | null;
   searchFilter?: (item: T, query: string) => boolean;
   onSearch?: (query: string) => void;
@@ -64,7 +66,7 @@ export default function CrudPage<T extends { id: string }>({
   queryResult: { data, isLoading, isError, refetch },
   createMutation, updateMutation, deleteMutation,
   renderForm, renderDetail, defaultForm,
-  formToPayload, validateForm, searchFilter, onSearch,
+  formToPayload, transformEditItem, validateForm, searchFilter, onSearch,
   page, onPageChange,
   canEdit: canEditFn, canDelete: canDeleteFn,
   nameField,
@@ -99,7 +101,7 @@ export default function CrudPage<T extends { id: string }>({
   const openCreateDialog = () => { resetForm(); setDialogOpen(true); };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const openEditDialog = (item: T) => { setEditingItem(item); setForm({ ...item } as Record<string, any>); setDialogOpen(true); };
+  const openEditDialog = (item: T) => { setEditingItem(item); setForm(transformEditItem ? transformEditItem(item) : { ...item } as Record<string, any>); setDialogOpen(true); };
 
   const handleSave = async () => {
     if (validateForm) {
