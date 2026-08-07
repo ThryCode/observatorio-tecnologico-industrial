@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, require_role
@@ -25,43 +25,46 @@ async def list_technologies(
 ):
     items, total = await TechnologyService(db).list(page, per_page, sector_codigo, q, trl_nivel, sort_by, sort_order)
     return PaginatedResponse(
-        items=items,
-        total=total,
-        page=page,
-        per_page=per_page,
+        items=items, total=total, page=page, per_page=per_page,
         total_pages=(total + per_page - 1) // per_page,
     )
 
 
-@router.get("/{tech_id}", response_model=TechnologyResponse)
+@router.get("/{tech_id}")
 async def get_technology(tech_id: UUID, db: AsyncSession = Depends(get_db)):
     return await TechnologyService(db).get(tech_id)
 
 
-@router.post("", response_model=TechnologyResponse, status_code=201)
+@router.post("", status_code=201)
 async def create_technology(
     data: TechnologyCreate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    current_user: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
-    return await TechnologyService(db).create(data)
+    ip = request.client.host if request.client else None
+    return await TechnologyService(db).create_with_audit(data, current_user.id, ip)
 
 
-@router.put("/{tech_id}", response_model=TechnologyResponse)
+@router.put("/{tech_id}")
 async def update_technology(
     tech_id: UUID,
     data: TechnologyUpdate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    current_user: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
-    return await TechnologyService(db).update(tech_id, data)
+    ip = request.client.host if request.client else None
+    return await TechnologyService(db).update_with_audit(tech_id, data, current_user.id, ip)
 
 
 @router.delete("/{tech_id}", response_model=Message)
 async def delete_technology(
     tech_id: UUID,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    current_user: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
-    await TechnologyService(db).delete(tech_id)
+    ip = request.client.host if request.client else None
+    await TechnologyService(db).delete_with_audit(tech_id, current_user.id, ip)
     return Message(detail="Technology deleted")
