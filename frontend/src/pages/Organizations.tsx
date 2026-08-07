@@ -96,7 +96,7 @@ export default function Organizations() {
 
   const sectorMap = new Map(sectorsData?.items?.map((s) => [s.codigo, s.nombre]) ?? []);
 
-  const { data, isLoading, isError, refetch } = useOrganizations(page, 100, sector === 'all' ? undefined : sector);
+  const { data, isLoading, isError } = useOrganizations(page, 100, sector === 'all' ? undefined : sector);
 
   const resetForm = () => {
     setFormData({ nombre: '', siglas: '', tipo: '', sector_codigo: '', pais: '', provincia: '', sitio_web: '', email_contacto: '', fecha_creacion: '', contacto: '' });

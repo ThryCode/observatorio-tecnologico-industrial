@@ -34,15 +34,15 @@ export default function AlertsPage() {
   const [fechaHasta, setFechaHasta] = useState('');
   const [proximasActive, setProximasActive] = useState(false);
   const [page, setPage] = useState(1);
-  const [sortBy, setSortBy] = useState<string | undefined>('fecha');
-  const [sortOrder, setSortOrder] = useState<string | undefined>('desc');
+  const [sortBy] = useState<string | undefined>('fecha');
+  const [sortOrder] = useState<string | undefined>('desc');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAlert, setEditingAlert] = useState<Alert | null>(null);
   const [deleteAlertId, setDeleteAlertId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ titulo: '', descripcion: '', severidad: 'media', fecha: '', sector: '' });
   const today = new Date().toISOString().slice(0, 10);
   const unreadOnly = leidaFilter === 'no_leidas';
-  const { data: rawAlerts, isLoading, refetch } = useAlerts(unreadOnly, page, 10, q || undefined, severidad, undefined, fechaDesde || undefined, fechaHasta || undefined, sortBy, sortOrder);
+  const { data: rawAlerts, isLoading } = useAlerts(unreadOnly, page, 10, q || undefined, severidad, undefined, fechaDesde || undefined, fechaHasta || undefined, sortBy, sortOrder);
   const { data: sectorsData } = useQuery({
     queryKey: ['industrial-sectors'],
     queryFn: () => getIndustrialSectors(1, 100),

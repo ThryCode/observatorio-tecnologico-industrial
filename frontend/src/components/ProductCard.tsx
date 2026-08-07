@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { FileText, BookOpen, AlertTriangle, Map, GraduationCap, User, Bookmark, Eye } from 'lucide-react';
+import { BookOpen, AlertTriangle, Map, GraduationCap } from 'lucide-react';
 
 export interface ProductCardProps {
   type: 'alerta' | 'boletin' | 'estudio' | 'mapa';
@@ -17,7 +17,7 @@ const typeConfig = {
   mapa: { label: 'Mapa', color: 'text-gold', icon: Map },
 };
 
-export default function ProductCard({ type, title, excerpt, meta, footer, className }: ProductCardProps) {
+export default function ProductCard({ type, title, excerpt, meta, className }: ProductCardProps) {
   const config = typeConfig[type];
   const TypeIcon = config.icon;
 

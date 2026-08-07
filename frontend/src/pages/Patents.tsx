@@ -74,7 +74,7 @@ export default function Patents() {
   const updateMutation = useUpdatePatent();
   const deleteMutation = useDeletePatent();
 
-  const { data, isLoading, isError, refetch } = usePatents(page, 20, sector || undefined, status || undefined, search || undefined);
+  const { data, isLoading, isError } = usePatents(page, 20, sector || undefined, status || undefined, search || undefined);
 
   useEffect(() => {
     if (data?.total !== undefined) {

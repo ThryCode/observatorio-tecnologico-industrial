@@ -1,5 +1,5 @@
 import client, { USE_MOCK } from './client';
-import type { Organization, PaginatedResponse, User } from '@/types';
+import type { Organization, PaginatedResponse } from '@/types';
 
 const MOCK_ORGANIZATIONS: Organization[] = [
   {

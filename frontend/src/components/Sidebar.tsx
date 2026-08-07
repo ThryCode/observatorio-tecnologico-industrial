@@ -8,7 +8,6 @@ import { usePatents } from '@/hooks/usePatents';
 import {
   LayoutDashboard,
   Share2,
-  UserCircle,
   ClipboardCheck,
   FileText,
   Newspaper,
@@ -22,7 +21,6 @@ import {
   ChevronRight,
   Menu,
   X,
-  AlertTriangle,
   GitBranch,
 } from 'lucide-react';
 

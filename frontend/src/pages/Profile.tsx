@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { AxiosError } from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,7 +15,6 @@ import { formatDate } from '@/utils/formatters';
 
 export default function Profile() {
   const { user, loginSuccess } = useAuth();
-  const queryClient = useQueryClient();
   const [userError, setUserError] = useState<string | null>(null);
   const [profError, setProfError] = useState<string | null>(null);
   const [userSuccess, setUserSuccess] = useState(false);

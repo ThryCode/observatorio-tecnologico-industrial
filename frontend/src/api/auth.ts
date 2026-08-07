@@ -7,7 +7,6 @@ import type {
   RejectRequest,
   PendingUser,
   PaginatedResponse,
-  Organization,
 } from '@/types';
 
 const MOCK_USER: User = {

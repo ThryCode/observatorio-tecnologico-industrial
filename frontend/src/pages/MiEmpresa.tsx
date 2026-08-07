@@ -25,7 +25,7 @@ export default function MiEmpresa() {
   const [success, setSuccess] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
-  const { data: org, isLoading, isError, error } = useQuery({
+  const { data: org, isLoading } = useQuery({
     queryKey: ['my-organization'],
     queryFn: async () => {
       const res = await client.get<Organization>('/auth/me/organization');
