@@ -1,4 +1,3 @@
-import re
 from typing import Any
 
 from neo4j import AsyncDriver
@@ -18,27 +17,6 @@ class GraphRepository:
                 return True
         except Exception:
             return False
-
-    @staticmethod
-    def _serialize_node(node) -> dict:
-        props = dict(node)
-        node_id = props.get("id") or props.get("codigo") or node.element_id
-        return {
-            "id": str(node_id),
-            "labels": list(node.labels),
-            "props": props,
-        }
-
-    @staticmethod
-    def _serialize_edge(rel) -> dict:
-        def nid(n) -> str:
-            props = dict(n)
-            return str(props.get("id") or props.get("codigo") or n.element_id)
-        return {
-            "source": nid(rel.start_node),
-            "target": nid(rel.end_node),
-            "type": rel.type,
-        }
 
     async def explore_node(self, node_id: str, depth: int = 2) -> dict[str, Any]:
         async with self.driver.session() as session:
@@ -212,7 +190,7 @@ class GraphRepository:
     async def search_nodes(
         self, q: str, labels: list[str] | None = None, page: int = 1, per_page: int = 20
     ) -> dict[str, Any]:
-        params: dict = {"q": re.escape(q)}
+        params: dict = {"q": q}
         label_clause = ""
         if labels:
             label_clause = "AND any(lbl IN labels(n) WHERE lbl IN $labels)"
