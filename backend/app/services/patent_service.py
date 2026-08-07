@@ -8,7 +8,7 @@ from app.models.patent import Patent
 from app.schemas.patent import PatentCreate, PatentResponse, PatentUpdate
 from app.services.audit_service import AuditService
 from app.services.base import BaseService
-from app.services.query_helpers import apply_date_range
+from app.services.query_helpers import apply_date_range, apply_search
 
 
 class PatentService(BaseService[Patent, PatentCreate, PatentUpdate]):
@@ -62,13 +62,9 @@ class PatentService(BaseService[Patent, PatentCreate, PatentUpdate]):
             query = query.where(Patent.status == status)
             count_query = count_query.where(Patent.status == status)
         if q:
-            like = f"%{q}%"
-            query = query.where(
-                Patent.title.ilike(like) | Patent.patent_number.ilike(like) | Patent.applicant.ilike(like)
-            )
-            count_query = count_query.where(
-                Patent.title.ilike(like) | Patent.patent_number.ilike(like) | Patent.applicant.ilike(like)
-            )
+            search_fields = [Patent.title, Patent.patent_number, Patent.applicant]
+            query = apply_search(query, Patent, q, search_fields)
+            count_query = apply_search(count_query, Patent, q, search_fields)
         if fecha_desde or fecha_hasta:
             query = apply_date_range(query, Patent.filing_date, fecha_desde, fecha_hasta)
             count_query = apply_date_range(count_query, Patent.filing_date, fecha_desde, fecha_hasta)
