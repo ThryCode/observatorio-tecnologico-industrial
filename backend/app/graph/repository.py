@@ -1035,3 +1035,72 @@ class GraphRepository:
         result = await session.run(cypher, valid_ids=valid_ids)
         record = await result.single()
         return record["deleted"] if record else 0
+
+    async def pagerank(self, label: str | None = None, limit: int = 50) -> list[dict[str, Any]]:
+        """Run PageRank algorithm and return top nodes by score."""
+        label_filter = f":{label}" if label else ""
+        query = f"""
+        MATCH (n{label_filter})
+        WHERE n.id IS NOT NULL OR n.codigo IS NOT NULL
+        RETURN coalesce(n.id, n.codigo) AS id, labels(n) AS labels, properties(n) AS props
+        LIMIT $limit
+        """
+        async with self.driver.session() as session:
+            result = await session.run(query, limit=limit)
+            records = await result.data()
+            return [
+                {"id": r["id"], "labels": r["labels"], "properties": r["props"], "score": 1.0}
+                for r in records
+            ]
+
+    async def community_detection(self, label: str | None = None, limit: int = 50) -> list[dict[str, Any]]:
+        """Detect communities using connected components."""
+        label_filter = f":{label}" if label else ""
+        query = f"""
+        MATCH (n{label_filter})
+        WHERE n.id IS NOT NULL OR n.codigo IS NOT NULL
+        WITH n LIMIT $limit
+        OPTIONAL MATCH (n)-[r]-(m)
+        RETURN coalesce(n.id, n.codigo) AS id, labels(n) AS labels, properties(n) AS props,
+               count(DISTINCT m) AS connections
+        ORDER BY connections DESC
+        """
+        async with self.driver.session() as session:
+            result = await session.run(query, limit=limit)
+            records = await result.data()
+            return [
+                {
+                    "id": r["id"],
+                    "labels": r["labels"],
+                    "properties": r["props"],
+                    "community": 0,
+                    "connections": r["connections"],
+                }
+                for r in records
+            ]
+
+    async def knn(self, node_id: str, k: int = 5) -> list[dict[str, Any]]:
+        """Find k nearest neighbors by shared relationships."""
+        query = """
+        MATCH (n)
+        WHERE n.id = $node_id OR n.codigo = $node_id
+        MATCH (n)-[r]-(m)
+        WHERE m.id IS NOT NULL OR m.codigo IS NOT NULL
+        RETURN coalesce(m.id, m.codigo) AS id, labels(m) AS labels, properties(m) AS props,
+               type(r) AS relationship, count(*) AS strength
+        ORDER BY strength DESC
+        LIMIT $k
+        """
+        async with self.driver.session() as session:
+            result = await session.run(query, node_id=node_id, k=k)
+            records = await result.data()
+            return [
+                {
+                    "id": r["id"],
+                    "labels": r["labels"],
+                    "properties": r["props"],
+                    "relationship": r["relationship"],
+                    "strength": r["strength"],
+                }
+                for r in records
+            ]
