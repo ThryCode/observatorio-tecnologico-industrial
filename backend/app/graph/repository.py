@@ -843,6 +843,8 @@ class GraphRepository:
         from app.models.organization import Organization
         from app.models.user import User
 
+        batch_size = 500
+
         async with self.driver.session() as session:
             nodes_merged = 0
             rels_merged = 0
@@ -850,20 +852,33 @@ class GraphRepository:
             orgs = (await db.execute(select(Organization))).scalars().all()
             org_map = {str(o.id): o for o in orgs}
 
-            for o in orgs:
-                props = {
-                    "nombre": o.nombre,
-                    "siglas": o.siglas,
-                    "tipo": o.tipo,
-                    "sector_codigo": o.sector_codigo,
-                    "pais": o.pais,
-                    "provincia": o.provincia,
-                }
-                await session.run(
-                    "MERGE (n:Enterprise:Organization {id: $id}) SET n += $props",
-                    id=str(o.id), props=props,
+            for i in range(0, len(orgs), batch_size):
+                batch = orgs[i:i+batch_size]
+                batch_data = [
+                    {
+                        "id": str(o.id),
+                        "props": {
+                            "nombre": o.nombre,
+                            "siglas": o.siglas,
+                            "tipo": o.tipo,
+                            "sector_codigo": o.sector_codigo,
+                            "pais": o.pais,
+                            "provincia": o.provincia,
+                        },
+                    }
+                    for o in batch
+                ]
+                result = await session.run(
+                    """
+                    UNWIND $batch AS item
+                    MERGE (n:Enterprise:Organization {id: item.id})
+                    SET n += item.props
+                    RETURN count(*) AS merged
+                    """,
+                    batch=batch_data,
                 )
-                nodes_merged += 1
+                record = await result.single()
+                nodes_merged += record["merged"]
 
             users = (await db.execute(select(User))).scalars().all()
             user_org_map = {
@@ -874,6 +889,7 @@ class GraphRepository:
             follows = (await db.execute(select(Follow))).scalars().all()
 
             seen: set[tuple[str, str]] = set()
+            rels_batch: list[dict[str, str]] = []
             for f in follows:
                 if f.follower_type == "user":
                     follower_org = user_org_map.get(str(f.follower_id))
@@ -888,14 +904,21 @@ class GraphRepository:
                     key = (follower_org, target_org)
                     if key not in seen:
                         seen.add(key)
-                        await session.run(
-                            """
-                            MATCH (a:Enterprise {id: $source}), (b:Enterprise {id: $target})
-                            MERGE (a)-[:FOLLOWS]->(b)
-                            """,
-                            source=follower_org, target=target_org,
-                        )
-                        rels_merged += 1
+                        rels_batch.append({"source": follower_org, "target": target_org})
+
+            for i in range(0, len(rels_batch), batch_size):
+                batch = rels_batch[i:i+batch_size]
+                result = await session.run(
+                    """
+                    UNWIND $batch AS item
+                    MATCH (a:Enterprise {id: item.source}), (b:Enterprise {id: item.target})
+                    MERGE (a)-[:FOLLOWS]->(b)
+                    RETURN count(*) AS merged
+                    """,
+                    batch=batch,
+                )
+                record = await result.single()
+                rels_merged += record["merged"]
 
             return {"nodes_merged": nodes_merged, "relationships_merged": rels_merged}
 
