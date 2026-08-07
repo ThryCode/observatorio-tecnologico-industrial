@@ -11,34 +11,9 @@ def tech_payload():
     }
 
 
-@pytest.fixture
-def auth_headers(client, db_session, superuser_token_headers):
-    async def _make(username: str = "techuser", role: str = "admin_mindus"):
-        from app.core.security import get_password_hash
-        from app.models.user import User
-        user = User(
-            username=username,
-            email=f"{username}@test.com",
-            hashed_password=get_password_hash("secret123"),
-            full_name="Tech User",
-            role=role,
-            is_superuser=role == "admin_mindus",
-            status="approved",
-        )
-        db_session.add(user)
-        await db_session.flush()
-        login = await client.post("/api/v1/auth/login", json={
-            "username": username,
-            "password": "secret123",
-        })
-        token = login.json()["access_token"]
-        return {"Authorization": f"Bearer {token}"}
-    return _make
-
-
 @pytest.mark.asyncio
 async def test_create_technology(client, tech_payload, auth_headers):
-    headers = await auth_headers()
+    headers = await auth_headers(role="admin_mindus")
     response = await client.post("/api/v1/technologies", json=tech_payload, headers=headers)
     assert response.status_code == 201
     data = response.json()
@@ -55,7 +30,7 @@ async def test_create_technology_no_auth(client, tech_payload):
 
 @pytest.mark.asyncio
 async def test_create_technology_invalid_trl(client, auth_headers):
-    headers = await auth_headers("trluser")
+    headers = await auth_headers("trluser", role="admin_mindus")
     payload = {"nombre": "Test Tech", "trl_nivel": 10}
     response = await client.post("/api/v1/technologies", json=payload, headers=headers)
     assert response.status_code == 422
@@ -67,7 +42,7 @@ async def test_create_technology_invalid_trl(client, auth_headers):
 
 @pytest.mark.asyncio
 async def test_create_technology_invalid_sector_codigo(client, auth_headers):
-    headers = await auth_headers("sectoruser")
+    headers = await auth_headers("sectoruser", role="admin_mindus")
     payload = {"nombre": "Test Tech", "sector_codigo": "AB"}
     response = await client.post("/api/v1/technologies", json=payload, headers=headers)
     assert response.status_code == 422
@@ -79,7 +54,7 @@ async def test_create_technology_invalid_sector_codigo(client, auth_headers):
 
 @pytest.mark.asyncio
 async def test_list_technologies(client, tech_payload, auth_headers):
-    headers = await auth_headers()
+    headers = await auth_headers(role="admin_mindus")
     await client.post("/api/v1/technologies", json=tech_payload, headers=headers)
 
     response = await client.get("/api/v1/technologies")
@@ -92,7 +67,7 @@ async def test_list_technologies(client, tech_payload, auth_headers):
 
 @pytest.mark.asyncio
 async def test_list_technologies_filter_sector(client, tech_payload, auth_headers):
-    headers = await auth_headers("filteruser")
+    headers = await auth_headers("filteruser", role="admin_mindus")
     await client.post("/api/v1/technologies", json=tech_payload, headers=headers)
 
     response = await client.get("/api/v1/technologies?sector_codigo=BIO")
@@ -106,7 +81,7 @@ async def test_list_technologies_filter_sector(client, tech_payload, auth_header
 
 @pytest.mark.asyncio
 async def test_get_technology(client, tech_payload, auth_headers):
-    headers = await auth_headers("getuser")
+    headers = await auth_headers("getuser", role="admin_mindus")
     create_resp = await client.post("/api/v1/technologies", json=tech_payload, headers=headers)
     tech_id = create_resp.json()["id"]
 
@@ -123,7 +98,7 @@ async def test_get_technology_not_found(client):
 
 @pytest.mark.asyncio
 async def test_update_technology(client, tech_payload, auth_headers):
-    headers = await auth_headers("upduser")
+    headers = await auth_headers("upduser", role="admin_mindus")
     create_resp = await client.post("/api/v1/technologies", json=tech_payload, headers=headers)
     tech_id = create_resp.json()["id"]
 
@@ -137,7 +112,7 @@ async def test_update_technology(client, tech_payload, auth_headers):
 
 @pytest.mark.asyncio
 async def test_update_technology_not_found(client, auth_headers):
-    headers = await auth_headers("updnotfound")
+    headers = await auth_headers("updnotfound", role="admin_mindus")
     response = await client.put(
         "/api/v1/technologies/00000000-0000-0000-0000-000000000001",
         json={"nombre": "No exist"},

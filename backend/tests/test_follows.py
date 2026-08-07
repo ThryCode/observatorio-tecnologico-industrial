@@ -1,13 +1,12 @@
 import pytest
 from sqlalchemy import update
 
+from app.models.organization import Organization
 from app.models.user import User
 
 
 @pytest.fixture
 async def test_organization(db_session):
-    from app.models.organization import Organization
-
     org = Organization(nombre="Test Org", siglas="TO", tipo="empresa")
     db_session.add(org)
     await db_session.flush()
@@ -16,37 +15,10 @@ async def test_organization(db_session):
 
 @pytest.fixture
 async def test_organization_two(db_session):
-    from app.models.organization import Organization
-
     org = Organization(nombre="Test Org Two", siglas="TO2", tipo="empresa")
     db_session.add(org)
     await db_session.flush()
     return org
-
-
-@pytest.fixture
-def auth_headers(client, db_session, superuser_token_headers):
-    async def _register_and_login(username: str = "followuser"):
-        await client.post("/api/v1/auth/register", json={
-            "username": username,
-            "email": f"{username}@test.com",
-            "password": "secret123",
-            "full_name": "Follow User",
-        }, headers=superuser_token_headers)
-        await db_session.execute(
-            update(User).where(User.username == username).values(
-                is_superuser=False,
-                status="approved",
-            )
-        )
-        await db_session.flush()
-        login = await client.post("/api/v1/auth/login", json={
-            "username": username,
-            "password": "secret123",
-        })
-        token = login.json()["access_token"]
-        return {"Authorization": f"Bearer {token}"}
-    return _register_and_login
 
 
 @pytest.mark.asyncio

@@ -1,7 +1,4 @@
 import pytest
-from sqlalchemy import update
-
-from app.models.user import User
 
 
 @pytest.fixture
@@ -11,31 +8,6 @@ def alert_payload():
         "descripcion": "Test description",
         "severidad": "alta",
     }
-
-
-@pytest.fixture
-def auth_headers(client, db_session, superuser_token_headers):
-    async def _register_and_login(username: str = "alertuser", is_superuser: bool = False):
-        await client.post("/api/v1/auth/register", json={
-            "username": username,
-            "email": f"{username}@test.com",
-            "password": "secret123",
-            "full_name": "Alert User",
-        }, headers=superuser_token_headers)
-        await db_session.execute(
-            update(User).where(User.username == username).values(
-                is_superuser=is_superuser,
-                status="approved",
-            )
-        )
-        await db_session.flush()
-        login = await client.post("/api/v1/auth/login", json={
-            "username": username,
-            "password": "secret123",
-        })
-        token = login.json()["access_token"]
-        return {"Authorization": f"Bearer {token}"}
-    return _register_and_login
 
 
 @pytest.mark.asyncio

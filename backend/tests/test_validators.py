@@ -1,31 +1,6 @@
 import pytest
 
 
-@pytest.fixture
-def auth_headers(client, db_session, superuser_token_headers):
-    async def _make(username: str, role: str = "admin_mindus"):
-        from app.core.security import get_password_hash
-        from app.models.user import User
-        user = User(
-            username=username,
-            email=f"{username}@test.com",
-            hashed_password=get_password_hash("secret123"),
-            full_name="Validator User",
-            role=role,
-            is_superuser=role == "admin_mindus",
-            status="approved",
-        )
-        db_session.add(user)
-        await db_session.flush()
-        login = await client.post("/api/v1/auth/login", json={
-            "username": username,
-            "password": "secret123",
-        })
-        token = login.json()["access_token"]
-        return {"Authorization": f"Bearer {token}"}
-    return _make
-
-
 @pytest.mark.asyncio
 async def test_user_email_invalid(client, superuser_token_headers):
     resp = await client.post("/api/v1/auth/register", json={
