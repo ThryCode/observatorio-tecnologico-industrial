@@ -214,3 +214,18 @@ async def test_delete_technology_not_superuser(client, tech_payload, db_session)
     headers = {"Authorization": f"Bearer {login_resp2.json()['access_token']}"}
     response = await client.delete(f"/api/v1/technologies/{tech_id}", headers=headers)
     assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_list_technologies_pagination(client, db_session, auth_headers):
+    headers = await auth_headers("techpage", role="admin_mindus")
+    for i in range(12):
+        await client.post("/api/v1/technologies", json={"nombre": f"Tech {i}", "trl_nivel": 3}, headers=headers)
+    await db_session.flush()
+
+    resp = await client.get("/api/v1/technologies?page=1&per_page=5", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data["items"]) == 5
+    assert data["total"] == 12
+    assert data["total_pages"] == 3

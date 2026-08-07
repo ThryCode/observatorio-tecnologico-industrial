@@ -85,3 +85,26 @@ async def test_delete_indicator(client, db_session, auth_headers):
     assert resp.status_code == 200
     resp = await client.get(f"/api/v1/indicators/{ind.id}")
     assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_delete_indicator_not_superuser(client, db_session, auth_headers):
+    ind = await make_indicator(db_session, code="DEL-002")
+    headers = await auth_headers("induser_noadmin")
+    resp = await client.delete(f"/api/v1/indicators/{ind.id}", headers=headers)
+    assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_list_indicators_pagination(client, db_session, auth_headers):
+    headers = await auth_headers("indpage", role="admin_mindus")
+    for i in range(12):
+        await make_indicator(db_session, code=f"PAGE-{i:04d}")
+    await db_session.flush()
+
+    resp = await client.get("/api/v1/indicators?page=1&per_page=5", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data["items"]) == 5
+    assert data["total"] == 12
+    assert data["total_pages"] == 3

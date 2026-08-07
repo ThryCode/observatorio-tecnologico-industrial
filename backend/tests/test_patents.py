@@ -74,3 +74,30 @@ async def test_delete_patent(client, db_session, auth_headers):
     assert resp.status_code == 200
     resp = await client.get(f"/api/v1/patents/{pat.id}")
     assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_delete_patent_not_superuser(client, db_session, auth_headers):
+    pat = await make_patent(db_session, patent_number="CU-2026-004")
+    headers = await auth_headers("patuser_noadmin")
+    resp = await client.delete(f"/api/v1/patents/{pat.id}", headers=headers)
+    assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_list_patents_pagination(client, db_session, auth_headers):
+    headers = await auth_headers("patpage", role="admin_mindus")
+    for i in range(15):
+        await make_patent(db_session, patent_number=f"CU-2026-{i:04d}")
+    await db_session.flush()
+
+    resp = await client.get("/api/v1/patents?page=1&per_page=5", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data["items"]) == 5
+    assert data["total"] == 15
+    assert data["total_pages"] == 3
+
+    resp = await client.get("/api/v1/patents?page=2&per_page=5", headers=headers)
+    assert resp.status_code == 200
+    assert len(resp.json()["items"]) == 5

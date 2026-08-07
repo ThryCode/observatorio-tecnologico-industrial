@@ -85,3 +85,26 @@ async def test_delete_regulation(client, db_session, auth_headers):
     assert resp.status_code == 200
     resp = await client.get(f"/api/v1/regulations/{reg.id}")
     assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_delete_regulation_not_superuser(client, db_session, auth_headers):
+    reg = await make_regulation(db_session, regulation_number="RES-2026-005")
+    headers = await auth_headers("reguser_noadmin")
+    resp = await client.delete(f"/api/v1/regulations/{reg.id}", headers=headers)
+    assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_list_regulations_pagination(client, db_session, auth_headers):
+    headers = await auth_headers("regpage", role="admin_mindus")
+    for i in range(12):
+        await make_regulation(db_session, regulation_number=f"RES-2026-{i:04d}")
+    await db_session.flush()
+
+    resp = await client.get("/api/v1/regulations?page=1&per_page=5", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data["items"]) == 5
+    assert data["total"] == 12
+    assert data["total_pages"] == 3
