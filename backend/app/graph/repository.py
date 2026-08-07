@@ -1,16 +1,18 @@
 import re
+from typing import Any
 
 from neo4j import AsyncDriver
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.schemas.graph import EnterpriseGraphEdge, EnterpriseGraphNode, EnterpriseGraphResponse
 
 
 class GraphRepository:
     def __init__(self, driver: AsyncDriver):
         self.driver = driver
 
-    async def get_enterprise_graph(self):
-        from app.schemas.graph import EnterpriseGraphEdge, EnterpriseGraphNode, EnterpriseGraphResponse
+    async def get_enterprise_graph(self) -> EnterpriseGraphResponse | None:
         async with self.driver.session() as session:
             nodes_result = await session.run(
                 "MATCH (n:Enterprise) RETURN n.id AS id, n.nombre AS nombre, n.siglas AS siglas, "
@@ -75,7 +77,7 @@ class GraphRepository:
             "type": rel.type,
         }
 
-    async def explore_node(self, node_id: str, depth: int = 2):
+    async def explore_node(self, node_id: str, depth: int = 2) -> dict[str, Any]:
         async with self.driver.session() as session:
             apoc_ok = await self._apoc_available()
             if apoc_ok:
@@ -158,7 +160,7 @@ class GraphRepository:
                 "total_edges": len(edges),
             }
 
-    async def query_graph(self, limit: int = 500, sector_codigos: list[str] | None = None):
+    async def query_graph(self, limit: int = 500, sector_codigos: list[str] | None = None) -> dict[str, Any]:
         async with self.driver.session() as session:
             if sector_codigos:
                 nodes_result = await session.run(
@@ -244,7 +246,9 @@ class GraphRepository:
             "total_edges": len(edges),
         }
 
-    async def search_nodes(self, q: str, labels: list[str] | None = None, page: int = 1, per_page: int = 20):
+    async def search_nodes(
+        self, q: str, labels: list[str] | None = None, page: int = 1, per_page: int = 20
+    ) -> dict[str, Any]:
         params: dict = {"q": re.escape(q)}
         label_clause = ""
         if labels:
@@ -276,7 +280,7 @@ class GraphRepository:
             items = [record.data() async for record in result]
             return {"items": items, "total": total, "page": page, "per_page": per_page}
 
-    async def stats(self, sector_codigos: list[str] | None = None):
+    async def stats(self, sector_codigos: list[str] | None = None) -> list[dict[str, Any]]:
         async with self.driver.session() as session:
             if sector_codigos:
                 result = await session.run(
@@ -304,7 +308,7 @@ class GraphRepository:
                 )
             return [record.data() async for record in result]
 
-    async def shortest_path(self, from_id: str, to_id: str, max_depth: int = 10):
+    async def shortest_path(self, from_id: str, to_id: str, max_depth: int = 10) -> dict[str, Any] | None:
         async with self.driver.session() as session:
             apoc_ok = await self._apoc_available()
             if apoc_ok:
@@ -345,7 +349,7 @@ class GraphRepository:
             record = await result.single()
             return record.data() if record else None
 
-    async def sync_all(self, db: AsyncSession):
+    async def sync_all(self, db: AsyncSession) -> dict[str, int]:
         from app.models.indicator import Indicator
         from app.models.industrial_sector import IndustrialSector
         from app.models.organization import Organization
@@ -834,7 +838,7 @@ class GraphRepository:
                 "nodes_deleted": deleted,
             }
 
-    async def sync_enterprise_graph(self, db: AsyncSession):
+    async def sync_enterprise_graph(self, db: AsyncSession) -> dict[str, int]:
         from app.models.follow import Follow
         from app.models.organization import Organization
         from app.models.user import User
@@ -895,7 +899,7 @@ class GraphRepository:
 
             return {"nodes_merged": nodes_merged, "relationships_merged": rels_merged}
 
-    async def recommendations_for_org(self, org_id: str, limit: int = 20):
+    async def recommendations_for_org(self, org_id: str, limit: int = 20) -> dict[str, Any]:
         async with self.driver.session() as session:
             result = await session.run(
                 """
