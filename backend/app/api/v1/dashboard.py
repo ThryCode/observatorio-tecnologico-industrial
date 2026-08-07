@@ -1,10 +1,11 @@
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, Query
+from redis.asyncio import Redis
 from sqlalchemy import func, literal_column, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_user, get_db
+from app.dependencies import get_current_user, get_db, get_redis
 from app.models.alert import Alert
 from app.models.bulletin import Bulletin
 from app.models.follow import Follow
@@ -16,6 +17,7 @@ from app.models.regulation import Regulation
 from app.models.technology import Technology
 from app.models.user import User
 from app.schemas.dashboard import DashboardSummary, KPIItem, SectorCount, TimelineEvent
+from app.services.cache import cache_key, get_cached, set_cached
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
@@ -24,8 +26,14 @@ router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 async def dashboard_summary(
     sector_codigos: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
+    redis: Redis | None = Depends(get_redis),
     _=Depends(get_current_user),
 ):
+    key = cache_key("dashboard:summary", sector=sector_codigos or "all")
+    cached = await get_cached(redis, key)
+    if cached:
+        return DashboardSummary(**cached)
+
     codes = [c.strip() for c in sector_codigos.split(",")] if sector_codigos else None
 
     def _count(model, sector_col=None):
@@ -40,13 +48,16 @@ async def dashboard_summary(
     ind_count = (await db.execute(_count(Indicator, Indicator.sector_codigo))).scalar() or 0
     alert_count = (await db.execute(_count(Alert, Alert.sector_codigo))).scalar() or 0
 
-    return DashboardSummary(kpis=[
+    result = DashboardSummary(kpis=[
         KPIItem(label="Organizaciones", value=org_count, unit="entidades", change=0),
         KPIItem(label="Patentes", value=pat_count, unit="registradas", change=0),
         KPIItem(label="Tecnologías", value=tech_count, unit="vigiladas", change=0),
         KPIItem(label="Indicadores", value=ind_count, unit="activos", change=0),
         KPIItem(label="Alertas", value=alert_count, unit="activas", change=0),
     ])
+
+    await set_cached(redis, key, result.model_dump(), ttl=300)
+    return result
 
 
 @router.get("/sectors", response_model=list[SectorCount])

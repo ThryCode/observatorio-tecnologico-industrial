@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, Query
 from neo4j import AsyncDriver
+from redis.asyncio import Redis
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_db
 from app.core.exceptions import AppException
-from app.dependencies import get_current_user, get_neo4j, require_role
+from app.dependencies import get_current_user, get_neo4j, get_redis, require_role
 from app.models.organization import Organization
 from app.models.user import User, UserRole
 from app.schemas.graph import (
@@ -18,6 +19,7 @@ from app.schemas.graph import (
     ShortestPathResponse,
     SyncResponse,
 )
+from app.services.cache import cache_key, get_cached, set_cached
 
 router = APIRouter(prefix="/graph", tags=["graph"])
 
@@ -73,14 +75,23 @@ async def search_nodes(
 async def graph_stats(
     sector_codigos: str | None = Query(None),
     neo4j: AsyncDriver | None = Depends(get_neo4j),
+    redis: Redis | None = Depends(get_redis),
     _: User = Depends(get_current_user),
 ):
     if not neo4j:
         raise AppException(503, "Neo4j is not available")
+
+    key = cache_key("graph:stats", sector=sector_codigos or "all")
+    cached = await get_cached(redis, key)
+    if cached:
+        return {"items": cached}
+
     from app.graph.repository import GraphRepository
     repo = GraphRepository(neo4j)
     codes = [c.strip() for c in sector_codigos.split(",")] if sector_codigos else None
     items = await repo.stats(codes)
+
+    await set_cached(redis, key, items, ttl=300)
     return {"items": items}
 
 
