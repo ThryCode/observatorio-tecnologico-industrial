@@ -50,3 +50,51 @@ async def health_check(
         "status": "healthy" if all_ok else "degraded",
         "services": checks,
     }
+
+
+@router.get("/health/live")
+async def liveness_check():
+    return {"status": "alive"}
+
+
+@router.get("/health/ready")
+async def readiness_check(
+    db: AsyncSession = Depends(get_db),
+    neo4j=Depends(get_neo4j),
+    redis=Depends(get_redis),
+):
+    checks = {}
+    ready = True
+
+    # PostgreSQL (required)
+    try:
+        await db.execute(text("SELECT 1"))
+        checks["postgresql"] = "ok"
+    except Exception as e:
+        checks["postgresql"] = f"error: {str(e)}"
+        ready = False
+
+    # Neo4j (optional)
+    if neo4j is None:
+        checks["neo4j"] = "not configured"
+    else:
+        try:
+            async with neo4j.session() as session:
+                await session.run("RETURN 1")
+            checks["neo4j"] = "ok"
+        except Exception as e:
+            checks["neo4j"] = f"error: {str(e)}"
+            ready = False
+
+    # Redis (optional)
+    if redis is None:
+        checks["redis"] = "not configured"
+    else:
+        try:
+            await redis.ping()
+            checks["redis"] = "ok"
+        except Exception as e:
+            checks["redis"] = f"error: {str(e)}"
+            ready = False
+
+    return {"status": "ready" if ready else "not ready", "checks": checks}
