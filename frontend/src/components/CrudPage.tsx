@@ -63,7 +63,7 @@ function getDisplayName(item: Record<string, any> | null, nameField?: string): s
 export default function CrudPage<T extends { id: string }>({
   title, description, permissionResource, columns, emptyMessage = 'No hay registros aún.',
   searchPlaceholder = 'Buscar...', filterBar,
-  queryResult: { data, isLoading, isError, refetch },
+  queryResult: { data, isLoading, isError },
   createMutation, updateMutation, deleteMutation,
   renderForm, renderDetail, defaultForm,
   formToPayload, transformEditItem, validateForm, searchFilter, onSearch,
@@ -118,7 +118,6 @@ export default function CrudPage<T extends { id: string }>({
       }
       setDialogOpen(false);
       resetForm();
-      refetch();
     } catch (e: unknown) {
       const err = e as { response?: { data?: { detail?: unknown } }; message?: string };
       const msg = err?.response?.data?.detail || err?.message || 'Error al guardar. Verifica los datos.';
@@ -136,7 +135,6 @@ export default function CrudPage<T extends { id: string }>({
       setDeleteDialogOpen(false);
       setItemToDelete(null);
       if (selected?.id === itemToDelete.id) setSelected(null);
-      refetch();
     } catch (e: unknown) {
       const err = e as { response?: { data?: { detail?: unknown } }; message?: string };
       const msg = err?.response?.data?.detail || err?.message || 'Error al eliminar. Intenta de nuevo.';
