@@ -126,13 +126,22 @@ export default function CrudPage<T extends { id: string }>({
     }
   };
 
+  const [deleteError, setDeleteError] = useState('');
+
   const handleDelete = async () => {
     if (!itemToDelete) return;
-    await deleteMutation.mutateAsync(itemToDelete.id);
-    setDeleteDialogOpen(false);
-    setItemToDelete(null);
-    if (selected?.id === itemToDelete.id) setSelected(null);
-    refetch();
+    setDeleteError('');
+    try {
+      await deleteMutation.mutateAsync(itemToDelete.id);
+      setDeleteDialogOpen(false);
+      setItemToDelete(null);
+      if (selected?.id === itemToDelete.id) setSelected(null);
+      refetch();
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { detail?: unknown } }; message?: string };
+      const msg = err?.response?.data?.detail || err?.message || 'Error al eliminar. Intenta de nuevo.';
+      setDeleteError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    }
   };
 
   const filteredItems = !onSearch && searchFilter && deferredSearch ? (data?.items ?? []).filter((i) => searchFilter(i, deferredSearch)) : data?.items ?? [];
@@ -213,8 +222,9 @@ export default function CrudPage<T extends { id: string }>({
         <DialogContent className="max-w-sm">
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           <DialogHeader><DialogTitle>Confirmar eliminación</DialogTitle><DialogDescription>¿Está seguro de eliminar &quot;{getDisplayName(itemToDelete as any, nameField)}&quot;? Esta acción no se puede deshacer.</DialogDescription></DialogHeader>
+          {deleteError && <div className="flex items-center gap-2 text-sm text-red-500"><AlertCircle className="h-4 w-4" /><span>{deleteError}</span></div>}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => { setDeleteDialogOpen(false); setDeleteError(''); }}>Cancelar</Button>
             <Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>Eliminar</Button>
           </DialogFooter>
         </DialogContent>
