@@ -1,9 +1,10 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, get_redis, require_role
+from app.graph.sync_trigger import schedule_graph_sync
 from app.models.user import User, UserRole
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.indicator import IndicatorCreate, IndicatorResponse, IndicatorUpdate
@@ -46,30 +47,38 @@ async def get_indicator(indicator_id: UUID, db: AsyncSession = Depends(get_db), 
 @router.post("", response_model=IndicatorResponse, status_code=201)
 async def create_indicator(
     data: IndicatorCreate,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     redis=Depends(get_redis),
     _: User = Depends(require_role(UserRole.ADMIN_MINDUS, UserRole.ANALISTA)),
 ):
-    return await _service(db, redis).create(data)
+    result = await _service(db, redis).create(data)
+    schedule_graph_sync(background_tasks)
+    return result
 
 
 @router.put("/{indicator_id}", response_model=IndicatorResponse)
 async def update_indicator(
     indicator_id: UUID,
     data: IndicatorUpdate,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     redis=Depends(get_redis),
     _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
-    return await _service(db, redis).update(indicator_id, data)
+    result = await _service(db, redis).update(indicator_id, data)
+    schedule_graph_sync(background_tasks)
+    return result
 
 
 @router.delete("/{indicator_id}", response_model=Message)
 async def delete_indicator(
     indicator_id: UUID,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     redis=Depends(get_redis),
     _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     await _service(db, redis).delete(indicator_id)
+    schedule_graph_sync(background_tasks)
     return Message(detail="Indicator deleted")

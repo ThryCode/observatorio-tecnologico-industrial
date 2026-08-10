@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, require_role
+from app.graph.sync_trigger import schedule_graph_sync
 from app.models.user import User, UserRole
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.industrial_sector import (
@@ -41,27 +42,35 @@ async def get_sector(codigo: str, db: AsyncSession = Depends(get_db)):
 @router.post("", response_model=IndustrialSectorResponse, status_code=201)
 async def create_sector(
     data: IndustrialSectorCreate,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
-    return await IndustrialSectorService(db).create(data)
+    result = await IndustrialSectorService(db).create(data)
+    schedule_graph_sync(background_tasks)
+    return result
 
 
 @router.put("/{codigo}", response_model=IndustrialSectorResponse)
 async def update_sector(
     codigo: str,
     data: IndustrialSectorUpdate,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
-    return await IndustrialSectorService(db).update(codigo, data)
+    result = await IndustrialSectorService(db).update(codigo, data)
+    schedule_graph_sync(background_tasks)
+    return result
 
 
 @router.delete("/{codigo}", response_model=Message)
 async def delete_sector(
     codigo: str,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     await IndustrialSectorService(db).delete(codigo)
+    schedule_graph_sync(background_tasks)
     return Message(detail="Industrial sector deleted")

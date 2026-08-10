@@ -1,11 +1,12 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppException
 from app.dependencies import get_db, require_role
+from app.graph.sync_trigger import schedule_graph_sync
 from app.models.user import User, UserRole
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.organization import OrganizationCreate, OrganizationResponse, OrganizationUpdate
@@ -58,29 +59,37 @@ async def get_organization_representative(org_id: UUID, db: AsyncSession = Depen
 @router.post("", response_model=OrganizationResponse, status_code=201)
 async def create_organization(
     data: OrganizationCreate,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_role(UserRole.REP_CTI)),
 ):
-    return await OrganizationService(db).create(data)
+    result = await OrganizationService(db).create(data)
+    schedule_graph_sync(background_tasks)
+    return result
 
 
 @router.put("/{org_id}", response_model=OrganizationResponse)
 async def update_organization(
     org_id: UUID,
     data: OrganizationUpdate,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_role(UserRole.REP_CTI)),
 ):
     if current_user.organization_id != org_id:
         raise AppException(403, "Solo puedes editar tu propia empresa")
-    return await OrganizationService(db).update(org_id, data)
+    result = await OrganizationService(db).update(org_id, data)
+    schedule_graph_sync(background_tasks)
+    return result
 
 
 @router.delete("/{org_id}", response_model=Message)
 async def delete_organization(
     org_id: UUID,
+    background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
 ):
     await OrganizationService(db).delete(org_id)
+    schedule_graph_sync(background_tasks)
     return Message(detail="Organization deleted")
