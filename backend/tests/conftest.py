@@ -71,7 +71,7 @@ async def superuser_token_headers(client, db_session):
 
 
 @pytest.fixture
-def auth_headers(client, db_session, superuser_token_headers):
+def auth_headers(client, db_session):
     async def _make(
         username: str = "testuser", is_superuser: bool = False,
         role: str | None = None, organization_id=None,

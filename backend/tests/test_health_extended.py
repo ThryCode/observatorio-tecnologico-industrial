@@ -1,6 +1,6 @@
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
-from httpx import AsyncClient
 
 
 @pytest.mark.asyncio
@@ -35,8 +35,9 @@ async def test_readiness_check(client):
 
 @pytest.mark.asyncio
 async def test_health_check_degraded():
-    from app.main import app
     from fastapi.testclient import TestClient
+
+    from app.main import app
 
     async def mock_get_db():
         mock_session = AsyncMock()
@@ -57,7 +58,10 @@ async def test_health_check_degraded():
     app.dependency_overrides[get_neo4j] = mock_get_neo4j
     app.dependency_overrides[get_redis] = mock_get_redis
 
-    with TestClient(app) as client:
+    with patch("app.main.startup_db", new_callable=AsyncMock), \
+         patch("app.main.close_db", new_callable=AsyncMock), \
+         patch("app.neo4j_client.create_neo4j_driver", return_value=None), \
+         patch("app.redis_client.create_redis_client", return_value=None), TestClient(app) as client:
         response = client.get("/api/v1/health")
         assert response.status_code == 200
         data = response.json()
@@ -69,10 +73,11 @@ async def test_health_check_degraded():
 
 @pytest.mark.asyncio
 async def test_readiness_check_not_ready(client, db_session):
-    from app.main import app
+    from unittest.mock import AsyncMock
+
     from app.core.db import get_db
     from app.dependencies import get_neo4j, get_redis
-    from unittest.mock import AsyncMock
+    from app.main import app
 
     async def mock_get_db():
         mock_session = AsyncMock()

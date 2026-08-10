@@ -1,14 +1,13 @@
-import pytest
 from uuid import uuid4
 
+import pytest
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppException
 from app.core.security import get_password_hash
 from app.models.alert import Alert
 from app.models.organization import Organization
-from app.models.user import User, UserRole, UserStatus
+from app.models.user import User, UserRole
 from app.schemas.indicator import IndicatorCreate, IndicatorUpdate
 from app.services.alert_service import AlertService
 from app.services.audit_service import AuditService
@@ -24,7 +23,10 @@ from app.services.technology_service import TechnologyService
 from app.services.user_service import UserService
 
 
-async def _create_user(db_session, username="testuser", status="approved", is_active=True, role="user", email=None, organization_id=None):
+async def _create_user(
+    db_session, username="testuser", status="approved", is_active=True,
+    role="user", email=None, organization_id=None,
+):
     user = User(
         username=username,
         email=email or f"{username}@test.com",
@@ -87,6 +89,7 @@ class TestQueryHelpers:
 
     def test_apply_date_range_both(self):
         from datetime import date
+
         from app.models.indicator import Indicator
         q = select(Indicator)
         result = apply_date_range(q, Indicator.created_at, date(2024, 1, 1), date(2024, 12, 31))
@@ -94,6 +97,7 @@ class TestQueryHelpers:
 
     def test_apply_date_range_from_only(self):
         from datetime import date
+
         from app.models.indicator import Indicator
         q = select(Indicator)
         result = apply_date_range(q, Indicator.created_at, date(2024, 1, 1), None)
@@ -101,6 +105,7 @@ class TestQueryHelpers:
 
     def test_apply_date_range_to_only(self):
         from datetime import date
+
         from app.models.indicator import Indicator
         q = select(Indicator)
         result = apply_date_range(q, Indicator.created_at, None, date(2024, 12, 31))
@@ -185,8 +190,8 @@ class TestAuthServiceExtended:
     @pytest.mark.asyncio
     async def test_authenticate_disabled_account(self, db_session):
         await _create_user(db_session, username="disabled_user", is_active=False)
-        from app.services.auth_service import AuthService
         from app.schemas.auth import LoginRequest
+        from app.services.auth_service import AuthService
         svc = AuthService(db_session)
         with pytest.raises(AppException) as exc_info:
             await svc.authenticate(LoginRequest(username="disabled_user", password="secret"))
@@ -195,8 +200,8 @@ class TestAuthServiceExtended:
     @pytest.mark.asyncio
     async def test_authenticate_pending_account(self, db_session):
         await _create_user(db_session, username="pending_auth", status="pending")
-        from app.services.auth_service import AuthService
         from app.schemas.auth import LoginRequest
+        from app.services.auth_service import AuthService
         svc = AuthService(db_session)
         with pytest.raises(AppException) as exc_info:
             await svc.authenticate(LoginRequest(username="pending_auth", password="secret"))
@@ -206,8 +211,8 @@ class TestAuthServiceExtended:
     @pytest.mark.asyncio
     async def test_authenticate_rejected_account(self, db_session):
         await _create_user(db_session, username="rejected_auth", status="rejected")
-        from app.services.auth_service import AuthService
         from app.schemas.auth import LoginRequest
+        from app.services.auth_service import AuthService
         svc = AuthService(db_session)
         with pytest.raises(AppException) as exc_info:
             await svc.authenticate(LoginRequest(username="rejected_auth", password="secret"))
@@ -217,16 +222,16 @@ class TestAuthServiceExtended:
     @pytest.mark.asyncio
     async def test_authenticate_by_email(self, db_session):
         await _create_user(db_session, username="email_auth", email="emailauth@test.com")
-        from app.services.auth_service import AuthService
         from app.schemas.auth import LoginRequest
+        from app.services.auth_service import AuthService
         svc = AuthService(db_session)
         token = await svc.authenticate(LoginRequest(username="emailauth@test.com", password="secret"))
         assert token is not None
 
     @pytest.mark.asyncio
     async def test_register_public_with_new_org(self, db_session):
-        from app.services.auth_service import AuthService
         from app.schemas.auth import RegisterRequest
+        from app.services.auth_service import AuthService
         svc = AuthService(db_session)
         data = RegisterRequest(
             account_type="representante",
@@ -248,8 +253,8 @@ class TestAuthServiceExtended:
         db_session.add(org)
         await db_session.flush()
 
-        from app.services.auth_service import AuthService
         from app.schemas.auth import RegisterRequest
+        from app.services.auth_service import AuthService
         svc = AuthService(db_session)
         data = RegisterRequest(
             account_type="analista",
@@ -263,8 +268,8 @@ class TestAuthServiceExtended:
 
     @pytest.mark.asyncio
     async def test_register_public_profesional_with_profile(self, db_session):
-        from app.services.auth_service import AuthService
         from app.schemas.auth import RegisterRequest
+        from app.services.auth_service import AuthService
         svc = AuthService(db_session)
         data = RegisterRequest(
             account_type="profesional",
@@ -281,8 +286,8 @@ class TestAuthServiceExtended:
     @pytest.mark.asyncio
     async def test_register_public_duplicate(self, db_session):
         await _create_user(db_session, username="dup_pub", email="dup_pub@test.com")
-        from app.services.auth_service import AuthService
         from app.schemas.auth import RegisterRequest
+        from app.services.auth_service import AuthService
         svc = AuthService(db_session)
         data = RegisterRequest(
             account_type="representante",
@@ -476,6 +481,7 @@ class TestPatentServiceExtended:
     @pytest.mark.asyncio
     async def test_patent_list_with_date_range(self, db_session):
         from datetime import date
+
         from app.core.seed_data import seed_all
         await seed_all(db_session)
         svc = PatentService(db_session)
@@ -702,6 +708,7 @@ class TestAlertServiceExtended:
     @pytest.mark.asyncio
     async def test_alert_list_date_range(self, db_session):
         from datetime import datetime
+
         from app.core.seed_data import seed_all
         await seed_all(db_session)
         svc = AlertService(db_session)

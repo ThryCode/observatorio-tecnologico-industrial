@@ -1,23 +1,20 @@
 import pytest
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.seed_data import seed_all
-from app.models.organization import Organization
-from app.models.industrial_sector import IndustrialSector
-from app.models.technology import Technology
-from app.models.patent import Patent
-from app.models.indicator import Indicator
 from app.models.alert import Alert
 from app.models.bulletin import Bulletin
-from app.models.competitiveness import CompetitivenessIndex
-from app.models.research_publication import ResearchPublication
+from app.models.indicator import Indicator
+from app.models.industrial_sector import IndustrialSector
+from app.models.organization import Organization
+from app.models.patent import Patent
+from app.models.technology import Technology
 
 
 @pytest.mark.asyncio
 async def test_seed_all_idempotent(db_session):
-    count1 = await seed_all(db_session)
-    count2 = await seed_all(db_session)
+    await seed_all(db_session)
+    await seed_all(db_session)
 
     result = await db_session.execute(select(Organization))
     orgs = result.scalars().all()

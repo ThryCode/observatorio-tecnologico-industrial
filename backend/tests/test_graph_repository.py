@@ -1,5 +1,6 @@
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+
 from app.graph.repository import GraphRepository
 
 
@@ -104,8 +105,14 @@ async def test_community_detection():
 @pytest.mark.asyncio
 async def test_knn():
     mock_records = [
-        MockRecord({"id": "org2", "labels": ["Organization"], "props": {"nombre": "Org2"}, "relationship": "FOLLOWS", "strength": 2}),
-        MockRecord({"id": "tech1", "labels": ["Technology"], "props": {"nombre": "Tech1"}, "relationship": "OPERATES_IN", "strength": 1}),
+        MockRecord({
+            "id": "org2", "labels": ["Organization"],
+            "props": {"nombre": "Org2"}, "relationship": "FOLLOWS", "strength": 2,
+        }),
+        MockRecord({
+            "id": "tech1", "labels": ["Technology"],
+            "props": {"nombre": "Tech1"}, "relationship": "OPERATES_IN", "strength": 1,
+        }),
     ]
     driver = MockDriver()
     driver.session = lambda: MockSession(mock_records)

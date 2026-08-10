@@ -1,8 +1,5 @@
-import pytest
-from uuid import uuid4
 
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+import pytest
 
 from app.core.exceptions import AppException
 from app.models.industrial_sector import IndustrialSector

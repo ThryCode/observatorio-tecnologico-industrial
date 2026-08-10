@@ -1,7 +1,9 @@
-import pytest
 import json
-from unittest.mock import AsyncMock, MagicMock
-from app.services.cache import get_cached, set_cached, invalidate_pattern, cache_key
+from unittest.mock import AsyncMock
+
+import pytest
+
+from app.services.cache import cache_key, get_cached, invalidate_pattern, set_cached
 
 
 @pytest.mark.asyncio

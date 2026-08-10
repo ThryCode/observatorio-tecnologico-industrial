@@ -1,8 +1,7 @@
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.init_db import init_db, create_superuser_if_not_exists
+import pytest
+
+from app.core.init_db import create_superuser_if_not_exists
 from app.models.user import User, UserRole, UserStatus
 
 

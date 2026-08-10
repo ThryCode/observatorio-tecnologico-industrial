@@ -2,7 +2,6 @@ import uuid
 from datetime import date
 
 import pytest
-from fastapi.testclient import TestClient
 
 from app.models.follow import Follow
 from app.models.organization import Organization
@@ -76,8 +75,8 @@ async def test_enterprise_graph_with_data(client, db_session, auth_headers):
     user = await _make_user(db_session, org.id, "graph_user1")
     await db_session.flush()
 
-    patent = await _make_patent(db_session, org.id, PatentStatus.GRANTED)
-    patent2 = await _make_patent(db_session, org.id, PatentStatus.FILED)
+    await _make_patent(db_session, org.id, PatentStatus.GRANTED)
+    await _make_patent(db_session, org.id, PatentStatus.FILED)
     await db_session.flush()
 
     from app.models.industrial_sector import IndustrialSector

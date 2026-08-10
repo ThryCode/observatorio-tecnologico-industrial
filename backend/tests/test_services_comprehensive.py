@@ -1,30 +1,28 @@
-import pytest
 from uuid import uuid4
 
+import pytest
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppException
 from app.core.security import get_password_hash
 from app.models.organization import Organization
-from app.models.user import User, UserRole, UserStatus
-from app.schemas.auth import LoginRequest, RegisterRequest
+from app.models.user import User
+from app.schemas.auth import LoginRequest
 from app.schemas.user import UserCreate
+from app.services.alert_service import AlertService
 from app.services.auth_service import AuthService
 from app.services.base import BaseService
-from app.services.follow_service import FollowService
-from app.services.professional_profile_service import ProfessionalProfileService
-from app.services.indicator_service import IndicatorService
-from app.services.patent_service import PatentService
-from app.services.technology_service import TechnologyService
-from app.services.industrial_sector_service import IndustrialSectorService
-from app.services.organization_service import OrganizationService
-from app.services.regulation_service import RegulationService
 from app.services.bulletin_service import BulletinService
 from app.services.competitiveness_service import CompetitivenessService
-from app.services.alert_service import AlertService
+from app.services.follow_service import FollowService
+from app.services.indicator_service import IndicatorService
+from app.services.industrial_sector_service import IndustrialSectorService
+from app.services.organization_service import OrganizationService
+from app.services.patent_service import PatentService
+from app.services.professional_profile_service import ProfessionalProfileService
+from app.services.regulation_service import RegulationService
 from app.services.research_publication_service import ResearchPublicationService
-
+from app.services.technology_service import TechnologyService
 
 # --- Base Service Tests ---
 
@@ -74,9 +72,10 @@ async def test_base_service_update(db_session):
 
 @pytest.mark.asyncio
 async def test_base_service_paginate(db_session):
+    from sqlalchemy import func
+
     from app.models.indicator import Indicator
     from app.schemas.indicator import IndicatorCreate
-    from sqlalchemy import func
     svc = BaseService(Indicator, db_session)
 
     for i in range(5):
@@ -121,7 +120,6 @@ async def test_auth_service_register_duplicate(db_session):
 
 @pytest.mark.asyncio
 async def test_auth_service_authenticate(db_session):
-    from app.core.security import get_password_hash
     user = User(
         username="authuser", email="auth@test.com",
         hashed_password=get_password_hash("secret"),
@@ -138,7 +136,6 @@ async def test_auth_service_authenticate(db_session):
 
 @pytest.mark.asyncio
 async def test_auth_service_authenticate_invalid(db_session):
-    from app.core.security import get_password_hash
     user = User(
         username="authuser2", email="auth2@test.com",
         hashed_password=get_password_hash("secret"),
@@ -156,7 +153,6 @@ async def test_auth_service_authenticate_invalid(db_session):
 
 @pytest.mark.asyncio
 async def test_auth_service_approve_user(db_session):
-    from app.core.security import get_password_hash
     admin = User(
         username="admin_approver", email="admin_approver@test.com",
         hashed_password=get_password_hash("password123"),
@@ -182,7 +178,6 @@ async def test_auth_service_approve_user(db_session):
 
 @pytest.mark.asyncio
 async def test_auth_service_reject_user(db_session):
-    from app.core.security import get_password_hash
     user = User(
         username="rej_user", email="rej@test.com",
         hashed_password=get_password_hash("pass"),
@@ -199,7 +194,6 @@ async def test_auth_service_reject_user(db_session):
 
 @pytest.mark.asyncio
 async def test_auth_service_list_pending(db_session):
-    from app.core.security import get_password_hash
     for i in range(3):
         user = User(
             username=f"pending{i}", email=f"pend{i}@test.com",

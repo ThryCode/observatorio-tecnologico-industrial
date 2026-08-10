@@ -52,7 +52,7 @@ class GraphService:
                     id=str(p.id),
                     title=p.title,
                     patent_number=p.patent_number,
-                    status=p.status.value if p.status else "filed",
+                    status=p.status or "filed",
                     filing_date=str(p.filing_date) if p.filing_date else None,
                     publication_date=str(p.publication_date) if p.publication_date else None,
                     technological_sector=p.technological_sector,
