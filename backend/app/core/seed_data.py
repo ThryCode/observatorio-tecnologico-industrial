@@ -21,6 +21,7 @@ from app.models.industrial_sector import IndustrialSector
 from app.models.organization import Organization
 from app.models.patent import Patent, PatentStatus
 from app.models.patent_map import PatentMapEntry
+from app.models.professional_profile import ProfessionalProfile
 from app.models.research_publication import ResearchPublication
 from app.models.technology import Technology
 from app.models.user import User, UserRole, UserStatus
@@ -402,6 +403,58 @@ async def seed_indicators(session: AsyncSession) -> int:
     if inserted:
         await session.flush()
         logger.info(f"Seeded {inserted} indicators")
+
+    return inserted
+
+
+# ---------------------------------------------------------------------------
+# Professional Profiles
+# ---------------------------------------------------------------------------
+
+
+_PROFESSIONAL_PROFILES = [
+    {
+        "username": "paco",
+        "especialidad": "Ingeniería Industrial",
+        "grado_cientifico": "Doctor",
+        "biografia": "Profesional con 15 años de experiencia en automatización industrial y control de procesos.",
+        "intereses": ["IA aplicada", "Robótica", "Energías renovables"],
+    },
+]
+
+
+async def seed_professional_profiles(session: AsyncSession) -> int:
+    """Create professional profiles for users with account_type='profesional'.
+
+    Returns:
+        Number of newly inserted records.
+    """
+    result = await session.execute(
+        select(ProfessionalProfile.user_id)
+    )
+    existing_user_ids = {row[0] for row in result.all()}
+
+    result = await session.execute(
+        select(User.id, User.username)
+    )
+    user_by_username = dict(result.all())
+
+    inserted = 0
+    for data in _PROFESSIONAL_PROFILES:
+        user_id = user_by_username.get(data["username"])
+        if user_id and user_id not in existing_user_ids:
+            session.add(ProfessionalProfile(
+                user_id=user_id,
+                especialidad=data["especialidad"],
+                grado_cientifico=data.get("grado_cientifico"),
+                biografia=data.get("biografia"),
+                intereses=data.get("intereses"),
+            ))
+            inserted += 1
+
+    if inserted:
+        await session.flush()
+        logger.info(f"Seeded {inserted} professional profiles")
 
     return inserted
 
@@ -846,6 +899,7 @@ async def seed_all(session: AsyncSession) -> None:
     await seed_industrial_sectors(session)
     await seed_organizations(session)
     await seed_users(session)
+    await seed_professional_profiles(session)
     await seed_technologies(session)
     await seed_indicators(session)
     await seed_alerts(session)
