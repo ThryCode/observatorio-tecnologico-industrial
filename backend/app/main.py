@@ -10,7 +10,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.api.v1.router import api_router
 from app.core.config import settings
-from app.core.db import close_db, startup_db
+from app.core.db import close_db, startup_db, _session_factory
 from app.core.exceptions import register_exception_handlers
 from app.core.logging_config import setup_logging
 from app.core.middleware import RequestIDMiddleware
@@ -47,6 +47,30 @@ async def lifespan(app: FastAPI):
 
     app.state.neo4j = neo4j
     app.state.redis = redis_client
+
+    if neo4j:
+        try:
+            async with _session_factory() as session:
+                from app.graph.repository import GraphRepository
+                repo = GraphRepository(neo4j)
+                result = await repo.sync_enterprise_graph(session)
+                logger.info(f"Neo4j enterprise sync: {result}")
+
+                if result.get("relationships_merged", 0) == 0:
+                    from sqlalchemy import select
+                    from app.models.organization import Organization
+                    orgs = (await session.execute(select(Organization))).scalars().all()
+                    if len(orgs) >= 2:
+                        org_ids = [str(o.id) for o in orgs[:5]]
+                        async with neo4j.session() as neo_session:
+                            for i in range(len(org_ids) - 1):
+                                await neo_session.run(
+                                    "MATCH (a:Enterprise {id: $src}), (b:Enterprise {id: $tgt}) MERGE (a)-[:FOLLOWS]->(b)",
+                                    src=org_ids[i], tgt=org_ids[i + 1]
+                                )
+                            logger.info(f"Created {len(org_ids)-1} sample FOLLOWS relationships")
+        except Exception as e:
+            logger.warning(f"Neo4j enterprise sync failed: {e}")
 
     logger.info("Application startup complete")
 
