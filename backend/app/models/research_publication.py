@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import ARRAY, ForeignKey, String, Text
+from sqlalchemy import JSON, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin, UUIDMixin
@@ -17,7 +17,7 @@ class ResearchPublication(Base, UUIDMixin, TimestampMixin):
     journal: Mapped[str | None] = mapped_column(String(200), nullable=True)
     fecha_publicacion: Mapped[datetime] = mapped_column()
     palabras_clave: Mapped[list[str] | None] = mapped_column(
-        ARRAY(String(50)), nullable=True
+        JSON, nullable=True
     )
     sector_codigo: Mapped[str | None] = mapped_column(
         ForeignKey("industrial_sectores.codigo"), nullable=True

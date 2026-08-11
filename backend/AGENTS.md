@@ -25,7 +25,7 @@ FastAPI backend with async SQLAlchemy, Pydantic v2, and Neo4j graph layer.
 - Response model: always use `response_model=PaginatedResponse[T]` for lists
 
 ## SQLAlchemy Async
-- Engine: `create_async_engine` with `asyncpg` driver
+- Engine: `create_async_engine` with `aiosqlite` driver
 - Session: `AsyncSession` with `expire_on_commit=False`
 - Queries: use `select()`, `await session.execute()`, `.scalars().all()`
 - Pagination: `offset/limit` with `func.count()` for total
@@ -53,7 +53,7 @@ FastAPI backend with async SQLAlchemy, Pydantic v2, and Neo4j graph layer.
 
 ## Testing
 - Framework: pytest + pytest-asyncio (auto mode)
-- DB URL: `postgresql+asyncpg://observatorio:observatorio_dev@localhost:5432/observatorio_test`
+- DB URL: `sqlite+aiosqlite:///./test_observatorio.db`
 - Fixtures: `engine` (session), `db_session` (per-test rollback), `client` (AsyncClient)
 - Pattern: create tables once per session, rollback per test
 - Graph tests: accept 503 if Neo4j unavailable
@@ -82,5 +82,5 @@ FastAPI backend with async SQLAlchemy, Pydantic v2, and Neo4j graph layer.
 - Workflow: `.github/workflows/ci.yml` (ubuntu-latest, Python 3.11, Node 20)
 - Use `python3` (not `python`) in CI commands
 - Don't use `--timeout` flag in pytest (pytest-timeout not installed)
-- PostgreSQL service container with `observatorio_test` DB
+- SQLite DB file with seed data
 - Env vars needed: DATABASE_URL, NEO4J_PASSWORD, SECRET_KEY, FIRST_SUPERUSER_PASSWORD

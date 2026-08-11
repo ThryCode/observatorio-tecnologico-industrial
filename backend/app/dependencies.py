@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from neo4j import AsyncDriver
@@ -28,7 +30,7 @@ async def get_current_user(
     payload = decode_token(credentials.credentials)
     if payload is None:
         raise AppException(401, "Invalid or expired token")
-    user_id = payload.get("sub")
+    user_id = uuid.UUID(payload.get("sub"))
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:

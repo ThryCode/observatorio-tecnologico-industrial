@@ -452,7 +452,7 @@ class TestHealthReadiness:
             assert resp.status_code == 200
             data = resp.json()
             assert data["status"] == "ready"
-            assert data["checks"]["postgresql"] == "ok"
+            assert data["checks"]["database"] == "ok"
             assert data["checks"]["neo4j"] == "ok"
             assert data["checks"]["redis"] == "ok"
         finally:
@@ -1496,7 +1496,7 @@ class TestQueryHelpers:
         result = apply_search(
             query, IndustrialSector, "test", [IndustrialSector.nombre]
         )
-        assert "unaccent" in str(result).lower() or "ilike" in str(result).lower()
+        assert "lower" in str(result).lower() or "like" in str(result).lower()
 
     def test_apply_date_range_both(self):
         from sqlalchemy import select as sa_select

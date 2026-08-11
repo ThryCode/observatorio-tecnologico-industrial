@@ -1,12 +1,12 @@
 # Observatorio Tecnologico Industrial - Agent Instructions
 
 ## Project Overview
-Plataforma SaaS de inteligencia estrategica para el MINDUS (Ministerio de Industries). Monitorea tendencias globales en ciencia, tecnologia e innovacion para sectores industriales cubanos. Dual database: PostgreSQL (relational) + Neo4j (knowledge graph).
+Plataforma SaaS de inteligencia estrategica para el MINDUS (Ministerio de Industries). Monitorea tendencias globales en ciencia, tecnologia e innovacion para sectores industriales cubanos. Dual database: SQLite (relational) + Neo4j (knowledge graph).
 
 ## Tech Stack
 - **Backend:** Python 3.11, FastAPI >=0.110, SQLAlchemy 2.0 (async), Alembic, Pydantic v2
 - **Frontend:** React 18, TypeScript 5.5, Vite 5.4, Tailwind 3.4, TanStack Query 5
-- **Databases:** PostgreSQL 15, Neo4j 5 Community, Redis 5.0
+- **Databases:** SQLite (aiosqlite), Neo4j 5 Community, Redis 5.0
 - **Testing:** pytest + pytest-asyncio (backend)
 - **Linting:** Ruff (backend, line-length=120, target py311, rules: E,F,W,I,N,UP,B,SIM), ESLint (frontend)
 - **Logging:** loguru with rotating files (backend)
@@ -81,7 +81,7 @@ frontend/src/
 - Modify CORS or security settings
 
 ### Never do
-- **Use Docker for any purpose** — this project runs exclusively on native Windows 10. No Docker, no containers, no docker-compose. All services (PostgreSQL, Neo4j, Redis, Python, Node.js) are installed directly on the host OS.
+- **Use Docker for any purpose** — this project runs exclusively on native Windows 10. No Docker, no containers, no docker-compose. All services (SQLite, Neo4j, Redis, Python, Node.js) run locally without external servers.
 - Commit `.env` files or secrets
 - Hardcode API keys or passwords
 - Use sync DB operations in async context

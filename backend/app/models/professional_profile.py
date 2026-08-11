@@ -3,8 +3,7 @@ from __future__ import annotations
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ARRAY, ForeignKey, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import JSON, ForeignKey, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, UUIDMixin
@@ -17,7 +16,7 @@ class ProfessionalProfile(Base, TimestampMixin, UUIDMixin):
     __tablename__ = "professional_profiles"
 
     user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        Uuid(),
         ForeignKey("users.id", ondelete="CASCADE"),
         unique=True,
         index=True,
@@ -27,7 +26,7 @@ class ProfessionalProfile(Base, TimestampMixin, UUIDMixin):
     cv_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     biografia: Mapped[str | None] = mapped_column(Text, nullable=True)
     intereses: Mapped[list[str] | None] = mapped_column(
-        ARRAY(String), nullable=True
+        JSON, nullable=True
     )
     linkedin_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
     twitter_url: Mapped[str | None] = mapped_column(String(255), nullable=True)

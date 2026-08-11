@@ -10,7 +10,7 @@ async def test_health_check(client):
     data = response.json()
     assert "status" in data
     assert "services" in data
-    assert "postgresql" in data["services"]
+    assert "database" in data["services"]
     assert "neo4j" in data["services"]
     assert "redis" in data["services"]
 
@@ -30,7 +30,7 @@ async def test_readiness_check(client):
     data = response.json()
     assert "status" in data
     assert "checks" in data
-    assert "postgresql" in data["checks"]
+    assert "database" in data["checks"]
 
 
 @pytest.mark.asyncio
@@ -66,7 +66,7 @@ async def test_health_check_degraded():
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "degraded"
-        assert data["services"]["postgresql"]["status"] == "error"
+        assert data["services"]["database"]["status"] == "error"
 
     app.dependency_overrides.clear()
 

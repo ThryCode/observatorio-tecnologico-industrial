@@ -437,7 +437,7 @@ async def seed_professional_profiles(session: AsyncSession) -> int:
     result = await session.execute(
         select(User.id, User.username)
     )
-    user_by_username = dict(result.all())
+    user_by_username = {row[1]: row[0] for row in result.all()}
 
     inserted = 0
     for data in _PROFESSIONAL_PROFILES:

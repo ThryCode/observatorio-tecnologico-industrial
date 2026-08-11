@@ -17,7 +17,7 @@ from app.main import app
 from app.models.base import Base
 from app.models.user import User
 
-TEST_DATABASE_URL = "postgresql+asyncpg://observatorio:observatorio_dev@localhost:5432/observatorio_test"
+TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_observatorio.db"
 
 
 @pytest_asyncio.fixture(scope="session")

@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import APIRouter, Depends, Query
 from neo4j import AsyncDriver
 from redis.asyncio import Redis
@@ -133,7 +135,7 @@ async def recommendations_for_org(
         raise AppException(503, "Neo4j is not available")
 
     org = (
-        await db.execute(select(Organization).where(Organization.id == org_id))
+        await db.execute(select(Organization).where(Organization.id == uuid.UUID(org_id)))
     ).scalar_one_or_none()
 
     from app.graph.repository import GraphRepository

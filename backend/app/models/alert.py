@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, func, text
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin, UUIDMixin
@@ -16,4 +16,4 @@ class Alert(Base, UUIDMixin, TimestampMixin):
     sector_codigo: Mapped[str | None] = mapped_column(
         ForeignKey("industrial_sectores.codigo"), nullable=True
     )
-    leida: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
+    leida: Mapped[bool] = mapped_column(Boolean, default=False)

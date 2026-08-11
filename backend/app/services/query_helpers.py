@@ -13,9 +13,9 @@ def apply_search(query, _model, q: str | None, fields: list[ColumnElement]):
     if not q:
         return query
     like = f"%{q}%"
-    cond = func.unaccent(fields[0]).ilike(func.unaccent(like))
+    cond = func.lower(fields[0]).like(func.lower(like))
     for f in fields[1:]:
-        cond = cond | func.unaccent(f).ilike(func.unaccent(like))
+        cond = cond | func.lower(f).like(func.lower(like))
     return query.where(cond)
 
 

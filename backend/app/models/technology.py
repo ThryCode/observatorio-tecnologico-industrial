@@ -1,4 +1,4 @@
-from sqlalchemy import ARRAY, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin, UUIDMixin
@@ -15,5 +15,5 @@ class Technology(Base, UUIDMixin, TimestampMixin):
     trl_nivel: Mapped[int | None] = mapped_column(Integer, nullable=True)
     referencia_ontologia: Mapped[str | None] = mapped_column(String(50), nullable=True)
     palabras_clave: Mapped[list[str] | None] = mapped_column(
-        ARRAY(String(50)), nullable=True
+        JSON, nullable=True
     )

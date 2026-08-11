@@ -1,3 +1,4 @@
+import uuid
 from datetime import UTC, datetime
 
 from sqlalchemy import func, or_, select
@@ -104,14 +105,14 @@ class AuthService:
         return create_access_token({"sub": str(user.id)})
 
     async def approve_user(self, user_id: str, admin_id: str) -> User:
-        result = await self.db.execute(select(User).where(User.id == user_id))
+        result = await self.db.execute(select(User).where(User.id == uuid.UUID(user_id)))
         user = result.scalar_one_or_none()
         if not user:
             raise AppException(404, "User not found")
         if user.status != UserStatus.PENDING.value:
             raise AppException(400, "User is not pending approval")
         user.status = UserStatus.APPROVED.value
-        user.approved_by = admin_id
+        user.approved_by = uuid.UUID(admin_id)
         user.approved_at = datetime.now(UTC)
         user.is_active = True
         await self.db.flush()
@@ -119,7 +120,7 @@ class AuthService:
         return user
 
     async def reject_user(self, user_id: str, reason: str) -> User:
-        result = await self.db.execute(select(User).where(User.id == user_id))
+        result = await self.db.execute(select(User).where(User.id == uuid.UUID(user_id)))
         user = result.scalar_one_or_none()
         if not user:
             raise AppException(404, "User not found")

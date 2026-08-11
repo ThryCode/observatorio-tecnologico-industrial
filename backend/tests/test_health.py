@@ -8,8 +8,8 @@ async def test_health_check(client):
     data = response.json()
     assert data["status"] in ("healthy", "degraded")
     assert "services" in data
-    assert "postgresql" in data["services"]
-    assert data["services"]["postgresql"]["status"] == "ok"
+    assert "database" in data["services"]
+    assert data["services"]["database"]["status"] == "ok"
 
 
 @pytest.mark.asyncio
@@ -27,5 +27,5 @@ async def test_readiness_check(client):
     data = response.json()
     assert data["status"] == "ready"
     assert "checks" in data
-    assert "postgresql" in data["checks"]
-    assert data["checks"]["postgresql"] == "ok"
+    assert "database" in data["checks"]
+    assert data["checks"]["database"] == "ok"

@@ -35,7 +35,7 @@ class ProfessionalProfileService:
             count_query = count_query.where(ProfessionalProfile.especialidad == especialidad)
         if q:
             like = f"%{q}%"
-            cond = User.full_name.ilike(like) | User.email.ilike(like)
+            cond = func.lower(User.full_name).like(func.lower(like)) | func.lower(User.email).like(func.lower(like))
             query = query.where(cond)
             count_query = count_query.where(cond)
 

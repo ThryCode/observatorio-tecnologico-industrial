@@ -1,5 +1,4 @@
-from sqlalchemy import String as SAString
-from sqlalchemy import cast, func, select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.research_publication import ResearchPublication
@@ -40,11 +39,12 @@ class ResearchPublicationService(
                 ResearchPublication.sector_codigo == sector_codigo
             )
         if author_name:
+            like = f"%{author_name}%"
             query = query.where(
-                func.unaccent(ResearchPublication.autores).ilike(func.unaccent(f"%{author_name}%"))
+                func.lower(ResearchPublication.autores).like(func.lower(like))
             )
             count_query = count_query.where(
-                func.unaccent(ResearchPublication.autores).ilike(func.unaccent(f"%{author_name}%"))
+                func.lower(ResearchPublication.autores).like(func.lower(like))
             )
         if q:
             like = f"%{q}%"
@@ -56,10 +56,9 @@ class ResearchPublicationService(
                 ResearchPublication.journal,
                 ResearchPublication.sector_codigo,
             ]
-            cond = func.unaccent(text_fields[0]).ilike(func.unaccent(like))
+            cond = func.lower(text_fields[0]).like(func.lower(like))
             for f in text_fields[1:]:
-                cond = cond | func.unaccent(f).ilike(func.unaccent(like))
-            cond = cond | func.unaccent(cast(ResearchPublication.palabras_clave, SAString)).ilike(func.unaccent(like))
+                cond = cond | func.lower(f).like(func.lower(like))
             query = query.where(cond)
             count_query = count_query.where(cond)
 

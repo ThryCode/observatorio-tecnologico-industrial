@@ -16,12 +16,12 @@ async def health_check(
 ):
     checks = {}
 
-    # PostgreSQL
+    # Database
     try:
         await db.execute(text("SELECT 1"))
-        checks["postgresql"] = {"status": "ok"}
+        checks["database"] = {"status": "ok"}
     except Exception as e:
-        checks["postgresql"] = {"status": "error", "detail": str(e)}
+        checks["database"] = {"status": "error", "detail": str(e)}
 
     # Neo4j
     try:
@@ -66,12 +66,12 @@ async def readiness_check(
     checks = {}
     ready = True
 
-    # PostgreSQL (required)
+    # Database (required)
     try:
         await db.execute(text("SELECT 1"))
-        checks["postgresql"] = "ok"
+        checks["database"] = "ok"
     except Exception as e:
-        checks["postgresql"] = f"error: {str(e)}"
+        checks["database"] = f"error: {str(e)}"
         ready = False
 
     # Neo4j (optional)
