@@ -18,7 +18,7 @@ async def follow_organization(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    follow = await FollowService(db).follow_organization(current_user.id, str(organization_id))
+    follow = await FollowService(db).follow_organization(current_user.id, organization_id)
     return follow
 
 
@@ -28,7 +28,7 @@ async def unfollow_organization(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    await FollowService(db).unfollow_organization(current_user.id, str(organization_id))
+    await FollowService(db).unfollow_organization(current_user.id, organization_id)
     return Message(detail="Unfollowed successfully")
 
 
@@ -46,7 +46,7 @@ async def get_follow_status(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    data = await FollowService(db).get_follow_status(str(organization_id), current_user.id)
+    data = await FollowService(db).get_follow_status(organization_id, current_user.id)
     return FollowCountResponse(**data)
 
 

@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,7 +13,7 @@ class FollowService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def follow_organization(self, user_id: str, organization_id: str) -> Follow:
+    async def follow_organization(self, user_id: UUID, organization_id: UUID) -> Follow:
         org = await self.db.get(Organization, organization_id)
         if not org:
             raise AppException(404, "Organization not found")
@@ -40,7 +42,7 @@ class FollowService:
         await self.db.refresh(follow)
         return follow
 
-    async def unfollow_organization(self, user_id: str, organization_id: str) -> None:
+    async def unfollow_organization(self, user_id: UUID, organization_id: UUID) -> None:
         user = await self.db.get(User, user_id)
         if user and user.organization_id == organization_id:
             raise AppException(400, "Cannot unfollow your own organization")
@@ -59,7 +61,7 @@ class FollowService:
         await self.db.delete(follow)
         await self.db.flush()
 
-    async def list_following(self, user_id: str) -> list[Follow]:
+    async def list_following(self, user_id: UUID) -> list[Follow]:
         result = await self.db.execute(
             select(Follow).where(
                 Follow.follower_id == user_id,
@@ -106,7 +108,7 @@ class FollowService:
             "is_following": bool(is_following),
         }
 
-    async def get_organization_follow_stats(self, org_id: str) -> dict:
+    async def get_organization_follow_stats(self, org_id: UUID) -> dict:
         org = await self.db.get(Organization, org_id)
         if not org:
             raise AppException(404, "Organization not found")

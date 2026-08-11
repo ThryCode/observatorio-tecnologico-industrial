@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import ForeignKey, String, Text
-from sqlalchemy.types import JSON
+from sqlalchemy import ForeignKey, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.types import JSON
 
 from app.models.base import Base, TimestampMixin, UUIDMixin
 
@@ -15,8 +16,8 @@ if TYPE_CHECKING:
 class ProfessionalProfile(Base, TimestampMixin, UUIDMixin):
     __tablename__ = "professional_profiles"
 
-    user_id: Mapped[str] = mapped_column(
-        String(36),
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid(),
         ForeignKey("users.id", ondelete="CASCADE"),
         unique=True,
         index=True,

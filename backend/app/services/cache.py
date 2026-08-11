@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from contextlib import suppress
 from typing import Any
 
 from redis.asyncio import Redis
@@ -21,10 +22,8 @@ async def get_cached(redis: Redis | None, key: str) -> Any | None:
 async def set_cached(redis: Redis | None, key: str, value: Any, ttl: int = 300) -> None:
     if redis is None:
         return
-    try:
+    with suppress(Exception):
         await redis.setex(key, ttl, json.dumps(value, default=str))
-    except Exception:
-        pass
 
 
 async def invalidate_pattern(redis: Redis | None, pattern: str) -> None:

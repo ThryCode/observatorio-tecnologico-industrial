@@ -1278,7 +1278,7 @@ class TestOrganizationEndpoints:
     @pytest.mark.asyncio
     async def test_update_organization_forbidden(self, client, db_session):
         await _create_sector(db_session)
-        user = await _create_user(db_session, role=UserRole.REP_CTI)
+        user = await _create_user(db_session, role=UserRole.REPRESENTANTE)
         token = _token(user)
         org = await _create_org(db_session)
         resp = await client.put(

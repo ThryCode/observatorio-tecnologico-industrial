@@ -577,7 +577,7 @@ async def seed_bulletins(session: AsyncSession) -> int:
     inserted = 0
     for data in _BULLETINS:
         if data["titulo"] not in existing:
-            session.add(Bulletin(id=str(uuid4()), **data))
+            session.add(Bulletin(id=uuid4(), **data))
             inserted += 1
     if inserted:
         await session.flush()
@@ -607,7 +607,7 @@ async def seed_competitiveness(session: AsyncSession) -> int:
     for sector, codigo, *valores in _COMPETITIVENESS_DATA:
         for i, pais in enumerate(_COMPETITIVENESS_PAISES):
             session.add(CompetitivenessIndex(
-                id=str(uuid4()), sector=sector, sector_codigo=codigo,
+                id=uuid4(), sector=sector, sector_codigo=codigo,
                 indicador="Indice de competitividad", valor=valores[i],
                 pais=pais, periodo="2026-Q2", fuente="BCG",
             ))
@@ -639,7 +639,7 @@ async def seed_patent_maps(session: AsyncSession) -> int:
         return 0
     for tecnologia, codigo, patentes, tendencia in _PATENT_MAP_DATA:
         session.add(PatentMapEntry(
-            id=str(uuid4()), tecnologia=tecnologia, pais="Cuba",
+            id=uuid4(), tecnologia=tecnologia, pais="Cuba",
             sector_codigo=codigo, total_patentes=patentes,
             periodo="2026-Q2", tendencia=tendencia,
         ))
@@ -782,7 +782,7 @@ async def seed_research_publications(session: AsyncSession) -> int:
     if result.scalar_one_or_none():
         return 0
     for data in _RESEARCH_PUBLICATIONS:
-        session.add(ResearchPublication(id=str(uuid4()), **data))
+        session.add(ResearchPublication(id=uuid4(), **data))
     await session.flush()
     logger.info(f"Seeded {len(_RESEARCH_PUBLICATIONS)} research publications")
     return len(_RESEARCH_PUBLICATIONS)
@@ -897,7 +897,7 @@ async def seed_patents(session: AsyncSession) -> int:
     if result.scalar_one_or_none():
         return 0
     for data in _PATENTS:
-        session.add(Patent(id=str(uuid4()), **data))
+        session.add(Patent(id=uuid4(), **data))
     await session.flush()
     logger.info(f"Seeded {len(_PATENTS)} patents")
     return len(_PATENTS)
