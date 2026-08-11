@@ -164,12 +164,12 @@ alembic upgrade head
 
 ## Criterios de aceptación
 
-- [ ] `create_all` eliminado de `db.py`
-- [ ] `init_db` renombrado a `startup_db` en `db.py` y `main.py`
-- [ ] Backend arranca correctamente con `alembic upgrade head && uvicorn app.main:app`
-- [ ] Seed de superusuario sigue funcionando
-- [ ] Tests pasan: `pytest -v` desde `backend/`
-- [ ] `ruff check backend/` pasa sin errores
+- [x] `create_all` eliminado de `db.py`
+- [x] `init_db` renombrado a `startup_db` en `db.py` y `main.py`
+- [x] Backend arranca correctamente con `alembic upgrade head && uvicorn app.main:app`
+- [x] Seed de superusuario sigue funcionando
+- [x] Tests pasan: `pytest -v` desde `backend/`
+- [x] `ruff check backend/` pasa sin errores
 
 ## Riesgos
 

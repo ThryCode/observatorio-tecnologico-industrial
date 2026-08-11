@@ -43,6 +43,8 @@ FastAPI backend with async SQLAlchemy, Pydantic v2, and Neo4j graph layer.
 - Rollback: `alembic downgrade -1`
 - NEVER edit a committed migration file
 - Always include reversible operations
+- **Alembic is the ONLY schema mechanism** — `create_all` no longer runs at startup. Run `alembic upgrade head` before first boot
+- Existing DBs created before Alembic: run `alembic stamp head` once to mark the schema as migrated
 
 ## Neo4j Cypher
 - Repository pattern: `graph/repository.py`

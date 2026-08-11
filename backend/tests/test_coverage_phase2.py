@@ -508,16 +508,11 @@ class TestCoreDB:
         from app.core import db as db_mod
         mock_engine = MagicMock()
         mock_session_factory = MagicMock()
-        mock_conn = AsyncMock()
-        mock_conn.run_sync = AsyncMock()
 
         with patch("app.core.db.settings") as mock_settings, \
              patch("app.core.db.create_async_engine", return_value=mock_engine) as mock_create, \
-             patch("app.core.db.async_sessionmaker", return_value=mock_session_factory), \
-             patch.object(db_mod.Base, "metadata"):
+             patch("app.core.db.async_sessionmaker", return_value=mock_session_factory):
             mock_settings.database_url = "sqlite+aiosqlite:///test.db"
-            mock_engine.begin.return_value.__aenter__ = AsyncMock(return_value=mock_conn)
-            mock_engine.begin.return_value.__aexit__ = AsyncMock(return_value=False)
             mock_session_inst = AsyncMock()
             mock_session_factory.return_value.__aenter__ = AsyncMock(return_value=mock_session_inst)
             mock_session_factory.return_value.__aexit__ = AsyncMock(return_value=False)
@@ -538,9 +533,6 @@ class TestCoreDB:
              patch("app.core.db.create_async_engine", return_value=mock_engine) as mock_create, \
              patch("app.core.db.async_sessionmaker", return_value=mock_session_factory):
             mock_settings.database_url = "postgresql+asyncpg://test:test@localhost/test"
-            mock_conn = AsyncMock()
-            mock_engine.begin.return_value.__aenter__ = AsyncMock(return_value=mock_conn)
-            mock_engine.begin.return_value.__aexit__ = AsyncMock(return_value=False)
             mock_session_inst = AsyncMock()
             mock_session_factory.return_value.__aenter__ = AsyncMock(return_value=mock_session_inst)
             mock_session_factory.return_value.__aexit__ = AsyncMock(return_value=False)

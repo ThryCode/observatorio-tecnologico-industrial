@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import (
 from sqlalchemy.pool import NullPool
 
 from app.core.config import settings
-from app.models.base import Base
 
 _engine: AsyncEngine | None = None
 _session_factory: async_sessionmaker[AsyncSession] | None = None
@@ -34,9 +33,6 @@ async def startup_db() -> None:
         class_=AsyncSession,
         expire_on_commit=False,
     )
-
-    async with _engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
 
     async with _session_factory() as session:
         from app.core.init_db import init_db as seed_db

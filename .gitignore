@@ -24,6 +24,9 @@ Thumbs.db
 pgdata/
 *.db
 
+# SQLite databases (local dev/test, created by alembic/pytest)
+backend/*.db
+
 # Dependencies
 node_modules/
 
