@@ -364,7 +364,7 @@ CREATE TABLE public.users (
 --
 
 COPY public.alembic_version (version_num) FROM stdin;
-4cb0cc2ebd70
+bb25b3baf793
 \.
 
 
