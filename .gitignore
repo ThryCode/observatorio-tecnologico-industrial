@@ -51,3 +51,13 @@ frontend/vite.config.js
 # TypeScript build info
 *.tsbuildinfo
 
+# Test coverage
+.coverage
+coverage/
+frontend/coverage/
+backend/coverage_report.txt
+
+# Database files
+*.db
+*.db-journal
+
