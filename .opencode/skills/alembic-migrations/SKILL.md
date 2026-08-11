@@ -1,16 +1,16 @@
 ---
 name: alembic-migrations
-description: Alembic database migration workflow for PostgreSQL
+description: Alembic database migration workflow for SQLite
 metadata:
   version: "1.0.0"
   category: "backend"
-  tags: ["alembic", "postgresql", "migration", "database"]
+  tags: ["alembic", "sqlite", "migration", "database"]
 ---
 
 # Alembic Migrations
 
 ## When To Use
-- Adding new tables or columns to PostgreSQL
+- Adding new tables or columns to SQLite
 - Modifying existing schema
 - Creating seed data
 - Rolling back schema changes

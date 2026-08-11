@@ -15,7 +15,7 @@ Este documento establece las pautas para contribuir al proyecto.
    - Pasos para reproducir
    - Comportamiento esperado vs. actual
    - Logs relevantes (consola, loguru)
-   - Versiones de Python, Node.js, PostgreSQL, Neo4j, Redis
+   - Versiones de Python, Node.js, SQLite, Neo4j, Redis
 4. Etiqueta el issue como `bug`.
 
 ## Solicitar funcionalidades

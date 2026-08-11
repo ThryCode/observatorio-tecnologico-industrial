@@ -35,14 +35,14 @@ Debe incluir:
 - Windows Server 2019+ / Windows 10 Pro
 - 8 GB RAM mínimo, 16 GB recomendado
 - 50 GB disco disponible
-- PostgreSQL 15, Neo4j 5 Community, Redis 5.0
+- SQLite, Neo4j 5 Community, Redis 5.0
 - Python 3.11, Node.js 20 LTS
 
 ## Instalación
 1. Clonar repositorio
 2. Configurar .env (usar .env.example como template)
 3. Ejecutar `alembic upgrade head` (backend)
-4. Iniciar servicios: PostgreSQL → Neo4j → Redis → Backend → Frontend
+4. Iniciar servicios: Neo4j → Redis → Backend → Frontend
 
 ## Inicio de servicios
 ```powershell
@@ -59,7 +59,7 @@ npm run build
 ## Variables de entorno de producción
 | Variable | Valor recomendado |
 |----------|------------------|
-| `DATABASE_URL` | PostgreSQL con usuario/pass fuertes |
+| `DATABASE_URL` | SQLite (archivo local, sin credenciales) |
 | `SECRET_KEY` | Generar con `openssl rand -hex 32` |
 | `FIRST_SUPERUSER_PASSWORD` | Password fuerte |
 | `NEO4J_PASSWORD` | Password fuerte |
@@ -77,13 +77,13 @@ npm run build
 ```markdown
 # Backup y Recuperación
 
-## PostgreSQL
+## SQLite
 ```powershell
-# Backup completo
-pg_dump -U observatorio -d observatorio_db > backup_%DATE%.sql
+# Backup
+Copy-Item backend\observatorio.db backups\observatorio_%DATE%.db
 
 # Restore
-psql -U observatorio -d observatorio_db < backup.sql
+Copy-Item backups\observatorio_ULTIMO.db backend\observatorio.db
 ```
 
 ## Neo4j
@@ -98,7 +98,7 @@ neo4j-admin database dump neo4j --to-path=/backups/
 ## Frecuencia recomendada
 | Servicio | Frecuencia | Retención |
 |----------|-----------|-----------|
-| PostgreSQL | Diaria | 30 días |
+| SQLite | Diaria | 30 días |
 | Neo4j | Semanal | 12 semanas |
 | Redis | No necesario (cache) | — |
 

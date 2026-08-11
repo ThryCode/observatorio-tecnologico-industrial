@@ -20,7 +20,7 @@ metadata:
 ### Configuration
 - Framework: pytest + pytest-asyncio
 - Config: `backend/pyproject.toml` - `asyncio_mode = "auto"`
-- Test DB: `postgresql+asyncpg://observatorio:observatorio_dev@localhost:5432/observatorio_test`
+- Test DB: `sqlite+aiosqlite:///./test_observatorio.db`
 
 ### Fixtures (from `backend/tests/conftest.py`)
 

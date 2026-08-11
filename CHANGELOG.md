@@ -1,7 +1,7 @@
 # Changelog
 
 > Plataforma de vigilancia tecnológica industrial para el Ministerio de Industrias de Cuba (MINDUS).
-> Python/FastAPI + React/TypeScript + Neo4j/PostgreSQL/Redis.
+> Python/FastAPI + React/TypeScript + Neo4j/SQLite/Redis.
 
 ---
 

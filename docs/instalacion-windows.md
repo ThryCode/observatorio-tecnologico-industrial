@@ -74,31 +74,10 @@ Neo4j 5 Community requiere Java 17.
 
 ---
 
-## 3. PostgreSQL 15
+## 3. SQLite (ya incluido)
 
-1. Descargar el instalador EDB desde:
-   https://www.postgresql.org/download/windows/
-   — Elegir **PostgreSQL 15.x** (Windows x86-64).
-
-2. Durante la instalación:
-   - Puerto: **5432** (por defecto)
-   - Password del superusuario `postgres`: **observatorio_dev**
-   - **pgAdmin 4** incluido
-
-3. Crear base de datos y usuario:
-   ```sql
-   CREATE USER observatorio WITH PASSWORD 'observatorio_dev';
-   CREATE DATABASE observatorio_db OWNER observatorio;
-   GRANT ALL PRIVILEGES ON DATABASE observatorio_db TO observatorio;
-   ```
-
-4. Verificar:
-   ```powershell
-   psql -U observatorio -d observatorio_db -h localhost -p 5432 -c "\conninfo"
-   ```
-   (Contraseña: `observatorio_dev`)
-
-5. El servicio `postgresql-x64-15` se instala automáticamente.
+SQLite viene incluido con Python (módulo `sqlite3`). No requiere instalación adicional.
+La base de datos se crea automáticamente al iniciar el backend (`observatorio.db`).
 
 ---
 
@@ -206,8 +185,6 @@ pip install -r backend\requirements.txt
 
 ### 7.3 Migraciones
 
-Asegúrate de que PostgreSQL esté corriendo, luego:
-
 ```powershell
 cd backend
 ..\venv\Scripts\activate
@@ -242,7 +219,6 @@ npm run dev
 | http://localhost:8000/redoc | Documentación ReDoc de la API |
 | http://localhost:5173 | Frontend (Vite dev server) |
 | http://localhost:7474 | Neo4j Browser |
-| http://localhost:8080 | pgAdmin 4 (gestor PostgreSQL) |
 
 Probar el login del superusuario:
 ```powershell
@@ -258,7 +234,6 @@ Debe devolver un JSON con `access_token`.
 
 | Acción | Comando |
 |---|---|
-| Iniciar PostgreSQL | `Start-Service postgresql-x64-15` |
 | Iniciar Neo4j | `C:\neo4j\bin\neo4j.bat console` |
 | Iniciar Redis | `C:\redis\redis-server.exe` |
 | Activar virtualenv | `backend\venv\Scripts\activate` |

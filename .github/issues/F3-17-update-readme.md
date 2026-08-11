@@ -46,7 +46,7 @@ Este proyecto usa GitHub Actions para CI. El workflow `.github/workflows/ci.yml`
 
 | Job | Comandos |
 |-----|----------|
-| **backend** | `ruff check`, `pytest -v` (con PostgreSQL 15 service container) |
+| **backend** | `ruff check`, `pytest -v` (SQLite, no external DB required) |
 | **frontend** | `npm run lint`, `npm test`, `npm run build` |
 
 El badge de estado está en la parte superior del README.

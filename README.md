@@ -3,7 +3,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=flat&logo=react&logoColor=black)](https://react.dev/)
 [![Neo4j](https://img.shields.io/badge/Neo4j-5-008CC1?style=flat&logo=neo4j&logoColor=white)](https://neo4j.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?style=flat&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=flat&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![Python](https://img.shields.io/badge/Python_3.11-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
 [![CI](https://github.com/ThryCode/observatorio-tecnologico-industrial/actions/workflows/ci.yml/badge.svg)](https://github.com/ThryCode/observatorio-tecnologico-industrial/actions)
 [![License](https://img.shields.io/badge/License-MINDUS-blue)](LICENSE)
@@ -53,7 +53,7 @@ El Observatorio Tecnológico Industrial es un sistema de inteligencia estratégi
 - **Publicaciones de investigación** — CRUD con filtro por autor, autocompletado y búsqueda accent-insensitive; el rol profesional puede crear publicaciones.
 - **Registro de usuarios** — Solicitud pública con aprobación/rechazo por administrador; registro de redes sociales en perfiles profesionales.
 - **Sistema de roles** — Admin MINDUS, representante CTI, analista, profesional y visitante con permisos diferenciados (RBAC con `require_role`).
-- **Health check** — Endpoint `/api/v1/health` verifica estado de PostgreSQL, Neo4j y Redis.
+- **Health check** — Endpoint `/api/v1/health` verifica estado de SQLite, Neo4j y Redis.
 - **Rate limiting** — Protección contra abuso en endpoints de autenticación (slowapi).
 
 ## Arquitectura
@@ -68,10 +68,10 @@ El Observatorio Tecnológico Industrial es un sistema de inteligencia estratégi
                       │   │   │
                ┌──────┘   │   └──────┐
                ▼          ▼          ▼
-        ┌──────────┐ ┌────────┐ ┌────────┐
-        │PostgreSQL│ │ Redis  │ │Adminer │
-        │  15      │ │ 5      │ │(GUI)   │
-        └──────────┘ └────────┘ └────────┘
+         ┌──────────┐ ┌────────┐ ┌────────┐
+         │ SQLite   │ │ Redis  │ │Adminer │
+         │ (file)   │ │ 5      │ │(GUI)   │
+         └──────────┘ └────────┘ └────────┘
 ```
 
 ## Stack tecnológico
@@ -79,7 +79,7 @@ El Observatorio Tecnológico Industrial es un sistema de inteligencia estratégi
 | Capa | Tecnología | Versión | Decisión |
 |---|---|---|---|
 | **Backend** | Python + FastAPI | 3.11 + 0.110+ | Async nativo, Pydantic v2, performance superior a Flask/Django |
-| **ORM** | SQLAlchemy + asyncpg | 2.0 | Migración desde 1.4; async obligatorio para FastAPI |
+| **ORM** | SQLAlchemy + aiosqlite | 2.0 | Migración desde 1.4; async obligatorio para FastAPI |
 | **Migraciones** | Alembic | — | Autogenerate desde modelos SQLAlchemy |
 | **Frontend** | React + TypeScript | 18 + 5.5 | Funcional + hooks, ecosistema maduro |
 | **Bundler** | Vite | 5.4 | HMR rápido, mejor que Webpack para dev |
@@ -87,7 +87,7 @@ El Observatorio Tecnológico Industrial es un sistema de inteligencia estratégi
 | **Estado server** | TanStack Query | 5 | Cache automático, invalidación, re-fetch |
 | **Formularios** | React Hook Form + Zod | — | Validación type-safe, mínimo re-renders |
 | **Grafo** | Neo4j Community | 5.26 | Libre, suficiente para el volumen actual |
-| **Base de datos** | PostgreSQL | 15 | JSONB, extensions, madurez |
+| **Base de datos** | SQLite (aiosqlite) | 3 | Sin servidor, portable, zero-config |
 | **Caché** | Redis | 5.0 (tporadowski) | Simple, rápido, Windows compatible |
 | **Auth** | JWT (python-jose) + bcrypt | — | Stateless, estándar industry |
 | **Rate limiting** | slowapi | 0.1.9+ | Integración nativa con FastAPI |
@@ -99,7 +99,7 @@ El Observatorio Tecnológico Industrial es un sistema de inteligencia estratégi
 ### Decisiones técnicas clave
 
 1. **Sin Docker** — Todos los servicios se instalan nativamente en Windows 10. Razón: entorno de desarrollo controlado, sin overhead de virtualización.
-2. **Dual database** — PostgreSQL para datos relacionales, Neo4j para el grafo de conocimiento. Cada uno optimizado para su caso de uso.
+2. **Dual database** — SQLite para datos relacionales, Neo4j para el grafo de conocimiento. Cada uno optimizado para su caso de uso.
 3. **Async everywhere** — SQLAlchemy async, FastAPI async, Neo4j async driver. Consistencia en el patrón de concurrencia.
 4. **Pydantic v2** — Migración desde v1 para mejor rendimiento (Rust core) y type inference.
 5. **shadcn/ui** — Componentes copiados al proyecto (no librería), control total sobre estilos.
@@ -114,7 +114,7 @@ El Observatorio Tecnológico Industrial es un sistema de inteligencia estratégi
 | RAM | 8 GB | — |
 | Python | 3.11 | `tools/python/` (opcional) |
 | Node.js | 20 LTS | `tools/nodejs/node-v20.18.3-win-x64/` |
-| PostgreSQL | 15 | `tools/postgresql/pgsql/bin/` |
+| SQLite | 3 | `backend/observatorio.db` |
 | Neo4j | 5 Community | `tools/neo4j/neo4j-community-5.26.0/` |
 | Redis | 5.0 | `tools/redis/` |
 | Java | JDK 17 | `tools/java/jdk-17.0.19+10/` |
@@ -132,7 +132,7 @@ python -m venv venv
 venv\Scripts\activate          # Si falla por execution policy:
 .\venv\Scripts\python.exe -m pip install -r requirements.txt
 
-# 3. Migraciones (requiere PostgreSQL corriendo)
+# 3. Migraciones
 alembic upgrade head
 
 # 4. Iniciar backend
@@ -164,7 +164,6 @@ npm run dev                    # Requiere Node 20 LTS
 
 | Puerto | Servicio | URL | Credenciales |
 |---|---|---|---|
-| 5432 | PostgreSQL | `localhost` | `observatorio` / `observatorio_dev` |
 | 7687 | Neo4j Bolt | `localhost` | Sin auth (dev) |
 | 7474 | Neo4j Browser | http://localhost:7474 | Sin auth (dev) |
 | 6379 | Redis | `localhost` | Sin contraseña |
@@ -175,7 +174,7 @@ npm run dev                    # Requiere Node 20 LTS
 
 | Método | Ruta | Auth | Descripción |
 |---|---|---|---|
-| `GET` | `/api/v1/health` | No | Health check (PG, Neo4j, Redis) |
+| `GET` | `/api/v1/health` | No | Health check (DB, Neo4j, Redis) |
 | `POST` | `/api/v1/auth/register/public` | No | Registro público (status=pending) |
 | `POST` | `/api/v1/auth/login` | No | Login → JWT token |
 | `GET` | `/api/v1/auth/me` | Si | Datos del usuario actual |
@@ -241,7 +240,7 @@ Usuario público                Sistema                    Administrador
 │   ├── app/
 │   │   ├── api/v1/              # Endpoints REST (todos bajo /api/v1/)
 │   │   │   ├── auth.py          # Login, registro, aprobación
-│   │   │   ├── health.py        # Health check (PG, Neo4j, Redis)
+│   │   │   ├── health.py        # Health check (DB, Neo4j, Redis)
 │   │   │   ├── patents.py       # CRUD patentes
 │   │   │   ├── technologies.py  # CRUD tecnologías
 │   │   │   ├── organizations.py # CRUD organizaciones
@@ -277,9 +276,7 @@ Usuario público                Sistema                    Administrador
 │   │   └── main.py              # FastAPI app + lifespan
 │   ├── alembic/
 │   │   └── versions/
-│   │       ├── 0001_*.py        # Schema inicial
-│   │       ├── 0002_*.py        # Performance indexes
-│   │       └── 0003_*.py        # User registration fields
+│   │       └── bb25b3baf793_*.py  # Initial SQLite schema
 │   ├── tests/                   # pytest (175 tests)
 │   ├── requirements.txt
 │   └── .env
@@ -394,7 +391,7 @@ Este proyecto usa GitHub Actions para CI. El workflow `.github/workflows/ci.yml`
 
 | Job | Comandos |
 |-----|----------|
-| **backend** | `ruff check`, `pytest -v` (con PostgreSQL 15 service container) |
+| **backend** | `ruff check`, `pytest -v` (SQLite, no external DB required) |
 | **frontend** | `npm run lint`, `npm test`, `npm run build` |
 
 El badge de estado está en la parte superior del README.
@@ -471,4 +468,4 @@ Este proyecto se desarrolla bajo la rectoría del **Ministerio de Industrias de 
 
 ---
 
-> **Nota sobre infraestructura:** Este proyecto **no usa Docker** en ninguna circunstancia. Todos los servicios (PostgreSQL, Neo4j, Redis, Python, Node.js) se instalan y ejecutan directamente en Windows 10 de forma nativa. No existen archivos Dockerfile, docker-compose ni configuración de contenedores.
+> **Nota sobre infraestructura:** Este proyecto **no usa Docker** en ninguna circunstancia. Todos los servicios (SQLite, Neo4j, Redis, Python, Node.js) se instalan y ejecutan directamente en Windows 10 de forma nativa. No existen archivos Dockerfile, docker-compose ni configuración de contenedores.

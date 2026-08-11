@@ -5,9 +5,6 @@
 ### 1. Iniciar servicios
 
 ```powershell
-# PostgreSQL
-& "G:\Proyects\Observatorio\tools\postgresql\pgsql\bin\pg_ctl.exe" -D "G:\Proyects\Observatorio\tools\postgresql\pgsql\data" start
-
 # Neo4j
 & "G:\Proyects\Observatorio\tools\neo4j\neo4j-community-5.26.0\bin\neo4j.bat" console
 
@@ -26,9 +23,6 @@ npm run dev
 ### 2. Detener servicios
 
 ```powershell
-# PostgreSQL
-& "G:\Proyects\Observatorio\tools\postgresql\pgsql\bin\pg_ctl.exe" -D "G:\Proyects\Observatorio\tools\postgresql\pgsql\data" stop
-
 # Neo4j
 & "G:\Proyects\Observatorio\tools\neo4j\neo4j-community-5.26.0\bin\neo4j.bat" stop
 
@@ -64,8 +58,8 @@ npx vitest run --coverage
 # Health check
 curl http://localhost:8000/api/v1/health
 
-# Verificar PostgreSQL
-& "G:\Proyects\Observatorio\tools\postgresql\pgsql\bin\psql.exe" -U observatorio -d observatorio
+# Verificar SQLite (el archivo DB existe)
+Test-Path "backend\observatorio.db"
 
 # Verificar Neo4j
 & "G:\Proyects\Observatorio\tools\neo4j\neo4j-community-5.26.0\bin\cypher-shell.bat" -u neo4j -p password
@@ -89,26 +83,14 @@ curl http://localhost:8000/api/v1/graph/stats \
 ### 7. Backup y restauracion
 
 ```powershell
-# Backup PostgreSQL
-& "G:\Proyects\Observatorio\tools\postgresql\pgsql\bin\pg_dump.exe" -U observatorio -d observatorio -f backup.sql
-
-# Restaurar PostgreSQL
-& "G:\Proyects\Observatorio\tools\postgresql\pgsql\bin\psql.exe" -U observatorio -d observatorio -f backup.sql
+# Backup SQLite
+Copy-Item "backend\observatorio.db" "backups\observatorio_$(Get-Date -Format 'yyyyMMdd').db"
 
 # Backup Neo4j
 & "G:\Proyects\Observatorio\tools\neo4j\neo4j-community-5.26.0\bin\neo4j-admin.bat" database dump neo4j --to-path=neo4j-backup
 ```
 
 ### 8. Troubleshooting
-
-#### PostgreSQL no inicia
-```powershell
-# Verificar logs
-Get-Content "G:\Proyects\Observatorio\tools\postgresql\pgsql\data\log\*.log"
-
-# Reiniciar con limpieza
-& "G:\Proyects\Observatorio\tools\postgresql\pgsql\bin\pg_ctl.exe" -D "G:\Proyects\Observatorio\tools\postgresql\pgsql\data" restart
-```
 
 #### Neo4j no conecta
 ```powershell
@@ -133,7 +115,6 @@ Get-Content logs\observatorio.log
 #### Pre-requisitos
 - Python 3.11 instalado
 - Node.js 20 LTS instalado
-- PostgreSQL 15 corriendo
 - Neo4j 5 corriendo (opcional)
 - Redis corriendo (opcional)
 
@@ -170,7 +151,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 #### Variables de entorno para produccion
 ```bash
 # backend/.env
-DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/observatorio
+DATABASE_URL=sqlite+aiosqlite:///./observatorio.db
 SECRET_KEY=<clave-segura-256-bits>
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
@@ -189,5 +170,5 @@ curl http://localhost:8000/api/v1/health
 Get-Content logs\observatorio.log -Wait
 
 # Verificar uso de recursos
-Get-Process python, node, postgres, neo4j | Select-Object Name, CPU, WorkingSet
+Get-Process python, node, neo4j | Select-Object Name, CPU, WorkingSet
 ```

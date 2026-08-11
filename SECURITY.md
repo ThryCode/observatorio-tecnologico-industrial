@@ -36,7 +36,8 @@ Please include the following in your report:
 
 - All default passwords must be changed before production deployment
 - HTTPS is mandatory (Let's Encrypt or internal CA)
-- Firewall must restrict ports 5432 (PostgreSQL), 7687 (Neo4j), and 6379 (Redis) to localhost
+- Firewall must restrict ports 7687 (Neo4j) and 6379 (Redis) to localhost
+- SQLite file must have restrictive permissions (backend-only access)
 - JWT `SECRET_KEY` must be a cryptographically random string (`openssl rand -hex 32`)
 - Rate limiting is enabled on all auth endpoints
 - `.env` files containing secrets must NEVER be committed

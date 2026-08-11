@@ -9,7 +9,6 @@
 
 | Puerto | Servicio | Acceso |
 |--------|----------|--------|
-| 5432 | PostgreSQL | Localhost solamente |
 | 7687 | Neo4j Bolt | Localhost solamente |
 | 7474 | Neo4j Browser | Localhost (admin) |
 | 6379 | Redis | Localhost solamente |
@@ -18,16 +17,10 @@
 
 ## Instalación paso a paso
 
-### 1. PostgreSQL 15
-```powershell
-# Iniciar servicio PostgreSQL
-& "C:\tools\postgresql\pgsql\bin\pg_ctl" start -D "C:\tools\postgresql\data"
+### 1. SQLite (ya incluido)
 
-# Crear base de datos y usuario
-& "C:\tools\postgresql\pgsql\bin\createdb" -U postgres observatorio_db
-& "C:\tools\postgresql\pgsql\bin\psql" -U postgres -d observatorio_db -c "CREATE USER observatorio WITH PASSWORD 'password_seguro';"
-& "C:\tools\postgresql\pgsql\bin\psql" -U postgres -d observatorio_db -c "GRANT ALL PRIVILEGES ON DATABASE observatorio_db TO observatorio;"
-```
+SQLite viene incluido con Python. La base de datos se crea automáticamente al iniciar el backend.
+No se requiere configuración de servidor de base de datos.
 
 ### 2. Neo4j 5 Community
 ```powershell
@@ -73,9 +66,6 @@ npm run build
 Registrar cada servicio con NSSM para inicio automático y recuperación en fallo:
 
 ```powershell
-# PostgreSQL
-nssm install ObservatorioPostgreSQL "C:\tools\postgresql\pgsql\bin\pg_ctl.exe" "start -D C:\tools\postgresql\data"
-
 # Neo4j
 nssm install ObservatorioNeo4j "C:\tools\neo4j\bin\neo4j.exe" "start"
 
@@ -101,7 +91,7 @@ Configurar recuperación en cada servicio (NSSM GUI: `nssm edit ObservatorioAPI`
 
 | Variable | Valor recomendado |
 |----------|------------------|
-| `DATABASE_URL` | `postgresql+asyncpg://observatorio:password_seguro@localhost:5432/observatorio_db` |
+| `DATABASE_URL` | `sqlite+aiosqlite:///C:/observatorio/backend/observatorio.db` |
 | `SECRET_KEY` | Generar con `openssl rand -hex 32` |
 | `FIRST_SUPERUSER_EMAIL` | `admin@mindus.gob.cu` |
 | `FIRST_SUPERUSER_PASSWORD` | Password fuerte (mín. 16 chars) |
@@ -116,7 +106,7 @@ Configurar recuperación en cada servicio (NSSM GUI: `nssm edit ObservatorioAPI`
 
 - **HTTPS obligatorio:** Usar Let's Encrypt (certbot) o certificado de infraestructura nacional
 - **Firewall:** Solo puertos 443 (HTTPS) y 80 (redirección) abiertos al exterior
-- **PostgreSQL:** `pg_hba.conf` debe restringir a `127.0.0.1/32`
+- **SQLite:** Asegurar permisos de archivo restrictivos (solo backend)
 - **Neo4j:** Habilitar `dbms.security.auth_enabled=true`, cambiar contraseña por defecto
 - **Redis:** Configurar `requirepass` en redis.conf, bind a 127.0.0.1
 - **JWT:** Token expiry de 30 minutos, usar `SECRET_KEY` fuerte
@@ -124,9 +114,8 @@ Configurar recuperación en cada servicio (NSSM GUI: `nssm edit ObservatorioAPI`
 
 ## Monitoreo
 
-- **Health check:** `GET /api/v1/health` — verifica PostgreSQL, Neo4j, Redis
+- **Health check:** `GET /api/v1/health` — verifica SQLite, Neo4j, Redis
 - **Logs backend:** `backend/logs/observatorio.log` (rotación cada 10 MB, retención 30 días)
-- **PostgreSQL:** Habilitar `log_min_duration_statement = 200` para queries lentas
 - **Neo4j:** Revisar `logs/neo4j.log` para errores de conexión y queries
 - **Windows:** Event Viewer → Windows Logs → Application para fallos de servicio NSSM
 - **Monitor externo:** Configurar check HTTP periódico a `/api/v1/health` (ej. cada 5 minutos)

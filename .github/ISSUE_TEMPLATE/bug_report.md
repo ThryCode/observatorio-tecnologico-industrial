@@ -31,7 +31,7 @@ Pasos para reproducir el comportamiento:
 - **Navegador:** <!-- ej: Chrome 120, Firefox 121 -->
 - **Versión del backend:** <!-- commit hash o tag -->
 - **Versión del frontend:** <!-- commit hash o tag -->
-- **Servicios:** PostgreSQL 15 / Neo4j 5 / Redis 5
+- **Servicios:** SQLite / Neo4j 5 / Redis 5
 
 ## Contexto adicional
 

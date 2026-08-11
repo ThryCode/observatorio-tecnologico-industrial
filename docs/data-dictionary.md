@@ -263,7 +263,7 @@
 | **MERGE** | Cypher: crear o actualizar nodo/relacion |
 | **UNWIND** | Cypher: expandir lista a filas |
 | **ilike** | SQL: busqueda case-insensitive con patron |
-| **asyncpg** | Driver async de PostgreSQL para Python |
+| **aiosqlite** | Driver async de SQLite para Python |
 | **TanStack Query** | Libreria para gestion de estado del servidor |
 | **Vite** | Bundler frontend con HMR rapido |
 | **Tailwind** | Framework CSS utility-first |

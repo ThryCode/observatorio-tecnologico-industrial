@@ -26,7 +26,7 @@ Write comprehensive tests that verify functionality without hitting external ser
 
 ### Framework
 - pytest + pytest-asyncio (async mode auto)
-- Test DB: `postgresql+asyncpg://observatorio:observatorio_dev@localhost:5432/observatorio_test`
+- Test DB: `sqlite+aiosqlite:///./test_observatorio.db`
 
 ### Fixtures (from `backend/tests/conftest.py`)
 - `engine` - session-scoped, creates/drops all tables

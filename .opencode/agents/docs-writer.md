@@ -40,7 +40,7 @@ Create clear, concise documentation in Spanish (for MINDUS audience) and English
 ### Architecture Docs
 - Update `docs/` directory for significant changes
 - Include diagrams in ASCII or Mermaid format
-- Document data flow between PostgreSQL and Neo4j
+- Document data flow between SQLite and Neo4j
 
 ## Style Guidelines
 - Be direct and concise

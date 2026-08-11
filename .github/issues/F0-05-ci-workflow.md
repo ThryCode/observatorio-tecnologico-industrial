@@ -37,21 +37,6 @@ jobs:
   backend:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_DB: observatorio_test
-          POSTGRES_USER: observatorio
-          POSTGRES_PASSWORD: observatorio_dev
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -68,7 +53,7 @@ jobs:
         working-directory: backend
         env:
           DATABASE_URL: >-
-            postgresql+asyncpg://observatorio:observatorio_dev@localhost:5432/observatorio_test
+            sqlite+aiosqlite:///./test_observatorio.db
           SECRET_KEY: ci-test-key
           FIRST_SUPERUSER_PASSWORD: admin
           NEO4J_PASSWORD: unused

@@ -8,7 +8,7 @@ Accepted
 
 The Observatorio backend needs to handle:
 1. Multiple concurrent API requests
-2. Database queries (PostgreSQL, Neo4j)
+2. Database queries (SQLite, Neo4j)
 3. External API calls (future integrations)
 4. WebSocket connections for real-time updates
 
@@ -16,7 +16,7 @@ The Observatorio backend needs to handle:
 
 Use async/await throughout the backend stack:
 - FastAPI with async route handlers
-- SQLAlchemy 2.0 with asyncpg driver
+- SQLAlchemy 2.0 with aiosqlite driver
 - Neo4j async driver
 - Redis async client
 

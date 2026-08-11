@@ -16,7 +16,7 @@ El Observatorio Tecnológico Industrial es una plataforma SaaS de inteligencia e
 
 ### 2. Backend (Python 3.11 + FastAPI)
 - **Framework**: FastAPI >=0.110
-- **Base de Datos**: SQLAlchemy 2.0 async con asyncpg
+- **Base de Datos**: SQLAlchemy 2.0 async con aiosqlite
 - **Migraciones**: Alembic
 - **Validación**: Pydantic v2
 - **Auth**: JWT (python-jose) + bcrypt
@@ -26,10 +26,10 @@ El Observatorio Tecnológico Industrial es una plataforma SaaS de inteligencia e
 
 ### 3. Base de Datos
 
-#### PostgreSQL 15
+#### SQLite 3 (aiosqlite)
 - **Propósito**: Datos relacionales
 - **Tablas**: Usuarios, tecnologías, patentes, organizaciones, indicadores, normativas, sectores industriales
-- **Características**: JSONB, extensions, alta concurrencia
+- **Características**: Sin servidor, portable, zero-config, archivo único
 
 #### Neo4j 5 Community
 - **Propósito**: Grafo de conocimiento industrial
@@ -44,7 +44,7 @@ El Observatorio Tecnológico Industrial es una plataforma SaaS de inteligencia e
 
 ```
 Usuario → Frontend (React) → Backend (FastAPI) →
-├── PostgreSQL (SQLAlchemy) → API Responses
+├── SQLite (SQLAlchemy) → API Responses
 ├── Neo4j (Cypher) → Graph Analytics
 └── Redis (Cache) → Session Management
 ```
@@ -102,7 +102,7 @@ Usuario → Frontend (React) → Backend (FastAPI) →
 - **Backend**: Múltiples instancias con sticky sessions
 
 ### Vertical
-- **Base de Datos**: Read replicas para PostgreSQL
+- **Base de Datos**: Archivo SQLite (sin replicas)
 - **Cache**: Cluster Redis
 
 ## Monitorización
@@ -120,7 +120,7 @@ Usuario → Frontend (React) → Backend (FastAPI) →
 ## Backup y Recuperación
 
 ### Política de Backup
-- **PostgreSQL**: Diario, retención 30 días
+- **SQLite**: Copia del archivo `observatorio.db`, retención 30 días
 - **Neo4j**: Semanal, retención 90 días
 - **Redis**: Diario, retención 7 días
 - **Configuración**: Automática + manual on-demand
@@ -140,7 +140,7 @@ Usuario → Frontend (React) → Backend (FastAPI) →
 
 ### Mejoras de Rendimiento
 1. **Caching**: Redis para consultas frecuentes
-2. **Indexación**: Índices compuestos en PostgreSQL
+2. **Indexación**: Índices compuestos en SQLite
 3. **Query Optimization**: Cypher queries optimizados
 4. **Connection Pooling**: Configuración adecuada
 
@@ -170,7 +170,7 @@ graph TB
     
     subgraph "Data Layer"
         subgraph "Relational DB"
-            PG[PostgreSQL 15]
+            PG[SQLite 3]
             A[Adminer]
         end
         
@@ -198,4 +198,4 @@ graph TB
 
 ## Conclusión
 
-Esta arquitectura proporciona una base sólida para el Observatorio Tecnológico Industrial, equilibrando rendimiento, escalabilidad y mantenibilidad. El diseño dual database (PostgreSQL + Neo4j) permite optimizar cada tipo de dato según su caso de uso, mientras que el enfoque async-first garantiza alta concurrencia.
+Esta arquitectura proporciona una base sólida para el Observatorio Tecnológico Industrial, equilibrando rendimiento, escalabilidad y mantenibilidad. El diseño dual database (SQLite + Neo4j) permite optimizar cada tipo de dato según su caso de uso, mientras que el enfoque async-first garantiza alta concurrencia.
