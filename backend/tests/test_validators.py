@@ -126,7 +126,7 @@ async def test_indicator_code_uppercased(client, auth_headers):
 async def test_org_unique_siglas(client, db_session, auth_headers):
     from tests.factories import make_org
     await make_org(db_session, siglas="UNQ")
-    headers = await auth_headers("orgsig", role="rep_cti")
+    headers = await auth_headers("orgsig", role="representante")
     resp = await client.post("/api/v1/organizations", json={
         "nombre": "Duplicate Siglas",
         "siglas": "UNQ",

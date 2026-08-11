@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-VALID_ROLES = {"admin_mindus", "rep_cti", "analista", "cliente", "visitante"}
+VALID_ROLES = {"admin_mindus", "representante", "analista", "cliente", "visitante"}
 
 
 class UserCreate(BaseModel):

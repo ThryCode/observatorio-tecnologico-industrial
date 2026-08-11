@@ -39,8 +39,10 @@ async def lifespan(app: FastAPI):
     try:
         from app.redis_client import create_redis_client
         redis_client = create_redis_client(settings)
+        await redis_client.ping()
         logger.info("Redis client created")
     except Exception:
+        redis_client = None
         logger.warning("Redis not available, caching disabled")
 
     app.state.neo4j = neo4j

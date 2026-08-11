@@ -5,7 +5,7 @@ from tests.factories import make_org
 
 @pytest.mark.asyncio
 async def test_create_org(client, auth_headers):
-    headers = await auth_headers("orgcreate", role="rep_cti")
+    headers = await auth_headers("orgcreate", role="representante")
     payload = {"nombre": "Test Organization", "siglas": "TO", "tipo": "empresa"}
     resp = await client.post("/api/v1/organizations", json=payload, headers=headers)
     assert resp.status_code == 201
@@ -22,7 +22,7 @@ async def test_create_org_no_auth(client):
 
 @pytest.mark.asyncio
 async def test_create_org_duplicate_siglas(client, auth_headers):
-    headers = await auth_headers("orgdup", role="rep_cti")
+    headers = await auth_headers("orgdup", role="representante")
     payload = {"nombre": "Org One", "siglas": "O1", "tipo": "empresa"}
     await client.post("/api/v1/organizations", json=payload, headers=headers)
     payload["nombre"] = "Org Two"
@@ -58,7 +58,7 @@ async def test_get_org_not_found(client):
 @pytest.mark.asyncio
 async def test_update_org(client, db_session, auth_headers):
     org = await make_org(db_session, siglas="UPORG")
-    headers = await auth_headers("orgupd", role="rep_cti", organization_id=org.id)
+    headers = await auth_headers("orgupd", role="representante", organization_id=org.id)
     resp = await client.put(f"/api/v1/organizations/{org.id}", json={"nombre": "Updated"}, headers=headers)
     assert resp.status_code == 200
     assert resp.json()["nombre"] == "Updated"

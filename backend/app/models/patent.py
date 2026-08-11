@@ -1,5 +1,4 @@
 import enum
-import uuid
 from datetime import date
 
 from sqlalchemy import Date, ForeignKey, String, Text
@@ -29,10 +28,10 @@ class Patent(Base, UUIDMixin, TimestampMixin):
     abstract: Mapped[str | None] = mapped_column(Text, nullable=True)
     technological_sector: Mapped[str | None] = mapped_column(String(100), nullable=True)
     country: Mapped[str] = mapped_column(String(50))
-    technology_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("technologies.id"), nullable=True
+    technology_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("technologies.id"), nullable=True
     )
-    organization_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("organizations.id"), nullable=True
+    organization_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("organizations.id"), nullable=True
     )
     file_url: Mapped[str | None] = mapped_column(String(500), nullable=True)

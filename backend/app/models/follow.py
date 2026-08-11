@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, UniqueConstraint, Uuid, func
+from sqlalchemy import DateTime, ForeignKey, String, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -13,16 +13,16 @@ class Follow(Base):
         UniqueConstraint("follower_id", "follower_type", "organization_id", name="uq_follow"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        Uuid(), primary_key=True, default=uuid.uuid4,
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4()),
     )
-    follower_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid(), nullable=False,
+    follower_id: Mapped[str] = mapped_column(
+        String(36), nullable=False,
     )
     follower_type: Mapped[str] = mapped_column(
         String(20), nullable=False,
     )
-    organization_id: Mapped[uuid.UUID] = mapped_column(
+    organization_id: Mapped[str] = mapped_column(
         ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False,
     )
     created_at: Mapped[datetime] = mapped_column(

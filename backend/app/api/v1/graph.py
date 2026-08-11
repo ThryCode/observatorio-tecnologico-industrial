@@ -1,6 +1,8 @@
 import uuid
+from collections import defaultdict
 
 from fastapi import APIRouter, Depends, Query
+from loguru import logger
 from neo4j import AsyncDriver
 from redis.asyncio import Redis
 from sqlalchemy import select
@@ -10,8 +12,12 @@ from app.core.db import get_db
 from app.core.exceptions import AppException
 from app.dependencies import get_current_user, get_neo4j, get_redis, require_role
 from app.models.organization import Organization
+from app.models.patent import PatentStatus
 from app.models.user import User, UserRole
 from app.schemas.graph import (
+    EnterpriseGraphEdge,
+    EnterpriseGraphNode,
+    EnterpriseGraphPatent,
     EnterpriseGraphResponse,
     GraphExploreResponse,
     GraphQueryResponse,
@@ -167,8 +173,83 @@ async def find_shortest_path(
 
 @router.get("/enterprise", response_model=EnterpriseGraphResponse)
 async def enterprise_graph(
+    neo4j: AsyncDriver | None = Depends(get_neo4j),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
+    if neo4j:
+        try:
+            return await _enterprise_graph_from_neo4j(neo4j)
+        except Exception as exc:
+            logger.warning("Neo4j unavailable, falling back to SQLite for enterprise graph: {}", exc)
+
     from app.services.graph_service import GraphService
     return await GraphService(db).get_enterprise_graph()
+
+
+async def _enterprise_graph_from_neo4j(neo4j: AsyncDriver) -> EnterpriseGraphResponse:
+    async with neo4j.session() as session:
+        orgs_result = await session.run(
+            "MATCH (n:Enterprise) RETURN n.id AS id, n.nombre AS nombre, "
+            "n.siglas AS siglas, n.sector_codigo AS sector, n.tipo AS tipo, "
+            "n.provincia AS provincia ORDER BY n.siglas"
+        )
+        orgs = [dict(r) async for r in orgs_result]
+
+        follows_result = await session.run(
+            "MATCH (a:Enterprise)-[:FOLLOWS]->(b:Enterprise) "
+            "RETURN a.id AS source, b.id AS target"
+        )
+        edges_data = [dict(r) async for r in follows_result]
+
+        patents_result = await session.run(
+            "MATCH (p:Patent)-[:FILED_BY]->(o:Enterprise) "
+            "RETURN o.id AS org_id, p.id AS id, p.title AS title, "
+            "p.patent_number AS patent_number, p.status AS status, "
+            "p.filing_date AS filing_date, p.publication_date AS publication_date, "
+            "p.technological_sector AS technological_sector, p.country AS country"
+        )
+        patents_data = [dict(r) async for r in patents_result]
+
+    patents_by_org: dict[str, list] = defaultdict(list)
+    for p in patents_data:
+        patents_by_org[p["org_id"]].append(p)
+
+    nodes: list[EnterpriseGraphNode] = []
+    for o in orgs:
+        oid = o["id"]
+        org_patents = patents_by_org.get(oid, [])
+        patent_list = [
+            EnterpriseGraphPatent(
+                id=str(p["id"]),
+                title=p["title"],
+                patent_number=p["patent_number"],
+                status=p["status"] or "filed",
+                filing_date=str(p["filing_date"]) if p["filing_date"] else None,
+                publication_date=str(p["publication_date"]) if p["publication_date"] else None,
+                technological_sector=p["technological_sector"],
+                country=p["country"],
+            )
+            for p in org_patents
+        ]
+        active = sum(1 for p in org_patents if p.get("status") in (PatentStatus.GRANTED, PatentStatus.EXAMINATION))
+        pending = sum(1 for p in org_patents if p.get("status") == PatentStatus.FILED)
+        nodes.append(EnterpriseGraphNode(
+            id=oid,
+            type="organization",
+            label=f"{o['nombre']} ({o['siglas']})",
+            siglas=o["siglas"],
+            sector=o["sector"],
+            tipo=o["tipo"],
+            provincia=o["provincia"],
+            patents=patent_list,
+            patents_active=active,
+            patents_pending=pending,
+        ))
+
+    edges = [
+        EnterpriseGraphEdge(source=e["source"], target=e["target"], type="FOLLOWS")
+        for e in edges_data
+    ]
+
+    return EnterpriseGraphResponse(nodes=nodes, edges=edges)

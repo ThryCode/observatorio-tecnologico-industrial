@@ -1,4 +1,3 @@
-import uuid
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -32,7 +31,7 @@ class GraphService:
 
         org_ids = list(orgs.keys())
         patents_result = await self.db.execute(
-            select(Patent).where(Patent.organization_id.in_([uuid.UUID(oid) for oid in org_ids]))
+            select(Patent).where(Patent.organization_id.in_(org_ids))
         )
         all_patents = patents_result.scalars().all()
 

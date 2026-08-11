@@ -19,12 +19,15 @@ async def startup_db() -> None:
     global _engine, _session_factory
 
     use_sqlite = "sqlite" in settings.database_url
-    engine_kwargs = {"echo": False}
+    engine_kwargs: dict = {"echo": False}
     if use_sqlite:
+        engine_kwargs["connect_args"] = {"check_same_thread": False}
         engine_kwargs["poolclass"] = NullPool
     else:
+        engine_kwargs["connect_args"] = {"ssl": False}
         engine_kwargs["pool_size"] = 5
         engine_kwargs["max_overflow"] = 10
+
     _engine = create_async_engine(settings.database_url, **engine_kwargs)
     _session_factory = async_sessionmaker(
         _engine,

@@ -443,7 +443,7 @@ class GraphRepository:
                             "inventor": p.inventor,
                             "filing_date": str(p.filing_date),
                             "publication_date": str(p.publication_date) if p.publication_date else None,
-                            "status": p.status if p.status else None,
+                            "status": p.status.value if hasattr(p.status, 'value') else p.status,
                             "abstract": p.abstract,
                             "technological_sector": p.technological_sector,
                             "country": p.country,
@@ -560,7 +560,7 @@ class GraphRepository:
                             "issuing_body": r.issuing_body,
                             "publication_date": str(r.publication_date),
                             "effective_date": str(r.effective_date) if r.effective_date else None,
-                            "category": r.category if r.category else None,
+                            "category": r.category.value if hasattr(r.category, 'value') else r.category,
                             "summary": r.summary,
                             "sector_codigo": r.sector_codigo,
                         },
@@ -610,7 +610,7 @@ class GraphRepository:
                             "unit": ind.unit,
                             "value": float(ind.value) if ind.value else None,
                             "source": ind.source,
-                            "period": ind.period if ind.period else None,
+                            "period": ind.period.value if hasattr(ind.period, 'value') else ind.period,
                             "sector_codigo": ind.sector_codigo,
                             "created_at": str(ind.created_at) if ind.created_at else None,
                         },
@@ -812,8 +812,9 @@ class GraphRepository:
                 result = await session.run(
                     """
                     UNWIND $batch AS item
-                    MERGE (n:Enterprise:Organization {id: item.id})
+                    MERGE (n:Organization {id: item.id})
                     SET n += item.props
+                    SET n:Enterprise
                     RETURN count(*) AS merged
                     """,
                     batch=batch_data,

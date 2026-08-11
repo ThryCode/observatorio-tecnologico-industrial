@@ -9,7 +9,10 @@ from redis.asyncio import Redis
 async def get_cached(redis: Redis | None, key: str) -> Any | None:
     if redis is None:
         return None
-    data = await redis.get(key)
+    try:
+        data = await redis.get(key)
+    except Exception:
+        return None
     if data is None:
         return None
     return json.loads(data)
@@ -18,15 +21,21 @@ async def get_cached(redis: Redis | None, key: str) -> Any | None:
 async def set_cached(redis: Redis | None, key: str, value: Any, ttl: int = 300) -> None:
     if redis is None:
         return
-    await redis.setex(key, ttl, json.dumps(value, default=str))
+    try:
+        await redis.setex(key, ttl, json.dumps(value, default=str))
+    except Exception:
+        pass
 
 
 async def invalidate_pattern(redis: Redis | None, pattern: str) -> None:
     if redis is None:
         return
-    keys = await redis.keys(pattern)
-    if keys:
-        await redis.delete(*keys)
+    try:
+        keys = await redis.keys(pattern)
+        if keys:
+            await redis.delete(*keys)
+    except Exception:
+        pass
 
 
 def cache_key(prefix: str, *args, **kwargs) -> str:

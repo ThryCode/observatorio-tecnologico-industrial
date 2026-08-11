@@ -1,7 +1,7 @@
-import uuid
 from datetime import datetime
 
-from sqlalchemy import JSON, ForeignKey, String, Text
+from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy.types import JSON
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base, TimestampMixin, UUIDMixin
@@ -23,6 +23,6 @@ class ResearchPublication(Base, UUIDMixin, TimestampMixin):
         ForeignKey("industrial_sectores.codigo"), nullable=True
     )
     url: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    created_by: Mapped[uuid.UUID | None] = mapped_column(
+    created_by: Mapped[str | None] = mapped_column(
         ForeignKey("users.id"), nullable=True
     )

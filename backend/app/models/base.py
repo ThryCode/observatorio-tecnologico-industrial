@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Uuid, func
+from sqlalchemy import DateTime, String, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -10,10 +10,10 @@ class Base(DeclarativeBase):
 
 
 class UUIDMixin:
-    id: Mapped[uuid.UUID] = mapped_column(
-        Uuid(),
+    id: Mapped[str] = mapped_column(
+        String(36),
         primary_key=True,
-        default=uuid.uuid4,
+        default=lambda: str(uuid.uuid4()),
     )
 
 

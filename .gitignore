@@ -22,6 +22,7 @@ Thumbs.db
 
 # Local data
 pgdata/
+*.db
 
 # Dependencies
 node_modules/

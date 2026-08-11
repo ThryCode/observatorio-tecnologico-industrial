@@ -76,7 +76,7 @@ export default function Sidebar() {
     .toUpperCase()
     .slice(0, 2) || 'AD';
 
-  const repNav = user?.role === 'rep_cti'
+  const repNav = user?.role === 'representante'
     ? [{ to: '/mi-empresa', label: 'Mi Empresa', icon: Building2 }]
     : [];
 

@@ -39,12 +39,11 @@ class ResearchPublicationService(
                 ResearchPublication.sector_codigo == sector_codigo
             )
         if author_name:
-            like = f"%{author_name}%"
             query = query.where(
-                func.lower(ResearchPublication.autores).like(func.lower(like))
+                func.lower(ResearchPublication.autores).ilike(func.lower(f"%{author_name}%"))
             )
             count_query = count_query.where(
-                func.lower(ResearchPublication.autores).like(func.lower(like))
+                func.lower(ResearchPublication.autores).ilike(func.lower(f"%{author_name}%"))
             )
         if q:
             like = f"%{q}%"
@@ -56,9 +55,10 @@ class ResearchPublicationService(
                 ResearchPublication.journal,
                 ResearchPublication.sector_codigo,
             ]
-            cond = func.lower(text_fields[0]).like(func.lower(like))
+            cond = func.lower(text_fields[0]).ilike(func.lower(like))
             for f in text_fields[1:]:
-                cond = cond | func.lower(f).like(func.lower(like))
+                cond = cond | func.lower(f).ilike(func.lower(like))
+            cond = cond | func.lower(ResearchPublication.palabras_clave).ilike(func.lower(like))
             query = query.where(cond)
             count_query = count_query.where(cond)
 

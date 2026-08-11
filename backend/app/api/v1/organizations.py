@@ -61,7 +61,7 @@ async def create_organization(
     data: OrganizationCreate,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.REP_CTI)),
+    _: User = Depends(require_role(UserRole.REPRESENTANTE)),
 ):
     result = await OrganizationService(db).create(data)
     schedule_graph_sync(background_tasks)
@@ -74,7 +74,7 @@ async def update_organization(
     data: OrganizationUpdate,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.REP_CTI)),
+    current_user: User = Depends(require_role(UserRole.REPRESENTANTE)),
 ):
     if current_user.organization_id != org_id:
         raise AppException(403, "Solo puedes editar tu propia empresa")

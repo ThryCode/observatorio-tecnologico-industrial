@@ -136,8 +136,8 @@ function computeSolarLayout(
 
   if (centerId && indexOf.has(centerId)) {
     const byDepth = groupByDepth(centerId, adj);
-    const R0 = 28;
-    const Rstep = 20;
+    const R0 = 32;
+    const Rstep = 28;
     const sorted = [...byDepth.entries()].sort((a, b) => a[0] - b[0]);
     for (const [d, ids] of sorted) {
       const radius = R0 + d * Rstep;
@@ -148,9 +148,9 @@ function computeSolarLayout(
     const sectorIds = nodes.filter((n) => n.nodeType === 'IndustrialSector').map((n) => n.id);
     const orphans = nodes.filter((n) => n.nodeType !== 'IndustrialSector').map((n) => n.id);
 
-    const R = Math.min(42, 14 + (sectorIds.length + (orphans.length > 0 ? 1 : 0)) * 3.2);
-    rings.push(R);
     if (sectorIds.length > 0) {
+      const R = Math.min(48, 18 + sectorIds.length * 4.5);
+      rings.push(R);
       sectorIds.forEach((id, ci) => {
         const angle = (2 * Math.PI * ci) / sectorIds.length - Math.PI / 2;
         const idx = indexOf.get(id);
@@ -159,8 +159,9 @@ function computeSolarLayout(
       });
     }
     if (orphans.length > 0) {
-      placeRing(orphans, 12, 50, 50, (2 * Math.PI * sectorIds.length) / Math.max(sectorIds.length, 1) - Math.PI / 2 + Math.PI / sectorIds.length);
-      rings.push(12);
+      const R = Math.min(55, 22 + orphans.length * 5);
+      rings.push(R);
+      placeRing(orphans, R, 50, 50);
     }
   }
 
@@ -210,7 +211,7 @@ export default function ForceGraph2D({
     [layoutCenter],
   );
 
-  const initialView = centeredView(1.5);
+  const initialView = centeredView(1.2);
   const [view, setView] = useState(initialView);
   const viewRef = useRef(view);
   viewRef.current = view;
@@ -363,7 +364,7 @@ export default function ForceGraph2D({
       <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #ffffff 0.5px, transparent 0.5px)', backgroundSize: '16px 16px' }} />
       <svg
         ref={svgRef}
-        viewBox="-40 -40 180 180"
+        viewBox="-80 -80 260 260"
         className="w-full h-full select-none relative z-10"
         preserveAspectRatio="xMidYMid meet"
         onMouseMove={handleMouseMove}
@@ -377,10 +378,10 @@ export default function ForceGraph2D({
         </defs>
 
         <rect
-          x="-40"
-          y="-40"
-          width="180"
-          height="180"
+          x="-80"
+          y="-80"
+          width="260"
+          height="260"
           fill="transparent"
           style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
           onMouseDown={handleBackgroundMouseDown}
@@ -465,7 +466,7 @@ export default function ForceGraph2D({
           const isHovered = hovered === i;
           const isCenter = i === centerIndex;
           const scale = isDragging ? 1.3 : isHovered ? 1.15 : 1;
-          const r = isCenter ? 9 : isDragging ? 7 : 5.5;
+          const r = isCenter ? 9 : isDragging ? 8 : 6.5;
           const hidden = hiddenCounts[n.id] ?? 0;
           const isExpanded = expandedIds?.has(n.id) ?? false;
 

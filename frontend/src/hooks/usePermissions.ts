@@ -16,7 +16,7 @@ const PERMISSIONS: Record<UserRole, Partial<Record<Entity, Action[]>>> = {
     users: ['approve', 'reject'],
     settings: ['view'],
   },
-  rep_cti: {},
+  representante: {},
   analista: {
     patents: ['create'],
     indicators: ['create'],
