@@ -9,8 +9,8 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.api.v1.router import api_router
+from app.core import db
 from app.core.config import settings
-from app.core.db import _session_factory, close_db, startup_db
 from app.core.exceptions import register_exception_handlers
 from app.core.logging_config import setup_logging
 from app.core.middleware import RequestIDMiddleware
@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI):
     setup_logging()
     logger.bind(component="startup").info("Starting Observatorio Tecnologico Industrial API")
 
-    await startup_db()
+    await db.startup_db()
 
     neo4j = None
     redis_client = None
@@ -50,7 +50,7 @@ async def lifespan(app: FastAPI):
 
     if neo4j:
         try:
-            async with _session_factory() as session:
+            async with db._session_factory() as session:
                 from app.graph.repository import GraphRepository
                 repo = GraphRepository(neo4j)
                 result = await repo.sync_enterprise_graph(session)
@@ -79,7 +79,7 @@ async def lifespan(app: FastAPI):
     yield
 
     logger.info("Shutting down Observatorio API")
-    await close_db()
+    await db.close_db()
     if neo4j:
         try:  # noqa: SIM105
             await neo4j.close()
