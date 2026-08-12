@@ -4,6 +4,8 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+_MEDIA_TYPE = "application/json; charset=utf-8"
+
 
 class AppException(Exception):  # noqa: N818
     def __init__(self, status_code: int, detail: str):
@@ -17,6 +19,7 @@ def register_exception_handlers(app: FastAPI):
         return JSONResponse(
             status_code=exc.status_code,
             content={"detail": exc.detail},
+            media_type=_MEDIA_TYPE,
         )
 
     @app.exception_handler(StarletteHTTPException)
@@ -24,6 +27,7 @@ def register_exception_handlers(app: FastAPI):
         return JSONResponse(
             status_code=exc.status_code,
             content={"detail": exc.detail},
+            media_type=_MEDIA_TYPE,
         )
 
     @app.exception_handler(RequestValidationError)
@@ -41,6 +45,7 @@ def register_exception_handlers(app: FastAPI):
         return JSONResponse(
             status_code=422,
             content={"detail": errors},
+            media_type=_MEDIA_TYPE,
         )
 
     @app.exception_handler(IntegrityError)
@@ -48,6 +53,7 @@ def register_exception_handlers(app: FastAPI):
         return JSONResponse(
             status_code=409,
             content={"detail": "Conflict: the resource already exists or violates a unique constraint."},
+            media_type=_MEDIA_TYPE,
         )
 
 
