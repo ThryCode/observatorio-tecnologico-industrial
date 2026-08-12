@@ -159,7 +159,7 @@ function computeSolarLayout(
       });
     }
     if (orphans.length > 0) {
-      const R = Math.min(55, 22 + orphans.length * 5);
+      const R = Math.min(70, 30 + orphans.length * 7);
       rings.push(R);
       placeRing(orphans, R, 50, 50);
     }
@@ -364,7 +364,7 @@ export default function ForceGraph2D({
       <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #ffffff 0.5px, transparent 0.5px)', backgroundSize: '16px 16px' }} />
       <svg
         ref={svgRef}
-        viewBox="-80 -80 260 260"
+        viewBox="-100 -100 300 300"
         className="w-full h-full select-none relative z-10"
         preserveAspectRatio="xMidYMid meet"
         onMouseMove={handleMouseMove}
@@ -378,10 +378,10 @@ export default function ForceGraph2D({
         </defs>
 
         <rect
-          x="-80"
-          y="-80"
-          width="260"
-          height="260"
+          x="-100"
+          y="-100"
+          width="300"
+          height="300"
           fill="transparent"
           style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
           onMouseDown={handleBackgroundMouseDown}
