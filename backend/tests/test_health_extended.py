@@ -58,8 +58,8 @@ async def test_health_check_degraded():
     app.dependency_overrides[get_neo4j] = mock_get_neo4j
     app.dependency_overrides[get_redis] = mock_get_redis
 
-    with patch("app.main.startup_db", new_callable=AsyncMock), \
-         patch("app.main.close_db", new_callable=AsyncMock), \
+    with patch("app.core.db.startup_db", new_callable=AsyncMock), \
+         patch("app.core.db.close_db", new_callable=AsyncMock), \
          patch("app.neo4j_client.create_neo4j_driver", return_value=None), \
          patch("app.redis_client.create_redis_client", return_value=None), TestClient(app) as client:
         response = client.get("/api/v1/health")
