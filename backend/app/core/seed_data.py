@@ -212,6 +212,36 @@ _USERS = [
         "password": "marta123",
         "status": UserStatus.APPROVED,
     },
+    {
+        "username": "luis",
+        "email": "luis@investigacion.cu",
+        "full_name": "Luis Ramirez",
+        "role": UserRole.PROFESIONAL,
+        "account_type": "profesional",
+        "password": "luis123",
+        "status": UserStatus.APPROVED,
+        "org_siglas": "CIEA",
+    },
+    {
+        "username": "sofia",
+        "email": "sofia@biotech.cu",
+        "full_name": "Sofia Torres",
+        "role": UserRole.PROFESIONAL,
+        "account_type": "profesional",
+        "password": "sofia123",
+        "status": UserStatus.APPROVED,
+        "org_siglas": "CBI",
+    },
+    {
+        "username": "jorge",
+        "email": "jorge@energia.cu",
+        "full_name": "Jorge Navarro",
+        "role": UserRole.PROFESIONAL,
+        "account_type": "profesional",
+        "password": "jorge123",
+        "status": UserStatus.APPROVED,
+        "org_siglas": "ELEVC",
+    },
 ]
 
 
