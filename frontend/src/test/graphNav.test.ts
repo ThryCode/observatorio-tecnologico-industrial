@@ -51,10 +51,9 @@ describe('buildGalaxy', () => {
     expect(galaxy.nodes.some((n) => n.nodeType !== 'IndustrialSector')).toBe(false);
   });
 
-  it('cuenta las conexiones de cada sector', () => {
+  it('no calcula contadores de ocultos (feature eliminada)', () => {
     const galaxy = buildGalaxy(makeGraph());
-    expect(galaxy.hiddenCounts['s1']).toBe(2);
-    expect(galaxy.hiddenCounts['s2']).toBe(1);
+    expect('hiddenCounts' in galaxy).toBe(false);
   });
 });
 

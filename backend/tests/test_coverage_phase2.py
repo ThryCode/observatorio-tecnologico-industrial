@@ -1097,6 +1097,7 @@ class TestGraphMocked:
 
         merge_rec = MockRecord({"merged": 0})
         rel_rec = MockRecord({"merged": 0})
+        delete_rec = MockRecord({"deleted": 0})
 
         class FakeResult:
             def __init__(self, records):
@@ -1111,6 +1112,8 @@ class TestGraphMocked:
             call_idx += 1
             if "FOLLOWS" in query:
                 return FakeResult([rel_rec])
+            if "DETACH DELETE" in query:
+                return FakeResult([delete_rec])
             return FakeResult([merge_rec])
 
         mock_neo4j = MagicMock()

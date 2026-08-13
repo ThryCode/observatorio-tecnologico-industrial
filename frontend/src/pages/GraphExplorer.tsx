@@ -72,11 +72,10 @@ export default function GraphExplorer() {
       return {
         nodes: galaxy?.nodes ?? [],
         edges: galaxy?.edges ?? [],
-        hiddenCounts: galaxy?.hiddenCounts ?? {},
       };
     }
     const system = buildSystem(graphData, centerId, drillExpanded);
-    return { nodes: system.nodes, edges: system.edges, hiddenCounts: system.hiddenCounts };
+    return { nodes: system.nodes, edges: system.edges };
   }, [graphData, centerId, galaxy, drillExpanded]);
 
   const currentCenterLabel = useMemo(() => {
@@ -209,7 +208,6 @@ export default function GraphExplorer() {
                     nodes={visible.nodes}
                     edges={visible.edges}
                     centerId={centerId}
-                    hiddenCounts={visible.hiddenCounts}
                     hideCenter={hasFocus}
                     onNodeClick={handleNodeClick}
                     onExpandNode={handleExpandNode}

@@ -244,7 +244,7 @@ class TestGraphSyncEnterprise:
         from app.graph.repository import GraphRepository
 
         await _create_sector(db_session)
-        org1 = await _create_org(db_session)
+        org1 = await _create_org(db_session, sector_codigo=None)
         user = await _create_user(db_session, organization_id=org1.id)
         follow = Follow(
             follower_id=user.id,

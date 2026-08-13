@@ -29,13 +29,12 @@ export default function KnowledgeGraph({ className, height = 400, sectorCodigos 
   const navigate = useNavigate();
   const { data, isLoading, isError, refetch } = useGraphQuery(400, sectorCodigos);
 
-  const { graphNodes, graphEdges, hiddenCounts, nodeCount, edgeCount } = useMemo(() => {
-    if (!data) return { graphNodes: [], graphEdges: [], hiddenCounts: {}, nodeCount: 0, edgeCount: 0 };
+  const { graphNodes, graphEdges, nodeCount, edgeCount } = useMemo(() => {
+    if (!data) return { graphNodes: [], graphEdges: [], nodeCount: 0, edgeCount: 0 };
     const galaxy = buildGalaxy(data);
     return {
       graphNodes: galaxy.nodes,
       graphEdges: galaxy.edges,
-      hiddenCounts: galaxy.hiddenCounts,
       nodeCount: data.total_nodes,
       edgeCount: data.total_edges,
     };
@@ -70,7 +69,6 @@ export default function KnowledgeGraph({ className, height = 400, sectorCodigos 
         <ForceGraph2D
           nodes={graphNodes}
           edges={graphEdges}
-          hiddenCounts={hiddenCounts}
           onNodeClick={() => navigate('/graph')}
           onExpandNode={() => navigate('/graph')}
         />

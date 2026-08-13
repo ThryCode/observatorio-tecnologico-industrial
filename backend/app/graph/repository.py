@@ -124,7 +124,7 @@ class GraphRepository:
                 edges_result = await session.run(
                     """
                     MATCH (a)-[r]->(b)
-                    WHERE a.codigo IN $sectors OR b.codigo IN $sectors
+                    WHERE (a.codigo IN $sectors OR b.codigo IN $sectors
                        OR EXISTS {
                            MATCH (a)-[:BELONGS_TO_SECTOR]->(s)
                            WHERE s.codigo IN $sectors
@@ -132,7 +132,8 @@ class GraphRepository:
                        OR EXISTS {
                            MATCH (b)-[:BELONGS_TO_SECTOR]->(s)
                            WHERE s.codigo IN $sectors
-                         }
+                         })
+                      AND NOT type(r) = 'FOLLOWS'
                     RETURN a.id AS sid, a.codigo AS scod, b.id AS tid, b.codigo AS tcod,
                            type(r) AS type
                     LIMIT $limit
@@ -156,6 +157,7 @@ class GraphRepository:
                 edges_result = await session.run(
                     """
                     MATCH (a)-[r]->(b)
+                    WHERE NOT type(r) = 'FOLLOWS'
                     RETURN a.id AS sid, a.codigo AS scod, b.id AS tid, b.codigo AS tcod,
                            type(r) AS type
                     LIMIT $limit
@@ -482,6 +484,23 @@ class GraphRepository:
                     )
                     rels_merged += len(has_patent_rels)
 
+                # BELONGS_TO_SECTOR for patents
+                patent_sector_rels = [
+                    {"pat_id": str(p.id), "sector_codigo": p.technological_sector}
+                    for p in batch if p.technological_sector
+                ]
+                if patent_sector_rels:
+                    await session.run(
+                        """
+                        UNWIND $batch AS item
+                        MATCH (p:Patent {id: item.pat_id})
+                        MATCH (s:IndustrialSector {codigo: item.sector_codigo})
+                        MERGE (p)-[:BELONGS_TO_SECTOR]->(s)
+                        """,
+                        batch=patent_sector_rels,
+                    )
+                    rels_merged += len(patent_sector_rels)
+
                 # RELATES_TO relationships
                 relates_to_rels = [
                     {"pat_id": str(p.id), "tech_id": str(p.technology_id)}
@@ -793,6 +812,13 @@ class GraphRepository:
             orgs = (await db.execute(select(Organization))).scalars().all()
             org_map = {str(o.id): o for o in orgs}
 
+            # Prune stale Organization nodes not present in the relational DB
+            deleted = 0
+            current_org_ids = [str(o.id) for o in orgs]
+            deleted += await self._delete_missing(
+                session, "Organization", "id", current_org_ids
+            )
+
             for i in range(0, len(orgs), batch_size):
                 batch = orgs[i:i+batch_size]
                 batch_data = [
@@ -821,6 +847,23 @@ class GraphRepository:
                 )
                 record = await result.single()
                 nodes_merged += record["merged"]
+
+                # BELONGS_TO_SECTOR for organizations
+                sector_rels = [
+                    {"org_id": str(o.id), "sector_codigo": o.sector_codigo}
+                    for o in batch if o.sector_codigo
+                ]
+                if sector_rels:
+                    await session.run(
+                        """
+                        UNWIND $batch AS item
+                        MATCH (org:Organization {id: item.org_id})
+                        MATCH (s:IndustrialSector {codigo: item.sector_codigo})
+                        MERGE (org)-[:BELONGS_TO_SECTOR]->(s)
+                        """,
+                        batch=sector_rels,
+                    )
+                    rels_merged += len(sector_rels)
 
             users = (await db.execute(select(User))).scalars().all()
             user_org_map = {
@@ -862,7 +905,11 @@ class GraphRepository:
                 record = await result.single()
                 rels_merged += record["merged"]
 
-            return {"nodes_merged": nodes_merged, "relationships_merged": rels_merged}
+            return {
+                "nodes_merged": nodes_merged,
+                "relationships_merged": rels_merged,
+                "nodes_deleted": deleted,
+            }
 
     async def recommendations_for_org(self, org_id: str, limit: int = 20) -> dict[str, Any]:
         async with self.driver.session() as session:

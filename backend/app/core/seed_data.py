@@ -453,24 +453,24 @@ _PROFESSIONAL_PROFILES = [
     },
     {
         "username": "luis",
-        "especialidad": "Automatización",
-        "grado_cientifico": "Ingeniero",
-        "biografia": "Especialista en sistemas de automatización y control industrial.",
-        "intereses": ["PLC", "SCADA", "IoT industrial"],
+        "especialidad": "Ingeniería en Automatización",
+        "grado_cientifico": "Máster",
+        "biografia": "Investigador del Centro de Investigaciones de Energía y Automatización.",
+        "intereses": ["Automatización", "Energía", "Control de procesos"],
     },
     {
         "username": "sofia",
-        "especialidad": "Biotecnología",
-        "grado_cientifico": "Máster",
-        "biografia": "Investigadora en biotecnología aplicada a la industria farmacéutica.",
-        "intereses": ["Farmacología", "Genómica", "Biodiversidad"],
+        "especialidad": "Biotecnología Industrial",
+        "grado_cientifico": "Doctor",
+        "biografia": "Especialista en biopolímeros y fermentación en el Centro de Biotecnología Industrial.",
+        "intereses": ["Biopolímeros", "Biotecnología", "Economía circular"],
     },
     {
         "username": "jorge",
-        "especialidad": "Energía",
-        "grado_cientifico": "Ingeniero",
-        "biografia": "Especialista en fuentes de energía renovable y eficiencia energética.",
-        "intereses": ["Energía solar", "Eficiencia energética", "Redes eléctricas"],
+        "especialidad": "Ingeniería Eléctrica",
+        "grado_cientifico": "Máster",
+        "biografia": "Ingeniero de la Empresa Eléctrica de Villa Clara, especializado en eficiencia energética.",
+        "intereses": ["Eficiencia energética", "Iluminación LED", "Smart grids"],
     },
 ]
 
@@ -851,6 +851,7 @@ _PATENTS = [
         ),
         "technological_sector": "AUT",
         "country": "Cuba",
+        "org_siglas": "ATS",
     },
     {
         "title": "Proceso de obtención de biopolímeros a partir de residuos de la industria azucarera",
@@ -867,6 +868,7 @@ _PATENTS = [
         ),
         "technological_sector": "BIO",
         "country": "Cuba",
+        "org_siglas": "CBI",
     },
     {
         "title": "Dispositivo de iluminación LED de alta eficiencia con gestión inteligente de energía",
@@ -883,6 +885,7 @@ _PATENTS = [
         ),
         "technological_sector": "ELE",
         "country": "Cuba",
+        "org_siglas": "ELEVC",
     },
     {
         "title": "Método de recuperación de metales raros a partir de escorias metalúrgicas",
@@ -899,6 +902,7 @@ _PATENTS = [
         ),
         "technological_sector": "MET",
         "country": "Cuba",
+        "org_siglas": "METCAM",
     },
     {
         "title": "Composición catalítica para la producción de amoníaco verde a baja temperatura",
@@ -915,6 +919,7 @@ _PATENTS = [
         ),
         "technological_sector": "QUI",
         "country": "Cuba",
+        "org_siglas": "QCI",
     },
     {
         "title": "Procedimiento de laminación en caliente para aceros de alta resistencia soldables",
@@ -931,19 +936,34 @@ _PATENTS = [
         ),
         "technological_sector": "SID",
         "country": "Cuba",
+        "org_siglas": "INSID",
     },
 ]
 
 
 async def seed_patents(session: AsyncSession) -> int:
-    result = await session.execute(select(Patent.patent_number).limit(1))
-    if result.scalar_one_or_none():
-        return 0
+    result = await session.execute(select(Organization.siglas, Organization.id))
+    org_by_siglas = dict(result.all())
+
+    result = await session.execute(select(Patent))
+    existing = {p.patent_number: p for p in result.scalars().all()}
+
+    inserted = 0
+    updated = 0
     for data in _PATENTS:
-        session.add(Patent(id=uuid4(), **data))
-    await session.flush()
-    logger.info(f"Seeded {len(_PATENTS)} patents")
-    return len(_PATENTS)
+        org_id = org_by_siglas.get(data.get("org_siglas"))
+        patent_data = {k: v for k, v in data.items() if k != "org_siglas"}
+        existing_patent = existing.get(data["patent_number"])
+        if existing_patent is None:
+            session.add(Patent(id=uuid4(), organization_id=org_id, **patent_data))
+            inserted += 1
+        elif org_id and existing_patent.organization_id is None:
+            existing_patent.organization_id = org_id
+            updated += 1
+    if inserted or updated:
+        await session.flush()
+        logger.info(f"Seeded {inserted} patents, linked {updated} to organizations")
+    return inserted
 
 
 async def seed_all(session: AsyncSession) -> None:

@@ -91,6 +91,195 @@ function groupByDepth(centerId: string, adj: Map<string, string[]>): Map<number,
   return byDepth;
 }
 
+function orderRingByConnectivity(ids: string[], adj: Map<string, string[]>): string[] {
+  const remaining = new Set(ids);
+  const order: string[] = [];
+  const degree = (id: string) => (adj.get(id) ?? []).filter((nb) => remaining.has(nb)).length;
+  while (remaining.size > 0) {
+    let pick: string | null = null;
+    if (order.length > 0) {
+      const last = order[order.length - 1];
+      const neighbors = (adj.get(last) ?? []).filter((nb) => remaining.has(nb));
+      if (neighbors.length > 0) {
+        pick = neighbors.reduce((a, b) => (degree(a) > degree(b) ? a : b));
+      }
+    }
+    if (pick === null) {
+      let best = -1;
+      for (const id of remaining) {
+        const d = degree(id);
+        if (d > best) {
+          best = d;
+          pick = id;
+        }
+      }
+    }
+    if (pick === null) break;
+    order.push(pick);
+    remaining.delete(pick);
+  }
+  return order;
+}
+
+const CURVE_SAMPLES = 12;
+
+interface CurvePoint {
+  x: number;
+  y: number;
+}
+
+function edgeControlPoint(src: NodePos, tgt: NodePos, curvature: number): CurvePoint {
+  const dx = tgt.x - src.x;
+  const dy = tgt.y - src.y;
+  const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+  const midX = (src.x + tgt.x) / 2;
+  const midY = (src.y + tgt.y) / 2;
+  const nx = -dy / dist;
+  const ny = dx / dist;
+  return { x: midX + nx * curvature, y: midY + ny * curvature };
+}
+
+function distanceToCurve(
+  px: number,
+  py: number,
+  src: CurvePoint,
+  ctrl: CurvePoint,
+  tgt: CurvePoint,
+): { dist: number; cx: number; cy: number } {
+  const pts: CurvePoint[] = [];
+  for (let s = 0; s <= CURVE_SAMPLES; s++) {
+    const t = s / CURVE_SAMPLES;
+    const mt = 1 - t;
+    pts.push({
+      x: mt * mt * src.x + 2 * mt * t * ctrl.x + t * t * tgt.x,
+      y: mt * mt * src.y + 2 * mt * t * ctrl.y + t * t * tgt.y,
+    });
+  }
+  let best = Infinity;
+  let bx = 0;
+  let by = 0;
+  for (let s = 0; s < pts.length - 1; s++) {
+    const a = pts[s];
+    const b = pts[s + 1];
+    const abx = b.x - a.x;
+    const aby = b.y - a.y;
+    const len2 = abx * abx + aby * aby;
+    let t = len2 > 1e-9 ? ((px - a.x) * abx + (py - a.y) * aby) / len2 : 0;
+    t = Math.max(0, Math.min(1, t));
+    const cx = a.x + t * abx;
+    const cy = a.y + t * aby;
+    const dx = px - cx;
+    const dy = py - cy;
+    const d2 = dx * dx + dy * dy;
+    if (d2 < best) {
+      best = d2;
+      bx = cx;
+      by = cy;
+    }
+  }
+  return { dist: Math.sqrt(best), cx: bx, cy: by };
+}
+
+function computeEdgeCurvatures(edges: ForceGraphEdge[]): number[] {
+  const curv = new Array<number>(edges.length).fill(0);
+  const inGroups = new Map<string, number[]>();
+  const outGroups = new Map<string, number[]>();
+  edges.forEach((e, i) => {
+    if (!inGroups.has(e.target)) inGroups.set(e.target, []);
+    inGroups.get(e.target)!.push(i);
+    if (!outGroups.has(e.source)) outGroups.set(e.source, []);
+    outGroups.get(e.source)!.push(i);
+  });
+  const SPACING = 1.7;
+  const spread = (idxs: number[]) => {
+    idxs.forEach((idx, k) => {
+      curv[idx] += (k - (idxs.length - 1) / 2) * SPACING;
+    });
+  };
+  inGroups.forEach(spread);
+  outGroups.forEach(spread);
+  return curv;
+}
+
+function relaxPositions(
+  nodes: ForceGraphNode[],
+  edges: ForceGraphEdge[],
+  positions: NodePos[],
+  ringRadiusFor: number[],
+): NodePos[] {
+  const cx0 = 50;
+  const cy0 = 50;
+  const pos = positions.map((p) => ({ x: p.x, y: p.y }));
+  const edgeCurvatures = computeEdgeCurvatures(edges);
+  const sampleEdge = (e: ForceGraphEdge, idx: number): { src: NodePos; ctrl: CurvePoint; tgt: NodePos } | null => {
+    const si = nodes.findIndex((n) => n.id === e.source);
+    const ti = nodes.findIndex((n) => n.id === e.target);
+    if (si < 0 || ti < 0) return null;
+    const src = pos[si];
+    const tgt = pos[ti];
+    const dx = tgt.x - src.x;
+    const dy = tgt.y - src.y;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    const ax = tgt.x - (dx / dist) * 5;
+    const ay = tgt.y - (dy / dist) * 5;
+    const curvature = edgeCurvatures[idx] ?? 0;
+    const ctrl = edgeControlPoint(src, { x: ax, y: ay }, curvature);
+    return { src, ctrl, tgt: { x: ax, y: ay } };
+  };
+  const activeEdges = edges.filter((e) => e.source !== undefined && e.target !== undefined);
+  const edgesSamples = activeEdges.map((e, i) => sampleEdge(e, i));
+  for (let iter = 0; iter < 600; iter++) {
+    for (let s = 0; s < edgesSamples.length; s++) edgesSamples[s] = sampleEdge(activeEdges[s], s);
+    for (let i = 0; i < pos.length; i++) {
+      for (let j = i + 1; j < pos.length; j++) {
+        const dx = pos[j].x - pos[i].x;
+        const dy = pos[j].y - pos[i].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const minDist = 5.5 * 2 + 9;
+        if (dist > 0 && dist < minDist) {
+          const push = ((minDist - dist) / minDist) * 2;
+          const nx = dx / dist;
+          const ny = dy / dist;
+          pos[i].x -= nx * push;
+          pos[i].y -= ny * push;
+          pos[j].x += nx * push;
+          pos[j].y += ny * push;
+        }
+      }
+    }
+    for (let i = 0; i < pos.length; i++) {
+      const pi = pos[i];
+      const nid = nodes[i].id;
+      for (let k = 0; k < edgesSamples.length; k++) {
+        const sample = edgesSamples[k];
+        if (!sample) continue;
+        if (activeEdges[k].source === nid || activeEdges[k].target === nid) continue;
+        const near = distanceToCurve(pi.x, pi.y, sample.src, sample.ctrl, sample.tgt);
+        const minDist = 5.5 + 9;
+        if (near.dist > 0 && near.dist < minDist) {
+          const dx = pi.x - near.cx;
+          const dy = pi.y - near.cy;
+          const d = Math.sqrt(dx * dx + dy * dy) || 1;
+          const push = ((minDist - near.dist) / minDist) * 4;
+          pi.x += (dx / d) * push;
+          pi.y += (dy / d) * push;
+        }
+      }
+    }
+    for (let i = 0; i < pos.length; i++) {
+      const target = ringRadiusFor[i];
+      if (target === undefined) continue;
+      const dx = pos[i].x - cx0;
+      const dy = pos[i].y - cy0;
+      const d = Math.sqrt(dx * dx + dy * dy) || 1;
+      const pull = (target - d) * 0.02;
+      pos[i].x += (dx / d) * pull;
+      pos[i].y += (dy / d) * pull;
+    }
+  }
+  return pos;
+}
+
 interface SolarLayoutResult {
   positions: NodePos[];
   rings: number[];
@@ -125,21 +314,22 @@ function computeSolarLayout(
 
   if (centerId && indexOf.has(centerId)) {
     const byDepth = groupByDepth(centerId, adj);
-    const R0 = 32;
-    const Rstep = 28;
+    const R0 = 28;
+    const Rstep = 20;
     const sorted = [...byDepth.entries()].sort((a, b) => a[0] - b[0]);
     for (const [d, ids] of sorted) {
       const radius = R0 + d * Rstep;
       rings.push(radius);
-      placeRing(ids, radius, 50, 50);
+      const interleaved = orderRingByConnectivity(ids, adj);
+      placeRing(interleaved, radius, 50, 50);
     }
   } else {
     const sectorIds = nodes.filter((n) => n.nodeType === 'IndustrialSector').map((n) => n.id);
     const orphans = nodes.filter((n) => n.nodeType !== 'IndustrialSector').map((n) => n.id);
 
+    const R = Math.min(42, 14 + (sectorIds.length + (orphans.length > 0 ? 1 : 0)) * 3.2);
+    rings.push(R);
     if (sectorIds.length > 0) {
-      const R = Math.min(48, 18 + sectorIds.length * 4.5);
-      rings.push(R);
       sectorIds.forEach((id, ci) => {
         const angle = (2 * Math.PI * ci) / sectorIds.length - Math.PI / 2;
         const idx = indexOf.get(id);
@@ -148,14 +338,19 @@ function computeSolarLayout(
       });
     }
     if (orphans.length > 0) {
-      const R = Math.min(70, 30 + orphans.length * 7);
-      rings.push(R);
-      placeRing(orphans, R, 50, 50);
+      placeRing(orphans, 12, 50, 50, (2 * Math.PI * sectorIds.length) / Math.max(sectorIds.length, 1) - Math.PI / 2 + Math.PI / sectorIds.length);
+      rings.push(12);
     }
   }
 
   for (let i = 0; i < nodes.length; i++) {
     if (!positions[i]) positions[i] = { x: 50 + (i - nodes.length / 2) * 6, y: 50 };
+  }
+
+  if (centerId && indexOf.has(centerId)) {
+    const ringRadiusFor = positions.map((p) => Math.sqrt((p.x - 50) ** 2 + (p.y - 50) ** 2));
+    const relaxed = relaxPositions(nodes, edges, positions, ringRadiusFor);
+    for (let i = 0; i < positions.length; i++) positions[i] = relaxed[i];
   }
 
   return { positions, rings };
@@ -202,7 +397,7 @@ export default function ForceGraph2D({
     [layoutCenter],
   );
 
-  const initialView = centeredView(1.2);
+  const initialView = centeredView(1.5);
   const [view, setView] = useState(initialView);
   const viewRef = useRef(view);
   viewRef.current = view;
@@ -446,7 +641,7 @@ export default function ForceGraph2D({
       </div>
       <svg
         ref={svgRef}
-        viewBox="-100 -100 300 300"
+        viewBox="-40 -40 180 180"
         className="w-full h-full select-none relative z-10"
         preserveAspectRatio="xMidYMid meet"
         onMouseMove={handleMouseMove}
@@ -460,10 +655,10 @@ export default function ForceGraph2D({
         </defs>
 
         <rect
-          x="-100"
-          y="-100"
-          width="300"
-          height="300"
+          x="-40"
+          y="-40"
+          width="180"
+          height="180"
           fill="transparent"
           style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
           onMouseDown={handleBackgroundMouseDown}
@@ -548,7 +743,7 @@ export default function ForceGraph2D({
           const isHovered = hovered === i;
           const isCenter = i === centerIndex;
           const scale = isDragging ? 1.3 : isHovered ? 1.15 : 1;
-          const r = isCenter ? 9 : isDragging ? 8 : 6.5;
+          const r = isCenter ? 9 : isDragging ? 7 : 5.5;
           const hidden = hiddenCounts[n.id] ?? 0;
           const isExpanded = expandedIds?.has(n.id) ?? false;
 

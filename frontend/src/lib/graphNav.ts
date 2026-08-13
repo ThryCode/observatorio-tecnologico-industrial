@@ -58,33 +58,22 @@ function buildAdjacency(
 export interface GalaxyBuildResult {
   nodes: ForceGraphNode[];
   edges: ForceGraphEdge[];
-  hiddenCounts: Record<string, number>;
 }
 
 export function buildGalaxy(graph: GraphQueryResponse): GalaxyBuildResult {
-  const adj = buildAdjacency(graph.nodes, graph.edges);
   const nodes: ForceGraphNode[] = [];
-  const hiddenCounts: Record<string, number> = {};
 
   for (const n of graph.nodes) {
     if (!n.labels.includes('IndustrialSector')) continue;
     nodes.push(toForceNode(n));
-    const neighbors = adj.get(n.id) ?? new Set();
-    let connected = 0;
-    for (const nb of neighbors) {
-      const raw = graph.nodes.find((x) => x.id === nb);
-      if (!raw?.labels.includes('IndustrialSector')) connected++;
-    }
-    if (connected > 0) hiddenCounts[n.id] = connected;
   }
 
-  return { nodes, edges: [], hiddenCounts };
+  return { nodes, edges: [] };
 }
 
 export interface SystemBuildResult {
   nodes: ForceGraphNode[];
   edges: ForceGraphEdge[];
-  hiddenCounts: Record<string, number>;
   centerId: string;
 }
 
@@ -97,7 +86,6 @@ export function buildSystem(
   const nodeMap = new Map(graph.nodes.map((n) => [n.id, n]));
   const visible = new Set<string>([centerId]);
   const edges: ForceGraphEdge[] = [];
-  const hiddenCounts: Record<string, number> = {};
 
   const queue = [centerId];
   while (queue.length) {
@@ -124,15 +112,5 @@ export function buildSystem(
     if (raw) nodes.push(toForceNode(raw));
   }
 
-  for (const id of visible) {
-    const total = adj.get(id) ?? new Set();
-    let shown = 0;
-    for (const nb of total) {
-      if (visible.has(nb)) shown++;
-    }
-    const hidden = total.size - shown;
-    if (hidden > 0) hiddenCounts[id] = hidden;
-  }
-
-  return { nodes, edges, hiddenCounts, centerId };
+  return { nodes, edges, centerId };
 }
