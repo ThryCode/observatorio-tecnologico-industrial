@@ -13,14 +13,14 @@ vi.mock('@/pages/Login', () => ({ default: () => <div>Login</div> }));
 vi.mock('@/pages/Register', () => ({ default: () => <div>Register</div> }));
 vi.mock('@/pages/PendingApprovals', () => ({ default: () => <div>PendingApprovals</div> }));
 vi.mock('@/components/ProtectedRoute', () => ({
-  ProtectedRoute: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  ProtectedRoute: () => <Outlet />,
 }));
 vi.mock('@/components/Layout', () => ({
-  default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  default: () => <div><Outlet /></div>,
 }));
 
 import App from '@/App';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 function renderWithProviders(ui: React.ReactElement, initialRoute = '/') {
@@ -59,5 +59,11 @@ describe('App', () => {
     renderWithProviders(<App />, '/');
     const div = document.body.querySelector('div');
     expect(div).toBeTruthy();
+  });
+
+  it('renders NotFound for unknown routes', async () => {
+    renderWithProviders(<App />, '/ruta-inexistente');
+    expect(await screen.findByText('Página no encontrada')).toBeInTheDocument();
+    expect(screen.getByText('404')).toBeInTheDocument();
   });
 });

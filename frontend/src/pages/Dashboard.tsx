@@ -1,18 +1,16 @@
-import { useState, useCallback } from 'react';
+import { lazy, Suspense, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { FileText, BookOpen, Users, AlertTriangle, GraduationCap, Plus, Download, Clock, Eye } from 'lucide-react';
-import { pdf } from '@react-pdf/renderer';
 import PageHeader from '@/components/PageHeader';
 import KPICard from '@/components/KPICard';
 import SectorPills from '@/components/SectorPills';
 import AlertList from '@/components/AlertList';
 import EntityTable from '@/components/EntityTable';
 import DashboardTimeline from '@/components/DashboardTimeline';
-import KnowledgeGraph from '@/components/KnowledgeGraph';
 import ProductCard from '@/components/ProductCard';
-import FullExportPDF from '@/components/FullExportPDF';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAlerts } from '@/hooks/useAlerts';
 import { useDashboardKPIs, useTimelineEvents } from '@/hooks/useDashboard';
 import { getPatents } from '@/api/patents';
@@ -29,6 +27,8 @@ import type { DashboardKPI, Organization } from '@/types';
 import type { BulletinListItem } from '@/api/bulletins';
 import type { Entity } from '@/components/EntityTable';
 import type { ProductCardProps } from '@/components/ProductCard';
+
+const KnowledgeGraph = lazy(() => import('@/components/KnowledgeGraph'));
 
 type IconKey = 'users' | 'file-text' | 'book-open' | 'alert-triangle' | 'graduation';
 
@@ -164,6 +164,10 @@ export default function Dashboard() {
   const handleExport = useCallback(async () => {
     setExporting(true);
     try {
+      const [{ default: FullExportPDF }, { pdf }] = await Promise.all([
+        import('@/components/FullExportPDF'),
+        import('@react-pdf/renderer'),
+      ]);
       const [
         kpisRes, patentsRes, techRes, orgsRes, regsRes,
         indicsRes, alertsRes, bullsRes, sectorsRes, timelineRes,
@@ -254,7 +258,9 @@ export default function Dashboard() {
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <h3 className="text-base font-bold text-foreground mb-3">Grafo de Conocimiento Industrial</h3>
-            <KnowledgeGraph height={620} className="rounded-lg border border-border" sectorCodigos={activeSectors.map((s) => s.toUpperCase())} />
+            <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
+              <KnowledgeGraph height={620} className="rounded-lg border border-border" sectorCodigos={activeSectors.map((s) => s.toUpperCase())} />
+            </Suspense>
           </div>
           <div>
             <div className="flex items-center justify-between mb-3">

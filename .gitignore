@@ -35,6 +35,7 @@ logs/
 
 # Portable services
 /services/
+/tools/
 
 # Bundled Python
 backend/python/

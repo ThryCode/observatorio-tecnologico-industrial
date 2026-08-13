@@ -1,4 +1,5 @@
 import { useState, useDeferredValue, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -113,8 +114,10 @@ export default function CrudPage<T extends { id: string }>({
       const payload = formToPayload(form, !!editingItem);
       if (editingItem) {
         await updateMutation.mutateAsync({ id: editingItem.id, ...payload });
+        toast.success('Registro actualizado correctamente');
       } else {
         await createMutation.mutateAsync(payload);
+        toast.success('Registro creado correctamente');
       }
       setDialogOpen(false);
       resetForm();
@@ -132,6 +135,7 @@ export default function CrudPage<T extends { id: string }>({
     setDeleteError('');
     try {
       await deleteMutation.mutateAsync(itemToDelete.id);
+      toast.success('Registro eliminado');
       setDeleteDialogOpen(false);
       setItemToDelete(null);
       if (selected?.id === itemToDelete.id) setSelected(null);

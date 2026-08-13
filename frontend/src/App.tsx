@@ -1,9 +1,11 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import Layout from '@/components/Layout';
 import Login from '@/pages/Login';
+import NotFound from '@/pages/NotFound';
 
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Organizations = lazy(() => import('@/pages/Organizations'));
@@ -78,9 +80,11 @@ export default function App() {
                 <SettingsPage />
               </ProtectedRoute>
             } />
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Route>
       </Routes>
+      <Toaster position="top-right" richColors closeButton />
     </Suspense>
     </ErrorBoundary>
   );
