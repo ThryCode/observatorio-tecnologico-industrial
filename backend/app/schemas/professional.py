@@ -17,6 +17,10 @@ class ProfessionalProfileUpdate(BaseModel):
     cv_url: str | None = Field(None, max_length=255)
     biografia: str | None = Field(None, max_length=2000)
     intereses: list[str] | None = None
+    linkedin_url: str | None = Field(None, max_length=255)
+    twitter_url: str | None = Field(None, max_length=255)
+    researchgate_url: str | None = Field(None, max_length=255)
+    orcid: str | None = Field(None, max_length=50)
 
 
 class ProfessionalProfileResponse(BaseModel):
@@ -27,6 +31,10 @@ class ProfessionalProfileResponse(BaseModel):
     cv_url: str | None
     biografia: str | None
     intereses: list[str] | None
+    linkedin_url: str | None
+    twitter_url: str | None
+    researchgate_url: str | None
+    orcid: str | None
 
     model_config = ConfigDict(from_attributes=True)
 

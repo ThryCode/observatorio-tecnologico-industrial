@@ -20,14 +20,16 @@ class ProfessionalProfileService:
     ) -> tuple[list[ProfessionalListItem], int]:
         query = (
             select(User)
-            .join(ProfessionalProfile, ProfessionalProfile.user_id == User.id)
+            .outerjoin(ProfessionalProfile, ProfessionalProfile.user_id == User.id)
             .where(User.status == UserStatus.APPROVED.value)
+            .where(User.role == "profesional")
             .options(selectinload(User.professional_profile))
         )
         count_query = (
             select(func.count(User.id))
-            .join(ProfessionalProfile, ProfessionalProfile.user_id == User.id)
+            .outerjoin(ProfessionalProfile, ProfessionalProfile.user_id == User.id)
             .where(User.status == UserStatus.APPROVED.value)
+            .where(User.role == "profesional")
         )
 
         if especialidad:

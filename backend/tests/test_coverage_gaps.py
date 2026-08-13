@@ -234,7 +234,7 @@ class TestAuthServiceExtended:
         from app.services.auth_service import AuthService
         svc = AuthService(db_session)
         data = RegisterRequest(
-            account_type="representante",
+            role="representante",
             username="pubuser1", email="pub1@test.com", password="pass12345",
             full_name="Pub User", new_organization_name="New Org",
             new_organization_siglas="NO",
@@ -257,7 +257,7 @@ class TestAuthServiceExtended:
         from app.services.auth_service import AuthService
         svc = AuthService(db_session)
         data = RegisterRequest(
-            account_type="analista",
+            role="analista",
             username="pubuser2", email="pub2@test.com", password="pass12345",
             full_name="Pub User 2", organization_id=str(org.id),
         )
@@ -272,7 +272,7 @@ class TestAuthServiceExtended:
         from app.services.auth_service import AuthService
         svc = AuthService(db_session)
         data = RegisterRequest(
-            account_type="profesional",
+            role="profesional",
             username="prouser1", email="pro1@test.com", password="pass12345",
             full_name="Pro User",
             especialidad="IA", grado_cientifico="Doctor",
@@ -290,7 +290,7 @@ class TestAuthServiceExtended:
         from app.services.auth_service import AuthService
         svc = AuthService(db_session)
         data = RegisterRequest(
-            account_type="representante",
+            role="representante",
             username="dup_pub", email="dup_pub@test.com", password="pass12345",
             full_name="Dup User",
         )

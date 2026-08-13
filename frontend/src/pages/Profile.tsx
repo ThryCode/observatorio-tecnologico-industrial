@@ -20,12 +20,21 @@ export default function Profile() {
   const [userSuccess, setUserSuccess] = useState(false);
   const [profSuccess, setProfSuccess] = useState(false);
 
-  const isProfessional = user?.account_type === 'profesional';
+  const isProfessional = user?.role === 'profesional';
   const { data: profProfile, isLoading: profLoading } = useMyProfessionalProfile();
 
   const userForm = useForm({ defaultValues: { full_name: '', phone: '', job_title: '' } });
   const profForm = useForm({
-    defaultValues: { especialidad: '', grado_cientifico: '', biografia: '', cv_url: '' },
+    defaultValues: {
+      especialidad: '',
+      grado_cientifico: '',
+      biografia: '',
+      cv_url: '',
+      linkedin_url: '',
+      twitter_url: '',
+      researchgate_url: '',
+      orcid: '',
+    },
   });
 
   useEffect(() => {
@@ -45,6 +54,10 @@ export default function Profile() {
         grado_cientifico: profProfile.grado_cientifico || '',
         biografia: profProfile.biografia || '',
         cv_url: profProfile.cv_url || '',
+        linkedin_url: profProfile.linkedin_url || '',
+        twitter_url: profProfile.twitter_url || '',
+        researchgate_url: profProfile.researchgate_url || '',
+        orcid: profProfile.orcid || '',
       });
     }
   }, [profProfile, profForm.reset]);
@@ -78,7 +91,16 @@ export default function Profile() {
     userMutation.mutate(data);
   };
 
-  const onProfSubmit = (data: { especialidad: string; grado_cientifico: string; biografia: string; cv_url: string }) => {
+  const onProfSubmit = (data: {
+    especialidad: string;
+    grado_cientifico: string;
+    biografia: string;
+    cv_url: string;
+    linkedin_url: string;
+    twitter_url: string;
+    researchgate_url: string;
+    orcid: string;
+  }) => {
     setProfSuccess(false);
     setProfError(null);
     const payload: Record<string, string | undefined> = {};
@@ -86,6 +108,10 @@ export default function Profile() {
     if (data.grado_cientifico) payload.grado_cientifico = data.grado_cientifico;
     if (data.biografia) payload.biografia = data.biografia;
     if (data.cv_url) payload.cv_url = data.cv_url;
+    if (data.linkedin_url) payload.linkedin_url = data.linkedin_url;
+    if (data.twitter_url) payload.twitter_url = data.twitter_url;
+    if (data.researchgate_url) payload.researchgate_url = data.researchgate_url;
+    if (data.orcid) payload.orcid = data.orcid;
     profMutation.mutate(payload, {
       onSuccess: () => {
         setProfSuccess(true);
@@ -210,6 +236,28 @@ export default function Profile() {
               <div className="space-y-2">
                 <Label htmlFor="cv_url">URL del CV (opcional)</Label>
                 <Input id="cv_url" placeholder="https://..." {...profForm.register('cv_url')} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="linkedin_url">LinkedIn (opcional)</Label>
+                  <Input id="linkedin_url" placeholder="https://linkedin.com/in/..." {...profForm.register('linkedin_url')} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="twitter_url">Twitter / X (opcional)</Label>
+                  <Input id="twitter_url" placeholder="https://x.com/..." {...profForm.register('twitter_url')} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="researchgate_url">ResearchGate (opcional)</Label>
+                  <Input id="researchgate_url" placeholder="https://researchgate.net/profile/..." {...profForm.register('researchgate_url')} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="orcid">ORCID (opcional)</Label>
+                  <Input id="orcid" placeholder="0000-0000-0000-0000" {...profForm.register('orcid')} />
+                </div>
               </div>
 
               <div className="space-y-2">

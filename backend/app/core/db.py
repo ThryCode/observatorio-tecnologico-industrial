@@ -34,6 +34,10 @@ async def startup_db() -> None:
         expire_on_commit=False,
     )
 
+    async with _engine.begin() as conn:
+        from app.models.base import Base
+        await conn.run_sync(Base.metadata.create_all)
+
     async with _session_factory() as session:
         from app.core.init_db import init_db as seed_db
         try:

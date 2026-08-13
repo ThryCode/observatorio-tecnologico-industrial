@@ -1491,7 +1491,7 @@ class TestProfessionalListFilters:
     @pytest.mark.asyncio
     async def test_list_q(self, db_session):
         from app.services.professional_profile_service import ProfessionalProfileService
-        user = _make_user(db_session, username="plistq", full_name="Search Me")
+        user = _make_user(db_session, username="plistq", full_name="Search Me", role="profesional")
         await db_session.flush()
         profile = ProfessionalProfile(
             user_id=user.id, especialidad="AI", grado_cientifico="Dr",
@@ -1505,7 +1505,7 @@ class TestProfessionalListFilters:
     @pytest.mark.asyncio
     async def test_list_email_sort(self, db_session):
         from app.services.professional_profile_service import ProfessionalProfileService
-        user = _make_user(db_session, username="pemailsrt", full_name="Sort User")
+        user = _make_user(db_session, username="pemailsrt", full_name="Sort User", role="profesional")
         await db_session.flush()
         profile = ProfessionalProfile(
             user_id=user.id, especialidad="ML", grado_cientifico="MSc",

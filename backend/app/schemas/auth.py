@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-VALID_ACCOUNT_TYPES = {"representante", "analista", "profesional"}
+VALID_ROLES = {"representante", "analista", "profesional"}
 
 
 class LoginRequest(BaseModel):
@@ -18,7 +18,7 @@ class TokenResponse(BaseModel):
 
 
 class RegisterRequest(BaseModel):
-    account_type: str = Field(..., description="representante, analista o profesional")
+    role: str = Field(..., description="representante, analista o profesional")
     username: str = Field(..., min_length=3, max_length=50)
     email: str = Field(..., max_length=255)
     password: str = Field(..., min_length=8, max_length=128)
@@ -36,11 +36,11 @@ class RegisterRequest(BaseModel):
     researchgate_url: str | None = Field(None, max_length=255)
     orcid: str | None = Field(None, max_length=50)
 
-    @field_validator("account_type")
+    @field_validator("role")
     @classmethod
-    def validate_account_type(cls, v: str) -> str:
-        if v not in VALID_ACCOUNT_TYPES:
-            raise ValueError(f"account_type must be one of: {', '.join(sorted(VALID_ACCOUNT_TYPES))}")
+    def validate_role(cls, v: str) -> str:
+        if v not in VALID_ROLES:
+            raise ValueError(f"role must be one of: {', '.join(sorted(VALID_ROLES))}")
         return v
 
     @field_validator("email")
@@ -67,7 +67,7 @@ class PendingUserResponse(BaseModel):
     username: str
     email: str
     full_name: str
-    account_type: str | None
+    role: str
     phone: str | None
     job_title: str | None
     organization_id: UUID | None

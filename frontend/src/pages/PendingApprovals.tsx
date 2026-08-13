@@ -115,8 +115,10 @@ export default function PendingApprovals() {
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
                       <Badge variant="outline">
-                        {user.account_type === 'representante'
+                        {user.role === 'representante'
                           ? 'Representante CTI'
+                          : user.role === 'profesional'
+                          ? 'Profesional'
                           : 'Analista'}
                       </Badge>
                     </TableCell>

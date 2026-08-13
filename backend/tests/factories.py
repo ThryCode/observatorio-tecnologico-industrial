@@ -111,7 +111,7 @@ async def make_professional_profile(
     username: str = "pro_profile_user",
 ) -> ProfessionalProfile:
     if user is None:
-        user = await make_user(db, username=username)
+        user = await make_user(db, username=username, role="profesional")
     profile = ProfessionalProfile(
         user_id=user.id,
         especialidad=especialidad,

@@ -13,7 +13,6 @@ export interface User {
   organization_id?: string;
   is_active: boolean;
   is_superuser: boolean;
-  account_type?: string;
   status?: string;
   rejection_reason?: string;
   approved_at?: string;
@@ -75,8 +74,6 @@ export interface TokenResponse {
   token_type: string;
 }
 
-export type AccountType = 'representante' | 'analista' | 'profesional';
-
 export interface ProfessionalProfile {
   id: string;
   user_id: string;
@@ -85,10 +82,14 @@ export interface ProfessionalProfile {
   cv_url?: string;
   biografia?: string;
   intereses?: string[];
+  linkedin_url?: string;
+  twitter_url?: string;
+  researchgate_url?: string;
+  orcid?: string;
 }
 
 export interface RegisterRequest {
-  account_type: AccountType;
+  role: 'representante' | 'analista' | 'profesional';
   username: string;
   email: string;
   password: string;
@@ -112,7 +113,7 @@ export interface PendingUser {
   username: string;
   email: string;
   full_name: string;
-  account_type?: string;
+  role: string;
   phone?: string;
   job_title?: string;
   organization_id?: string;

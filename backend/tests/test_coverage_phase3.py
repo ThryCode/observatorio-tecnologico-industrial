@@ -711,7 +711,7 @@ class TestAuthRegisterPublic:
         resp = await client.post(
             "/api/v1/auth/register/public",
             json={
-                "account_type": "representante",
+                "role": "representante",
                 "username": "newpublic",
                 "email": "public@test.com",
                 "password": "Test1234!",
@@ -2071,7 +2071,7 @@ class TestProfessionalProfileServiceSearch:
         from app.services.professional_profile_service import (
             ProfessionalProfileService,
         )
-        user = await _create_user(db_session, full_name="Dr. Smith")
+        user = await _create_user(db_session, full_name="Dr. Smith", role=UserRole.PROFESIONAL)
         pp = ProfessionalProfile(user_id=user.id, especialidad="CS")
         db_session.add(pp)
         await db_session.flush()
@@ -2087,7 +2087,7 @@ class TestProfessionalProfileServiceSearch:
         from app.services.professional_profile_service import (
             ProfessionalProfileService,
         )
-        user = await _create_user(db_session, email="sort@test.com")
+        user = await _create_user(db_session, email="sort@test.com", role=UserRole.PROFESIONAL)
         pp = ProfessionalProfile(user_id=user.id, especialidad="CS")
         db_session.add(pp)
         await db_session.flush()
@@ -2101,7 +2101,7 @@ class TestProfessionalProfileServiceSearch:
         from app.services.professional_profile_service import (
             ProfessionalProfileService,
         )
-        user = await _create_user(db_session)
+        user = await _create_user(db_session, role=UserRole.PROFESIONAL)
         pp = ProfessionalProfile(user_id=user.id, especialidad="AI")
         db_session.add(pp)
         await db_session.flush()

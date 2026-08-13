@@ -62,14 +62,13 @@ class AuthService:
             phone=data.phone,
             job_title=data.job_title,
             organization_id=org_id,
-            account_type=data.account_type,
             status=UserStatus.PENDING.value,
-            role=UserRole.PROFESIONAL.value if data.account_type == "profesional" else "visitante",
+            role=data.role,
         )
         self.db.add(user)
         await self.db.flush()
 
-        if data.account_type == "profesional" and data.especialidad:
+        if data.role == "profesional" and data.especialidad:
             profile = ProfessionalProfile(
                 user_id=user.id,
                 especialidad=data.especialidad,

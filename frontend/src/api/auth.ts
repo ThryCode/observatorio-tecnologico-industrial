@@ -17,7 +17,6 @@ const MOCK_USER: User = {
   role: 'admin_mindus',
   is_active: true,
   is_superuser: true,
-  account_type: 'admin',
   status: 'approved',
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),

@@ -4,7 +4,7 @@ import pytest
 @pytest.mark.asyncio
 async def test_register_public(client):
     resp = await client.post("/api/v1/auth/register/public", json={
-        "account_type": "profesional",
+        "role": "profesional",
         "username": "nuevousuario",
         "email": "nuevo@test.com",
         "password": "password123",
@@ -18,7 +18,7 @@ async def test_register_public(client):
 @pytest.mark.asyncio
 async def test_register_public_duplicate_username(client):
     await client.post("/api/v1/auth/register/public", json={
-        "account_type": "profesional",
+        "role": "profesional",
         "username": "dupuser",
         "email": "dup1@test.com",
         "password": "password123",
@@ -26,7 +26,7 @@ async def test_register_public_duplicate_username(client):
         "job_title": "Analista",
     })
     resp = await client.post("/api/v1/auth/register/public", json={
-        "account_type": "profesional",
+        "role": "profesional",
         "username": "dupuser",
         "email": "dup2@test.com",
         "password": "password123",
@@ -37,9 +37,9 @@ async def test_register_public_duplicate_username(client):
 
 
 @pytest.mark.asyncio
-async def test_register_public_invalid_account_type(client):
+async def test_register_public_invalid_role(client):
     resp = await client.post("/api/v1/auth/register/public", json={
-        "account_type": "invalido",
+        "role": "invalido",
         "username": "baduser",
         "email": "bad@test.com",
         "password": "password123",

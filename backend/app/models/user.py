@@ -52,7 +52,6 @@ class User(Base, UUIDMixin, TimestampMixin):
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Registration fields
-    account_type: Mapped[str | None] = mapped_column(String(20), nullable=True)
     status: Mapped[str] = mapped_column(String(20), default=UserStatus.PENDING.value)
     rejection_reason: Mapped[str | None] = mapped_column(String(255), nullable=True)
     approved_by: Mapped[uuid.UUID | None] = mapped_column(

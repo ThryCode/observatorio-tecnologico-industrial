@@ -41,7 +41,7 @@ const ESPECIALIDADES = [
 
 const registerSchema = z
   .object({
-    account_type: z.enum(['representante', 'analista', 'profesional'], {
+    role: z.enum(['representante', 'analista', 'profesional'], {
       required_error: 'Seleccione un tipo de cuenta',
     }),
     username: z
@@ -71,7 +71,7 @@ const registerSchema = z
   })
   .refine(
     (data) => {
-      if (data.account_type === 'profesional') {
+      if (data.role === 'profesional') {
         if (!data.especialidad) return false;
         if (data.especialidad === 'Otro' && !data.especialidad_custom?.trim()) return false;
       }
@@ -111,7 +111,7 @@ export default function Register() {
     resolver: zodResolver(registerSchema),
   });
 
-  const accountType = watch('account_type');
+  const accountType = watch('role');
 
   if (success) {
     return (
@@ -170,7 +170,7 @@ export default function Register() {
               <Select
                 value={accountType}
                 onValueChange={(v) =>
-                  setValue('account_type', v as 'representante' | 'analista' | 'profesional')
+                  setValue('role', v as 'representante' | 'analista' | 'profesional')
                 }
               >
                 <SelectTrigger>
@@ -186,9 +186,9 @@ export default function Register() {
                   </SelectItem>
                 </SelectContent>
               </Select>
-              {errors.account_type && (
+              {errors.role && (
                 <p className="text-xs text-red-500">
-                  {errors.account_type.message}
+                  {errors.role.message}
                 </p>
               )}
             </div>
