@@ -16,7 +16,7 @@ interface DashboardTimelineProps {
 }
 
 const TYPE_META: Record<TimelineEvent['tipo'], { icon: React.ReactNode; dotClass: string; ringClass: string }> = {
-  patente: { icon: <FileText className="h-3 w-3" />, dotClass: 'bg-blue-500', ringClass: 'border-blue-500' },
+  patente: { icon: <FileText className="h-3 w-3" />, dotClass: 'bg-info', ringClass: 'border-info' },
   regulacion: { icon: <ScrollText className="h-3 w-3" />, dotClass: 'bg-red-500', ringClass: 'border-red-500' },
   indicador: { icon: <BarChart3 className="h-3 w-3" />, dotClass: 'bg-purple-500', ringClass: 'border-purple-500' },
   alerta: { icon: <AlertTriangle className="h-3 w-3" />, dotClass: 'bg-amber-500', ringClass: 'border-amber-500' },

@@ -11,7 +11,6 @@ export default {
     fontFamily: {
       sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
       mono: ['JetBrains Mono', 'Fira Code', 'SF Mono', 'monospace'],
-      display: ['Playfair Display', 'Georgia', 'serif'],
     },
     extend: {
       colors: {
@@ -28,7 +27,6 @@ export default {
         primary: {
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
-          dark: 'hsl(var(--primary-dark))',
           light: 'hsl(var(--primary-light))',
           lighter: 'hsl(var(--primary-lighter))',
         },
@@ -49,7 +47,6 @@ export default {
           foreground: 'hsl(var(--accent-foreground))',
           orange: 'hsl(var(--accent-orange))',
           hover: 'hsl(var(--accent-hover))',
-          light: 'hsl(var(--accent-light))',
           subtle: 'hsl(var(--accent-subtle))',
         },
         popover: {
@@ -62,7 +59,6 @@ export default {
         },
         gold: {
           DEFAULT: 'hsl(var(--gold))',
-          light: 'hsl(var(--gold-light))',
         },
         success: {
           DEFAULT: 'hsl(var(--success))',
@@ -86,7 +82,6 @@ export default {
           active: 'hsl(var(--sidebar-active))',
         },
         surface: 'hsl(var(--surface))',
-        'surface-hover': 'hsl(var(--surface-hover))',
       },
       borderRadius: {
         sm: '6px',
@@ -128,17 +123,8 @@ export default {
         lg: '0 8px 24px rgba(10, 37, 64, 0.12)',
         xl: '0 16px 48px rgba(10, 37, 64, 0.16)',
         'glow-orange': '0 0 20px rgba(232, 106, 51, 0.2)',
-        'glow-blue': '0 0 20px rgba(41, 128, 185, 0.15)',
       },
       keyframes: {
-        'accordion-down': {
-          from: { height: '0' },
-          to: { height: 'var(--radix-accordion-content-height)' },
-        },
-        'accordion-up': {
-          from: { height: 'var(--radix-accordion-content-height)' },
-          to: { height: '0' },
-        },
         'fade-in-up': {
           '0%': { opacity: '0', transform: 'translateY(20px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
@@ -146,10 +132,6 @@ export default {
         'pulse-dot': {
           '0%, 100%': { opacity: '1', transform: 'scale(1)' },
           '50%': { opacity: '0.4', transform: 'scale(0.8)' },
-        },
-        shimmer: {
-          '0%': { backgroundPosition: '-100% 0' },
-          '100%': { backgroundPosition: '200% 0' },
         },
         'skeleton-shimmer': {
           '0%': { backgroundPosition: '-200% 0' },
@@ -161,11 +143,8 @@ export default {
         },
       },
       animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
         'fade-in-up': 'fade-in-up 0.5s ease-out',
         'pulse-dot': 'pulse-dot 2s infinite ease-in-out',
-        shimmer: 'shimmer 1.5s infinite',
         'skeleton-shimmer': 'skeleton-shimmer 1.5s infinite',
         'spin-slow': 'spin 1s linear infinite',
       },
@@ -177,7 +156,6 @@ export default {
       },
       transitionTimingFunction: {
         'ease-out': 'cubic-bezier(0.4, 0, 0.2, 1)',
-        spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
       },
       screens: {
         'desktop-xl': '1280px',

@@ -70,7 +70,7 @@ export default function Topbar() {
   }
 
   return (
-    <header className="sticky top-0 z-20 h-topbar bg-white/92 backdrop-blur-[12px] saturate-[180%] border-b border-border">
+    <header className="sticky top-0 z-20 h-topbar bg-white/[0.92] backdrop-blur-[12px] saturate-[180%] border-b border-border">
       <div className="flex items-center justify-between h-full px-8">
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">
@@ -91,13 +91,14 @@ export default function Topbar() {
         {/* Right side */}
         <div className="flex items-center gap-3">
           {/* Search */}
-          <div className="relative" ref={searchRef as unknown as React.RefObject<HTMLDivElement>}>
+          <div className="relative">
             <div className={cn(
-              'relative flex items-center transition-all duration-250',
+              'relative flex items-center transition-all duration-base',
               searchOpen ? 'w-[320px]' : 'w-[200px] lg:w-[320px]',
             )}>
               <Search className="absolute left-3.5 h-4 w-4 text-text-muted pointer-events-none" />
               <input
+                ref={searchRef}
                 type="search"
                 placeholder="Buscar patentes, entidades, tecnologías..."
                 value={searchQuery}

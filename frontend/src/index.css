@@ -12,7 +12,6 @@
     --popover-foreground: 220 26% 14%;
     --primary: 216 73% 15%;
     --primary-foreground: 0 0% 100%;
-    --primary-dark: 216 73% 15%;
     --primary-light: 204 63% 22%;
     --primary-lighter: 204 61% 30%;
     --secondary: 210 17% 96%;
@@ -23,7 +22,6 @@
     --accent-foreground: 220 26% 14%;
     --accent-orange: 18 80% 55%;
     --accent-hover: 18 70% 48%;
-    --accent-light: 38 91% 55%;
     --accent-subtle: 18 80% 55% / 0.08;
     --destructive: 6 63% 46%;
     --destructive-foreground: 0 0% 100%;
@@ -36,7 +34,6 @@
     --info: 203 64% 44%;
     --info-bg: 203 64% 44% / 0.1;
     --gold: 44 54% 54%;
-    --gold-light: 44 62% 67%;
     --border: 214 32% 91%;
     --border-subtle: 210 38% 95%;
     --border-strong: 215 25% 84%;
@@ -46,11 +43,9 @@
     --text-muted: 215 14% 52%;
     --text-placeholder: 215 20% 69%;
     --surface: 210 14% 98%;
-    --surface-hover: 210 14% 98%;
     --sidebar-bg: 216 73% 15%;
     --sidebar-hover: 255 255% 100% / 0.06;
     --sidebar-active: 18 80% 55% / 0.15;
-    --radius: 16px;
   }
 
   .dark {
@@ -62,15 +57,40 @@
     --popover-foreground: 0 0% 100%;
     --primary: 204 61% 30%;
     --primary-foreground: 0 0% 100%;
+    --primary-light: 204 61% 22%;
+    --primary-lighter: 204 61% 38%;
     --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217 33% 17%;
     --muted-foreground: 215 20% 65%;
     --accent: 217 33% 17%;
     --accent-foreground: 210 40% 98%;
+    --accent-orange: 18 74% 60%;
+    --accent-hover: 18 70% 52%;
+    --accent-subtle: 18 80% 55% / 0.15;
+    --destructive: 6 63% 52%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 45% 48%;
+    --success-bg: 142 51% 36% / 0.14;
+    --warning: 45 85% 52%;
+    --warning-bg: 45 80% 46% / 0.14;
+    --danger: 6 63% 52%;
+    --danger-bg: 6 63% 46% / 0.14;
+    --info: 203 72% 58%;
+    --info-bg: 203 64% 44% / 0.14;
+    --gold: 44 62% 62%;
     --border: 217 33% 17%;
+    --border-subtle: 217 33% 17% / 0.7;
+    --border-strong: 217 33% 22%;
     --input: 217 33% 17%;
     --ring: 224 76% 48%;
+    --text-secondary: 210 40% 85%;
+    --text-muted: 215 20% 65%;
+    --text-placeholder: 215 20% 42%;
+    --surface: 217 30% 19%;
+    --sidebar-bg: 216 73% 12%;
+    --sidebar-hover: 255 255% 100% / 0.06;
+    --sidebar-active: 18 80% 55% / 0.16;
   }
 }
 

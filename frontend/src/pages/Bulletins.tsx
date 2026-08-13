@@ -15,6 +15,7 @@ import type { Bulletin } from '@/types';
 
 function mapBulletinToProductCard(bulletin: Bulletin) {
   return {
+    id: bulletin.id,
     type: bulletin.categoria as 'alerta' | 'boletin' | 'estudio' | 'mapa',
     title: bulletin.titulo,
     excerpt: bulletin.resumen,
@@ -73,8 +74,8 @@ export default function Bulletins() {
         <div className="text-center text-text-muted py-8">Cargando publicaciones...</div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {bulletins.map((item, i) => (
-            <ProductCard key={i} {...item} footer="Producto de inteligencia" />
+          {bulletins.map((item) => (
+            <ProductCard key={item.id} {...item} footer="Producto de inteligencia" />
           ))}
         </div>
       )}

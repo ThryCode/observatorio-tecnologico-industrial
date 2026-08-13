@@ -211,7 +211,7 @@ export default function Sidebar() {
       {/* Desktop sidebar */}
       <aside
         className={cn(
-          'hidden lg:flex flex-col h-screen bg-sidebar-bg border-r border-white/10 fixed left-0 top-0 z-30 transition-all duration-250',
+          'hidden lg:flex flex-col h-screen bg-sidebar-bg border-r border-white/10 fixed left-0 top-0 z-30 transition-all duration-base',
           collapsed ? 'w-sidebar-collapsed' : 'w-sidebar',
         )}
       >
@@ -222,7 +222,7 @@ export default function Sidebar() {
             className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-sidebar-bg border border-white/10 text-white/50 hover:text-white flex items-center justify-center transition-all duration-150 hover:scale-110"
             aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
           >
-          <ChevronRight className={cn('h-3 w-3 transition-transform duration-250', collapsed && 'rotate-180')} />
+          <ChevronRight className={cn('h-3 w-3 transition-transform duration-base', collapsed && 'rotate-180')} />
         </button>
       </aside>
 

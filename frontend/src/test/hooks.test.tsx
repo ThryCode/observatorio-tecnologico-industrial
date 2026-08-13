@@ -2,6 +2,24 @@ import { describe, it, expect, vi } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
+import {
+  mockProfessionalsPage,
+  mockSpecialties,
+  mockAlerts,
+  mockPatentsPage,
+  mockTechnologiesPage,
+  mockRegulationsPage,
+  mockIndicatorsPage,
+  mockOrganizationsPage,
+  mockDashboardKPIs,
+  mockTimelineEvents,
+  mockBulletinsPage,
+  mockCompetitivenessData,
+  mockGraphStats,
+  mockIndustrialSectorsPage,
+  mockPatentMapsData,
+  mockPublicationsPage,
+} from '@/test/mocks/data';
 
 function QueryWrapper({ children }: { children: ReactNode }) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -14,11 +32,8 @@ function createWrapper() {
 }
 
 vi.mock('@/api/professionals', () => ({
-  listProfessionals: vi.fn().mockResolvedValue({
-    items: [{ id: '1', full_name: 'Test User', username: 'test', email: 'test@test.com', profile: { especialidad: 'Test', grado_cientifico: '', user_id: '1', id: '1' } }],
-    total: 1, page: 1, per_page: 20, total_pages: 1,
-  }),
-  listSpecialties: vi.fn().mockResolvedValue({ items: ['Ingenieria', 'Biotecnologia'] }),
+  listProfessionals: vi.fn().mockResolvedValue(mockProfessionalsPage),
+  listSpecialties: vi.fn().mockResolvedValue(mockSpecialties),
   getMyProfessionalProfile: vi.fn().mockResolvedValue(null),
   updateMyProfessionalProfile: vi.fn().mockResolvedValue({}),
 }));
@@ -41,15 +56,9 @@ describe('useSpecialties', () => {
   });
 });
 
-const MOCK_ALERTS = [
-  { id: '1', titulo: 'Alert 1', descripcion: 'Desc', severidad: 'alta', fecha: '2026-07-20', sector: 'BIO', leida: false },
-  { id: '2', titulo: 'Alert 2', descripcion: 'Desc', severidad: 'media', fecha: '2026-07-19', sector: 'ENE', leida: false },
-  { id: '3', titulo: 'Alert 3', descripcion: 'Desc', severidad: 'baja', fecha: '2026-07-18', leida: true },
-];
-
 vi.mock('@/api/alerts', () => ({
   listAlerts: vi.fn((unreadOnly: boolean) =>
-    Promise.resolve(unreadOnly ? MOCK_ALERTS.filter(a => !a.leida) : MOCK_ALERTS),
+    Promise.resolve(unreadOnly ? mockAlerts.filter(a => !a.leida) : mockAlerts),
   ),
   getAlert: vi.fn().mockResolvedValue(null),
   markAlertRead: vi.fn().mockResolvedValue({}),
@@ -73,7 +82,7 @@ describe('useAlerts', () => {
 });
 
 vi.mock('@/api/patents', () => ({
-  getPatents: vi.fn().mockResolvedValue({ items: [{ id: '1', title: 'Patent 1' }], total: 1, page: 1, per_page: 20, total_pages: 1 }),
+  getPatents: vi.fn().mockResolvedValue(mockPatentsPage),
   createPatent: vi.fn().mockResolvedValue({}),
   updatePatent: vi.fn().mockResolvedValue({}),
   deletePatent: vi.fn().mockResolvedValue(undefined),
@@ -89,7 +98,7 @@ describe('usePatents', () => {
 });
 
 vi.mock('@/api/technologies', () => ({
-  getTechnologies: vi.fn().mockResolvedValue({ items: [{ id: '1', nombre: 'Tech 1' }], total: 1, page: 1, per_page: 20, total_pages: 1 }),
+  getTechnologies: vi.fn().mockResolvedValue(mockTechnologiesPage),
   createTechnology: vi.fn().mockResolvedValue({}),
   updateTechnology: vi.fn().mockResolvedValue({}),
   deleteTechnology: vi.fn().mockResolvedValue(undefined),
@@ -105,7 +114,7 @@ describe('useTechnologies', () => {
 });
 
 vi.mock('@/api/regulations', () => ({
-  getRegulations: vi.fn().mockResolvedValue({ items: [{ id: '1', title: 'Reg 1' }], total: 1, page: 1, per_page: 20, total_pages: 1 }),
+  getRegulations: vi.fn().mockResolvedValue(mockRegulationsPage),
   createRegulation: vi.fn().mockResolvedValue({}),
   updateRegulation: vi.fn().mockResolvedValue({}),
   deleteRegulation: vi.fn().mockResolvedValue(undefined),
@@ -121,7 +130,7 @@ describe('useRegulations', () => {
 });
 
 vi.mock('@/api/indicators', () => ({
-  getIndicators: vi.fn().mockResolvedValue({ items: [{ id: '1', name: 'Ind 1' }], total: 1, page: 1, per_page: 20, total_pages: 1 }),
+  getIndicators: vi.fn().mockResolvedValue(mockIndicatorsPage),
   createIndicator: vi.fn().mockResolvedValue({}),
   updateIndicator: vi.fn().mockResolvedValue({}),
   deleteIndicator: vi.fn().mockResolvedValue(undefined),
@@ -137,7 +146,7 @@ describe('useIndicators', () => {
 });
 
 vi.mock('@/api/organizations', () => ({
-  getOrganizations: vi.fn().mockResolvedValue({ items: [{ id: '1', nombre: 'Org 1' }], total: 1, page: 1, per_page: 20, total_pages: 1 }),
+  getOrganizations: vi.fn().mockResolvedValue(mockOrganizationsPage),
   createOrganization: vi.fn().mockResolvedValue({}),
   updateOrganization: vi.fn().mockResolvedValue({}),
   deleteOrganization: vi.fn().mockResolvedValue(undefined),
@@ -153,8 +162,8 @@ describe('useOrganizations', () => {
 });
 
 vi.mock('@/api/dashboard', () => ({
-  getDashboardKPIs: vi.fn().mockResolvedValue([{ label: 'Patentes', value: 100, unit: 'registradas', change: 5 }]),
-  getTimelineEvents: vi.fn().mockResolvedValue([{ id: '1', fecha: '2026-07-20T10:00:00Z', titulo: 'Event 1', tipo: 'patente' }]),
+  getDashboardKPIs: vi.fn().mockResolvedValue(mockDashboardKPIs),
+  getTimelineEvents: vi.fn().mockResolvedValue(mockTimelineEvents),
 }));
 
 describe('useDashboardKPIs', () => {
@@ -176,7 +185,7 @@ describe('useTimelineEvents', () => {
 });
 
 vi.mock('@/api/bulletins', () => ({
-  listBulletins: vi.fn().mockResolvedValue({ items: [{ id: '1', titulo: 'Boletin 1' }], total: 1, page: 1, per_page: 20, total_pages: 1 }),
+  listBulletins: vi.fn().mockResolvedValue(mockBulletinsPage),
 }));
 
 describe('useBulletins', () => {
@@ -189,7 +198,7 @@ describe('useBulletins', () => {
 });
 
 vi.mock('@/api/competitiveness', () => ({
-  getCompetitivenessData: vi.fn().mockResolvedValue([{ sector: 'BIO', Cuba: 10 }]),
+  getCompetitivenessData: vi.fn().mockResolvedValue(mockCompetitivenessData),
 }));
 
 describe('useCompetitiveness', () => {
@@ -202,7 +211,7 @@ describe('useCompetitiveness', () => {
 });
 
 vi.mock('@/api/graph', () => ({
-  getGraphStats: vi.fn().mockResolvedValue([{ label: 'Organizaciones', count: 10 }]),
+  getGraphStats: vi.fn().mockResolvedValue(mockGraphStats),
   searchGraphNodes: vi.fn().mockResolvedValue({ items: [], total: 0 }),
   exploreNode: vi.fn().mockResolvedValue({ nodes: [], edges: [] }),
   queryGraph: vi.fn().mockResolvedValue({ nodes: [], edges: [] }),
@@ -229,7 +238,7 @@ describe('useEnterpriseGraph', () => {
 });
 
 vi.mock('@/api/industrialSectors', () => ({
-  getIndustrialSectors: vi.fn().mockResolvedValue({ items: [{ codigo: 'BIO', nombre: 'Bio' }], total: 1, page: 1, per_page: 20, total_pages: 1 }),
+  getIndustrialSectors: vi.fn().mockResolvedValue(mockIndustrialSectorsPage),
   createIndustrialSector: vi.fn().mockResolvedValue({}),
   updateIndustrialSector: vi.fn().mockResolvedValue({}),
   deleteIndustrialSector: vi.fn().mockResolvedValue(undefined),
@@ -245,7 +254,7 @@ describe('useIndustrialSectors', () => {
 });
 
 vi.mock('@/api/patentMaps', () => ({
-  getPatentMapSummary: vi.fn().mockResolvedValue([{ tecnologia: 'AI', patentes: 100 }]),
+  getPatentMapSummary: vi.fn().mockResolvedValue(mockPatentMapsData),
 }));
 
 describe('usePatentMaps', () => {
@@ -258,7 +267,7 @@ describe('usePatentMaps', () => {
 });
 
 vi.mock('@/api/researchPublications', () => ({
-  getResearchPublications: vi.fn().mockResolvedValue({ items: [{ id: '1', titulo: 'Pub 1' }], total: 1, page: 1, per_page: 20, total_pages: 1 }),
+  getResearchPublications: vi.fn().mockResolvedValue(mockPublicationsPage),
   createResearchPublication: vi.fn().mockResolvedValue({}),
   updateResearchPublication: vi.fn().mockResolvedValue({}),
   deleteResearchPublication: vi.fn().mockResolvedValue(undefined),

@@ -1,30 +1,31 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import type { DashboardKPI, Patent, Technology, Organization, Regulation, Indicator, Alert, TimelineEvent } from '@/types';
+import { pdfColors } from '@/lib/graph-colors';
 
 const S = StyleSheet.create({
-  page: { padding: 40, fontSize: 9, fontFamily: 'Helvetica', color: '#1a1a2e' },
+  page: { padding: 40, fontSize: 9, fontFamily: 'Helvetica', color: pdfColors.text },
   header: { marginBottom: 20 },
   title: { fontSize: 18, fontWeight: 700, marginBottom: 2 },
-  subtitle: { fontSize: 9, color: '#6b7280', marginBottom: 6 },
-  meta: { fontSize: 7, color: '#9ca3af', flexDirection: 'row', justifyContent: 'space-between' },
-  toc: { marginBottom: 16, fontSize: 8, color: '#6b7280' },
+  subtitle: { fontSize: 9, color: pdfColors.secondary, marginBottom: 6 },
+  meta: { fontSize: 7, color: pdfColors.muted, flexDirection: 'row', justifyContent: 'space-between' },
+  toc: { marginBottom: 16, fontSize: 8, color: pdfColors.secondary },
   tocItem: { marginBottom: 1 },
   section: { marginBottom: 14 },
-  sectionTitle: { fontSize: 11, fontWeight: 700, borderBottomWidth: 0.5, borderBottomColor: '#d1d5db', paddingBottom: 3, marginBottom: 6 },
+  sectionTitle: { fontSize: 11, fontWeight: 700, borderBottomWidth: 0.5, borderBottomColor: pdfColors.border, paddingBottom: 3, marginBottom: 6 },
   kpiGrid: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginBottom: 4 },
-  kpiCard: { width: '23%', padding: 6, backgroundColor: '#f9fafb' },
-  kpiL: { fontSize: 7, color: '#6b7280' },
+  kpiCard: { width: '23%', padding: 6, backgroundColor: pdfColors.cardBg },
+  kpiL: { fontSize: 7, color: pdfColors.secondary },
   kpiV: { fontSize: 13, fontWeight: 700 },
   kpiC: { fontSize: 7, marginTop: 1 },
-  row: { flexDirection: 'row', paddingVertical: 3, borderBottomWidth: 0.3, borderBottomColor: '#f3f4f6', fontSize: 8 },
-  rowBold: { flexDirection: 'row', paddingVertical: 3, fontSize: 7, color: '#6b7280', fontWeight: 700, borderBottomWidth: 0.5, borderBottomColor: '#d1d5db' },
+  row: { flexDirection: 'row', paddingVertical: 3, borderBottomWidth: 0.3, borderBottomColor: pdfColors.rowBorder, fontSize: 8 },
+  rowBold: { flexDirection: 'row', paddingVertical: 3, fontSize: 7, color: pdfColors.secondary, fontWeight: 700, borderBottomWidth: 0.5, borderBottomColor: pdfColors.border },
   c1: { width: '8%' },
   c2: { width: '25%' },
   c3: { width: '22%' },
   c4: { width: '15%' },
   c5: { width: '15%' },
   c6: { width: '15%' },
-  footer: { position: 'absolute', bottom: 25, left: 40, right: 40, fontSize: 7, color: '#9ca3af', borderTopWidth: 0.3, borderTopColor: '#e5e7eb', paddingTop: 5, flexDirection: 'row', justifyContent: 'space-between' },
+  footer: { position: 'absolute', bottom: 25, left: 40, right: 40, fontSize: 7, color: pdfColors.muted, borderTopWidth: 0.3, borderTopColor: pdfColors.borderLight, paddingTop: 5, flexDirection: 'row', justifyContent: 'space-between' },
 });
 
 interface FullExportData {
@@ -86,7 +87,7 @@ export default function FullExportPDF(data: FullExportData) {
               <View key={i} style={S.kpiCard}>
                 <Text style={S.kpiL}>{k.label}</Text>
                 <Text style={S.kpiV}>{k.value.toLocaleString()}</Text>
-                <Text style={[S.kpiC, { color: k.change >= 0 ? '#059669' : '#dc2626' }]}>
+                <Text style={[S.kpiC, { color: k.change >= 0 ? pdfColors.accent : pdfColors.danger }]}>
                   {k.change >= 0 ? '+' : ''}{k.change}%
                 </Text>
               </View>

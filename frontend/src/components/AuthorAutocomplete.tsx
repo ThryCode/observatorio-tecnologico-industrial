@@ -107,6 +107,11 @@ export default function AuthorAutocomplete({ value, onChange, placeholder, id }:
         <input
           ref={inputRef}
           id={id}
+          role="combobox"
+          aria-expanded={open}
+          aria-autocomplete="list"
+          aria-controls="author-autocomplete-listbox"
+          aria-activedescendant={highlightedIndex >= 0 ? `author-option-${highlightedIndex}` : undefined}
           value={query}
           onChange={(e) => { setQuery(e.target.value); setOpen(true); setHighlightedIndex(-1); }}
           onFocus={() => { if (query.length >= 1 || filteredSuggestions.length > 0) setOpen(true); }}
@@ -115,11 +120,22 @@ export default function AuthorAutocomplete({ value, onChange, placeholder, id }:
           className="flex-1 min-w-[120px] bg-transparent outline-none placeholder:text-muted-foreground"
         />
       </div>
+      <span className="sr-only" role="status" aria-live="polite">
+        {open ? `${filteredSuggestions.length} ${filteredSuggestions.length === 1 ? 'resultado' : 'resultados'} encontrados` : ''}
+      </span>
       {open && filteredSuggestions.length > 0 && (
-        <div className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded-md border bg-popover p-1 text-sm shadow-md">
+        <div
+          id="author-autocomplete-listbox"
+          role="listbox"
+          aria-label="Sugerencias de autores"
+          className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded-md border bg-popover p-1 text-sm shadow-md"
+        >
           {filteredSuggestions.map((s, i) => (
             <div
               key={s.id}
+              id={`author-option-${i}`}
+              role="option"
+              aria-selected={i === highlightedIndex}
               className={`cursor-pointer rounded-sm px-2 py-1.5 hover:bg-accent hover:text-accent-foreground ${i === highlightedIndex ? 'bg-accent text-accent-foreground' : ''}`}
               onMouseDown={(e) => { e.preventDefault(); addAuthor(s.full_name); }}
             >
@@ -128,6 +144,8 @@ export default function AuthorAutocomplete({ value, onChange, placeholder, id }:
           ))}
           {query.trim() && !filteredSuggestions.some((s) => s.full_name.toLowerCase() === query.toLowerCase()) && (
             <div
+              role="option"
+              aria-selected={false}
               className="cursor-pointer rounded-sm px-2 py-1.5 hover:bg-accent hover:text-accent-foreground text-muted-foreground"
               onMouseDown={(e) => { e.preventDefault(); addAuthor(query); }}
             >

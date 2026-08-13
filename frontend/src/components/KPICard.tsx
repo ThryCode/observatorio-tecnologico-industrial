@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { cn } from '@/lib/utils';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
@@ -17,14 +18,14 @@ const iconBgMap = {
   gold: 'bg-gold/10 text-gold',
 };
 
-export default function KPICard({ label, value, change, changeType = 'neutral', icon, iconBg = 'blue' }: KPICardProps) {
+function KPICard({ label, value, change, changeType = 'neutral', icon, iconBg = 'blue' }: KPICardProps) {
   return (
-    <div className="group relative bg-surface rounded-lg border border-border p-5 transition-all duration-250 hover:shadow-lg hover:-translate-y-0.5 overflow-hidden" role="region" aria-label={`${label}: ${value}`}>
-      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-orange to-gold opacity-0 group-hover:opacity-100 transition-opacity duration-250" />
+    <div className="group relative bg-surface rounded-lg border border-border p-5 transition-all duration-base hover:shadow-lg hover:-translate-y-0.5 overflow-hidden" role="region" aria-label={`${label}: ${value}`}>
+      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-orange to-gold opacity-0 group-hover:opacity-100 transition-opacity duration-base" />
       <div className="flex items-start justify-between mb-3">
         <span className="text-xs uppercase font-semibold tracking-wider text-text-muted">{label}</span>
         <div className={cn(
-          'w-9 h-9 rounded-md flex items-center justify-center transition-all duration-250 group-hover:scale-110 group-hover:-rotate-3',
+          'w-9 h-9 rounded-md flex items-center justify-center transition-all duration-base group-hover:scale-110 group-hover:-rotate-3',
           iconBgMap[iconBg],
         )}>
           {icon}
@@ -49,3 +50,5 @@ export default function KPICard({ label, value, change, changeType = 'neutral', 
     </div>
   );
 }
+
+export default memo(KPICard);

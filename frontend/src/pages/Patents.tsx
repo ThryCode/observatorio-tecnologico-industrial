@@ -244,7 +244,7 @@ export default function Patents() {
                   {patent.file_url && (
                     <a href={patent.file_url} download onClick={(e) => e.stopPropagation()}>
                       <Button variant="ghost" size="sm" type="button">
-                        <Download className="h-4 w-4 text-blue-500" />
+                        <Download className="h-4 w-4 text-info" />
                       </Button>
                     </a>
                   )}
@@ -410,7 +410,7 @@ export default function Patents() {
             </div>
           </div>
           {saveError && (
-            <div className="flex items-center gap-2 text-sm text-red-500">
+            <div className="flex items-center gap-2 text-sm text-danger">
               <AlertCircle className="h-4 w-4" />
               <span>{saveError}</span>
             </div>

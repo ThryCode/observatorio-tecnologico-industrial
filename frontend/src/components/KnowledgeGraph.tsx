@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { buildGalaxy } from '@/lib/graphNav';
+import { nodeTypeHex } from '@/lib/graph-colors';
 
 interface KnowledgeGraphProps {
   className?: string;
@@ -90,22 +91,7 @@ export default function KnowledgeGraph({ className, height = 400, sectorCodigos 
             <div key={item.type} className="flex items-center gap-2">
               <span
                 className="w-2.5 h-2.5 rounded-full shrink-0"
-                style={{
-                  backgroundColor:
-                    item.type === 'Technology'
-                      ? '#3b82f6'
-                      : item.type === 'Organization'
-                        ? '#10b981'
-                        : item.type === 'IndustrialSector'
-                          ? '#64748b'
-                          : item.type === 'Person'
-                            ? '#eab308'
-                            : item.type === 'Indicator'
-                              ? '#a855f7'
-                              : item.type === 'Patent'
-                                ? '#f97316'
-                                : '#ef4444',
-                }}
+                style={{ backgroundColor: nodeTypeHex[item.type] }}
               />
               <span className="text-[11px] text-white/70">{item.label}</span>
             </div>

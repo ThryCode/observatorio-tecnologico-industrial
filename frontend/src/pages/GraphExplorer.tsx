@@ -11,18 +11,10 @@ import { buildGalaxy, buildSystem, primaryType, nodeTypeSpanish } from '@/lib/gr
 import { Search, Network, AlertCircle, Loader2, ArrowLeft, MousePointerClick, X, Filter } from 'lucide-react';
 import { getIndustrialSectors } from '@/api/industrialSectors';
 import { queryKeys } from '@/lib/queryKeys';
+import { nodeTypeHex } from '@/lib/graph-colors';
 import SectorPills from '@/components/SectorPills';
 
-const LEGEND_COLORS: Record<string, string> = {
-  Technology: '#3b82f6',
-  Organization: '#10b981',
-  IndustrialSector: '#64748b',
-  Person: '#eab308',
-  Indicator: '#a855f7',
-  Patent: '#f97316',
-  Regulation: '#ef4444',
-  Cluster: '#06b6d4',
-};
+const LEGEND_COLORS = nodeTypeHex;
 
 const LEGEND_ITEMS = [
   { type: 'IndustrialSector', label: 'Sector (sol)' },
@@ -328,7 +320,7 @@ export default function GraphExplorer() {
                   const id = typeof node?.id === 'string' ? node.id : typeof node?.code === 'string' ? node.code : undefined;
                   return (
                     <Button
-                      key={i}
+                      key={id ?? `result-${i}`}
                       variant="outline"
                       className="w-full justify-start h-auto py-3"
                       onClick={() => {

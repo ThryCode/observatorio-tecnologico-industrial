@@ -195,8 +195,8 @@ export default function Profile() {
               Miembro desde {formatDate(user.created_at)}
             </div>
 
-            {userError && <p className="text-sm text-red-500">{userError}</p>}
-            {userSuccess && <p className="text-sm text-green-500">Perfil actualizado correctamente.</p>}
+            {userError && <p className="text-sm text-danger">{userError}</p>}
+            {userSuccess && <p className="text-sm text-success">Perfil actualizado correctamente.</p>}
 
             <Button type="submit" className="w-full" disabled={userMutation.isPending}>
               <Save className="h-4 w-4 mr-2" />
@@ -270,8 +270,8 @@ export default function Profile() {
                 />
               </div>
 
-              {profError && <p className="text-sm text-red-500">{profError}</p>}
-              {profSuccess && <p className="text-sm text-green-500">Perfil profesional actualizado correctamente.</p>}
+              {profError && <p className="text-sm text-danger">{profError}</p>}
+              {profSuccess && <p className="text-sm text-success">Perfil profesional actualizado correctamente.</p>}
 
               <Button type="submit" className="w-full" disabled={profMutation.isPending}>
                 <Save className="h-4 w-4 mr-2" />

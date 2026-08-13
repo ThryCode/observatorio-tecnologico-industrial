@@ -314,8 +314,8 @@ export default function MiEmpresa() {
                 </div>
               </div>
 
-              {serverError && <p className="text-sm text-red-500">{serverError}</p>}
-              {success && <p className="text-sm text-green-500">Empresa creada correctamente.</p>}
+              {serverError && <p className="text-sm text-danger">{serverError}</p>}
+              {success && <p className="text-sm text-success">Empresa creada correctamente.</p>}
 
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={() => setIsCreating(false)} className="flex-1">
@@ -420,8 +420,8 @@ export default function MiEmpresa() {
                   </div>
                 </div>
 
-                {serverError && <p className="text-sm text-red-500">{serverError}</p>}
-                {success && <p className="text-sm text-green-500">Datos actualizados correctamente.</p>}
+                {serverError && <p className="text-sm text-danger">{serverError}</p>}
+                {success && <p className="text-sm text-success">Datos actualizados correctamente.</p>}
 
                 <Button type="submit" className="w-full" disabled={updateMutation.isPending}>
                   <Save className="h-4 w-4 mr-2" />

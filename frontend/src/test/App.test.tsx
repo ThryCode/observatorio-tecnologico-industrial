@@ -5,7 +5,7 @@ import { render, screen } from '@testing-library/react';
 vi.mock('@/pages/Dashboard', () => ({ default: () => <div>Dashboard</div> }));
 vi.mock('@/pages/Organizations', () => ({ default: () => <div>Organizations</div> }));
 vi.mock('@/pages/Patents', () => ({ default: () => <div>Patents</div> }));
-vi.mock('@/pages/Indicators', () => ({ default: () => () => <div>Indicators</div> }));
+vi.mock('@/pages/Indicators', () => ({ default: () => <div>Indicators</div> }));
 vi.mock('@/pages/Regulations', () => ({ default: () => <div>Regulations</div> }));
 vi.mock('@/pages/GraphExplorer', () => ({ default: () => <div>GraphExplorer</div> }));
 vi.mock('@/pages/Profile', () => ({ default: () => <div>Profile</div> }));
@@ -55,10 +55,9 @@ describe('App', () => {
     expect(register).toBeInTheDocument();
   });
 
-  it('renders Layout wrapper for / route', () => {
+  it('renders Dashboard content for / route', async () => {
     renderWithProviders(<App />, '/');
-    const div = document.body.querySelector('div');
-    expect(div).toBeTruthy();
+    expect(await screen.findByText('Dashboard')).toBeInTheDocument();
   });
 
   it('renders NotFound for unknown routes', async () => {

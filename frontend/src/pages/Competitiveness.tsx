@@ -1,6 +1,7 @@
 import PageHeader from '@/components/PageHeader';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useCompetitiveness } from '@/hooks/useCompetitiveness';
+import { chartColors } from '@/lib/graph-colors';
 
 export default function Competitiveness() {
   const { data, isLoading } = useCompetitiveness();
@@ -31,10 +32,10 @@ export default function Competitiveness() {
                   }}
                 />
                 <Legend />
-                <Bar dataKey="Cuba" fill="#E86A33" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Chile" fill="#C9A84C" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="México" fill="#2980B9" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Brasil" fill="#2D8A4E" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Cuba" fill={chartColors.accent} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Chile" fill={chartColors.gold} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="México" fill={chartColors.blue} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Brasil" fill={chartColors.green} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

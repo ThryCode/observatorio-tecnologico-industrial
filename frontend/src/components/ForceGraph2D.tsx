@@ -1,6 +1,8 @@
 import { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { nodeTypeSpanish } from '@/lib/graphNav';
+import { graphNodePalette, DEFAULT_NODE_PALETTE } from '@/lib/graph-colors';
+import { ZoomIn, ZoomOut, Maximize } from 'lucide-react';
 
 export interface ForceGraphNode {
   id: string;
@@ -33,19 +35,6 @@ interface NodePos {
   y: number;
 }
 
-const NODE_TYPE_COLORS: Record<string, { node: string; edge: string; label: string }> = {
-  Technology: { node: '#3b82f6', edge: 'rgba(59,130,246,0.7)', label: 'rgb(147, 197, 253)' },
-  Organization: { node: '#10b981', edge: 'rgba(16,185,129,0.7)', label: 'rgb(110, 231, 183)' },
-  Patent: { node: '#f97316', edge: 'rgba(249,115,22,0.7)', label: 'rgb(251, 191, 143)' },
-  Regulation: { node: '#ef4444', edge: 'rgba(239,68,68,0.7)', label: 'rgb(252, 165, 165)' },
-  Person: { node: '#eab308', edge: 'rgba(234,179,8,0.7)', label: 'rgb(252, 211, 77)' },
-  Indicator: { node: '#a855f7', edge: 'rgba(168,85,247,0.7)', label: 'rgb(216, 180, 254)' },
-  IndustrialSector: { node: '#64748b', edge: 'rgba(100,116,139,0.7)', label: 'rgb(148, 163, 184)' },
-  Cluster: { node: '#06b6d4', edge: 'rgba(6,182,212,0.7)', label: 'rgb(103, 232, 249)' },
-};
-
-const DEFAULT_COLOR = { node: '#06b6d4', edge: 'rgba(6,182,212,0.7)', label: 'rgb(103, 232, 249)' };
-
 const EDGE_TYPE_SPANISH: Record<string, string> = {
   BELONGS_TO_SECTOR: 'pertenece al sector',
   OPERATES_IN: 'opera en',
@@ -66,7 +55,7 @@ function edgeLabel(type: string): string {
 }
 
 function colorFor(type: string) {
-  return NODE_TYPE_COLORS[type] || DEFAULT_COLOR;
+  return graphNodePalette[type] || DEFAULT_NODE_PALETTE;
 }
 
 function buildAdjacency(nodes: ForceGraphNode[], edges: ForceGraphEdge[]): Map<string, string[]> {
@@ -189,6 +178,8 @@ export default function ForceGraph2D({
   const [positions, setPositions] = useState<NodePos[]>(initialLayout.positions);
   const [dragging, setDragging] = useState<{ index: number; offsetX: number; offsetY: number } | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+  const nodeRefs = useRef<(SVGGElement | null)[]>([]);
 
   const layoutCenter = useMemo(() => {
     const pts = initialLayout.positions;
@@ -322,6 +313,61 @@ export default function ForceGraph2D({
     }, 250);
   }, [onNodeClick, onExpandNode]);
 
+  const zoomBy = useCallback((factor: number) => {
+    setView((v) => {
+      const k = Math.min(6, Math.max(0.3, v.k * factor));
+      return { ...v, k };
+    });
+  }, []);
+
+  const resetView = useCallback(() => setView(centeredView(1.2)), [centeredView]);
+
+  const moveNodeFocus = useCallback(
+    (dx: number, dy: number) => {
+      if (positions.length === 0) return;
+      const base = focusedIndex !== null && positions[focusedIndex] ? focusedIndex : -1;
+      const cur = base >= 0 ? positions[base] : null;
+      let best = -1;
+      let bestScore = Number.NEGATIVE_INFINITY;
+      positions.forEach((p, i) => {
+        if (i === base) return;
+        const vx = p.x - (cur?.x ?? 0);
+        const vy = p.y - (cur?.y ?? 0);
+        const dist = Math.hypot(vx, vy) || 1;
+        const dot = (vx * dx + vy * dy) / dist;
+        const score = dot + (dot > 0 ? 1000 : 0) - dist * 0.001;
+        if (score > bestScore) {
+          bestScore = score;
+          best = i;
+        }
+      });
+      if (best < 0) return;
+      setFocusedIndex(best);
+      nodeRefs.current[best]?.focus();
+    },
+    [positions, focusedIndex],
+  );
+
+  const handleContainerKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.shiftKey && e.key.startsWith('Arrow')) {
+      e.preventDefault();
+      const step = 20;
+      const deltas: Record<string, [number, number]> = {
+        ArrowUp: [0, -step],
+        ArrowDown: [0, step],
+        ArrowLeft: [-step, 0],
+        ArrowRight: [step, 0],
+      };
+      const [dx, dy] = deltas[e.key];
+      setView((v) => ({ ...v, x: v.x + dx, y: v.y + dy }));
+      return;
+    }
+    if (e.key === 'Escape') {
+      setFocusedIndex(null);
+      (document.activeElement as HTMLElement | null)?.blur?.();
+    }
+  }, []);
+
   const edgeCurvatures = useMemo(() => {
     const curv = new Array<number>(edges.length).fill(0);
     const inGroups = new Map<string, number[]>();
@@ -349,19 +395,55 @@ export default function ForceGraph2D({
     };
   }, []);
 
+  const nodeIndexMap = useMemo(() => {
+    const map = new Map<string, number>();
+    nodes.forEach((n, i) => map.set(n.id, i));
+    return map;
+  }, [nodes]);
+
   useEffect(() => {
     setPositions(initialLayout.positions);
     setView(centeredView(1.5));
   }, [initialLayout, centeredView]);
 
-  const centerIndex = centerId ? nodes.findIndex((n) => n.id === centerId) : -1;
+  const centerIndex = centerId != null ? (nodeIndexMap.get(centerId) ?? -1) : -1;
 
   return (
     <div
       className={cn('w-full h-full rounded-lg overflow-hidden relative', className)}
       style={{ background: 'radial-gradient(ellipse at 50% 40%, #1e293b 0%, #0f172a 70%)' }}
+      onKeyDown={handleContainerKeyDown}
     >
       <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #ffffff 0.5px, transparent 0.5px)', backgroundSize: '16px 16px' }} />
+      <div className="absolute top-3 right-3 z-20 flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => zoomBy(1.25)}
+          aria-label="Acercar"
+          title="Acercar (zoom +)"
+          className="w-8 h-8 rounded-md bg-[rgba(10,37,64,0.85)] border border-white/10 text-white/80 hover:text-white flex items-center justify-center"
+        >
+          <ZoomIn className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => zoomBy(0.8)}
+          aria-label="Alejar"
+          title="Alejar (zoom -)"
+          className="w-8 h-8 rounded-md bg-[rgba(10,37,64,0.85)] border border-white/10 text-white/80 hover:text-white flex items-center justify-center"
+        >
+          <ZoomOut className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={resetView}
+          aria-label="Restablecer vista"
+          title="Restablecer vista"
+          className="w-8 h-8 rounded-md bg-[rgba(10,37,64,0.85)] border border-white/10 text-white/80 hover:text-white flex items-center justify-center"
+        >
+          <Maximize className="h-4 w-4" />
+        </button>
+      </div>
       <svg
         ref={svgRef}
         viewBox="-100 -100 300 300"
@@ -403,9 +485,9 @@ export default function ForceGraph2D({
         ))}
 
         {edges.map((e, i) => {
-          const si = nodes.findIndex((n) => n.id === e.source);
-          const ti = nodes.findIndex((n) => n.id === e.target);
-          if (si < 0 || ti < 0 || !positions[si] || !positions[ti]) return null;
+          const si = nodeIndexMap.get(e.source);
+          const ti = nodeIndexMap.get(e.target);
+          if (si === undefined || ti === undefined || !positions[si] || !positions[ti]) return null;
           if (hideCenter && (e.source === centerId || e.target === centerId)) return null;
           const src = positions[si];
           const tgt = positions[ti];
@@ -426,7 +508,7 @@ export default function ForceGraph2D({
           const midX = 0.25 * src.x + 0.5 * ctrlX + 0.25 * ax;
           const midY = 0.25 * src.y + 0.5 * ctrlY + 0.25 * ay;
           return (
-            <g key={`edge-${i}`}>
+            <g key={`edge-${e.source}-${e.target}-${i}`}>
               <path
                 d={`M ${src.x} ${src.y} Q ${ctrlX} ${ctrlY} ${ax} ${ay}`}
                 fill="none"
@@ -473,12 +555,36 @@ export default function ForceGraph2D({
           return (
             <g
               key={n.id}
+              ref={(el) => { nodeRefs.current[i] = el; }}
               onMouseDown={(e) => handleMouseDown(i, e)}
               onClick={(e) => { e.stopPropagation(); handleNodeClick(n); }}
               onMouseEnter={() => setHovered(i)}
               onMouseLeave={() => setHovered(null)}
+              onFocus={() => setFocusedIndex(i)}
+              onKeyDown={(e) => {
+                if (e.shiftKey) return;
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleNodeClick(n);
+                } else if (e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  moveNodeFocus(0, -1);
+                } else if (e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  moveNodeFocus(0, 1);
+                } else if (e.key === 'ArrowLeft') {
+                  e.preventDefault();
+                  moveNodeFocus(-1, 0);
+                } else if (e.key === 'ArrowRight') {
+                  e.preventDefault();
+                  moveNodeFocus(1, 0);
+                }
+              }}
+              tabIndex={0}
+              role="button"
+              aria-label={`${n.label}${n.subtitle ? `, ${n.subtitle}` : ''} — ${nodeTypeSpanish(n.nodeType)}`}
               style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-              className="transition-transform duration-150"
+              className="transition-transform duration-150 focus:outline-none"
               transform={`translate(${pos.x}, ${pos.y}) scale(${scale})`}
             >
               <defs>
@@ -507,6 +613,10 @@ export default function ForceGraph2D({
                 cx={0} cy={0} r={r}
                 fill={`url(#${radialGradId})`}
               />
+
+              {focusedIndex === i && (
+                <circle cx={0} cy={0} r={r + 4} fill="none" stroke="#ffffff" strokeWidth="0.7" opacity="0.9" />
+              )}
 
               {isExpanded && !isCenter && (
                 <circle cx={0} cy={0} r={r + 3} fill="none" stroke={c.node} strokeWidth="0.35" opacity="0.8" strokeDasharray="2 1.5" />

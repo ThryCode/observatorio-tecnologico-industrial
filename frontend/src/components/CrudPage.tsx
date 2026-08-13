@@ -212,7 +212,7 @@ export default function CrudPage<T extends { id: string }>({
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>{editingItem ? `Editar ${title}` : `Nuevo ${title}`}</DialogTitle></DialogHeader>
           {renderForm({ data: form, onChange: (patch) => setForm((p) => ({ ...p, ...patch })), isEditing: !!editingItem })}
-          {saveError && <div className="flex items-center gap-2 text-sm text-red-500"><AlertCircle className="h-4 w-4" /><span>{saveError}</span></div>}
+          {saveError && <div className="flex items-center gap-2 text-sm text-danger"><AlertCircle className="h-4 w-4" /><span>{saveError}</span></div>}
           <DialogFooter>
             <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>Cancelar</Button>
             <Button onClick={handleSave} disabled={createMutation.isPending || updateMutation.isPending}>{editingItem ? 'Actualizar' : 'Crear'}</Button>
@@ -224,7 +224,7 @@ export default function CrudPage<T extends { id: string }>({
         <DialogContent className="max-w-sm">
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           <DialogHeader><DialogTitle>Confirmar eliminación</DialogTitle><DialogDescription>¿Está seguro de eliminar &quot;{getDisplayName(itemToDelete as any, nameField)}&quot;? Esta acción no se puede deshacer.</DialogDescription></DialogHeader>
-          {deleteError && <div className="flex items-center gap-2 text-sm text-red-500"><AlertCircle className="h-4 w-4" /><span>{deleteError}</span></div>}
+          {deleteError && <div className="flex items-center gap-2 text-sm text-danger"><AlertCircle className="h-4 w-4" /><span>{deleteError}</span></div>}
           <DialogFooter>
             <Button variant="outline" onClick={() => { setDeleteDialogOpen(false); setDeleteError(''); }}>Cancelar</Button>
             <Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>Eliminar</Button>

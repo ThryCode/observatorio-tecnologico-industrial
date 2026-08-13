@@ -1,6 +1,7 @@
 import PageHeader from '@/components/PageHeader';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { usePatentMaps } from '@/hooks/usePatentMaps';
+import { chartColors } from '@/lib/graph-colors';
 
 export default function PatentMaps() {
   const { data, isLoading } = usePatentMaps();
@@ -31,7 +32,7 @@ export default function PatentMaps() {
                       borderRadius: '8px',
                     }}
                   />
-                  <Bar dataKey="patentes" fill="#E86A33" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="patentes" fill={chartColors.accent} radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

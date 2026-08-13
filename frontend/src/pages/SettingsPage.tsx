@@ -115,7 +115,7 @@ export default function SettingsPage() {
                   <Input id="settings-full_name" placeholder="Nombre completo" {...form.register('full_name')} />
                 </div>
                 {form.formState.errors.full_name && (
-                  <p className="text-xs text-red-500">{form.formState.errors.full_name.message}</p>
+                  <p className="text-xs text-danger">{form.formState.errors.full_name.message}</p>
                 )}
               </div>
               <div className="grid grid-cols-2 gap-4">

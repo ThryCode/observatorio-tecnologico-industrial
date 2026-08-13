@@ -187,7 +187,7 @@ export default function Register() {
                 </SelectContent>
               </Select>
               {errors.role && (
-                <p className="text-xs text-red-500">
+                <p className="text-xs text-danger">
                   {errors.role.message}
                 </p>
               )}
@@ -202,7 +202,7 @@ export default function Register() {
                   {...register('username')}
                 />
                 {errors.username && (
-                  <p className="text-xs text-red-500">
+                  <p className="text-xs text-danger">
                     {errors.username.message}
                   </p>
                 )}
@@ -216,7 +216,7 @@ export default function Register() {
                   {...register('email')}
                 />
                 {errors.email && (
-                  <p className="text-xs text-red-500">
+                  <p className="text-xs text-danger">
                     {errors.email.message}
                   </p>
                 )}
@@ -231,7 +231,7 @@ export default function Register() {
                 {...register('full_name')}
               />
               {errors.full_name && (
-                <p className="text-xs text-red-500">
+                <p className="text-xs text-danger">
                   {errors.full_name.message}
                 </p>
               )}
@@ -256,7 +256,7 @@ export default function Register() {
                   {...register('password')}
                 />
                 {errors.password && (
-                  <p className="text-xs text-red-500">
+                  <p className="text-xs text-danger">
                     {errors.password.message}
                   </p>
                 )}
@@ -270,7 +270,7 @@ export default function Register() {
                   {...register('confirmPassword')}
                 />
                 {errors.confirmPassword && (
-                  <p className="text-xs text-red-500">
+                  <p className="text-xs text-danger">
                     {errors.confirmPassword.message}
                   </p>
                 )}
@@ -299,7 +299,7 @@ export default function Register() {
                       </SelectContent>
                     </Select>
                     {errors.especialidad && (
-                      <p className="text-xs text-red-500">
+                      <p className="text-xs text-danger">
                         {errors.especialidad.message}
                       </p>
                     )}
@@ -324,7 +324,7 @@ export default function Register() {
                       })}
                     />
                     {errors.especialidad_custom && (
-                      <p className="text-xs text-red-500">
+                      <p className="text-xs text-danger">
                         {errors.especialidad_custom.message}
                       </p>
                     )}
@@ -373,7 +373,7 @@ export default function Register() {
             )}
 
             {serverError && (
-              <p className="text-sm text-red-500">{serverError}</p>
+              <p className="text-sm text-danger">{serverError}</p>
             )}
 
             <Button

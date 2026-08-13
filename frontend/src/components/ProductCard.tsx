@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { cn } from '@/lib/utils';
 import { BookOpen, AlertTriangle, Map, GraduationCap } from 'lucide-react';
 
@@ -17,17 +18,17 @@ const typeConfig = {
   mapa: { label: 'Mapa', color: 'text-gold', icon: Map },
 };
 
-export default function ProductCard({ type, title, excerpt, meta, className }: ProductCardProps) {
+function ProductCard({ type, title, excerpt, meta, className }: ProductCardProps) {
   const config = typeConfig[type];
   const TypeIcon = config.icon;
 
   return (
     <div className={cn(
-      'group relative bg-surface rounded-lg border border-border p-5 transition-all duration-250 hover:shadow-lg hover:-translate-y-0.5 overflow-hidden',
+      'group relative bg-surface rounded-lg border border-border p-5 transition-all duration-base hover:shadow-lg hover:-translate-y-0.5 overflow-hidden',
       className,
     )}>
       {/* Accent bar on hover */}
-      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-accent-orange to-gold opacity-0 group-hover:opacity-100 transition-opacity duration-250 rounded-r-sm" />
+      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-accent-orange to-gold opacity-0 group-hover:opacity-100 transition-opacity duration-base rounded-r-sm" />
 
       <div className="flex items-center gap-2 mb-3">
         <TypeIcon className={cn('h-4 w-4', config.color)} />
@@ -50,3 +51,5 @@ export default function ProductCard({ type, title, excerpt, meta, className }: P
     </div>
   );
 }
+
+export default memo(ProductCard);

@@ -64,18 +64,18 @@ export default function Login() {
                 {...register('username')}
               />
               {errors.username && (
-                <p className="text-xs text-red-500">{errors.username.message}</p>
+                <p className="text-xs text-danger">{errors.username.message}</p>
               )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Contraseña</Label>
               <Input id="password" type="password" placeholder="••••••" {...register('password')} />
               {errors.password && (
-                <p className="text-xs text-red-500">{errors.password.message}</p>
+                <p className="text-xs text-danger">{errors.password.message}</p>
               )}
             </div>
             {errorMessage && (
-              <p className="text-sm text-red-500">{errorMessage}</p>
+              <p className="text-sm text-danger">{errorMessage}</p>
             )}
             <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
               {loginMutation.isPending ? 'Iniciando sesión...' : 'Iniciar sesión'}

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, useCallback } from 'react';
+import { lazy, Suspense, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { FileText, BookOpen, Users, AlertTriangle, GraduationCap, Plus, Download, Clock, Eye } from 'lucide-react';
@@ -160,7 +160,11 @@ export default function Dashboard() {
     ...(sectorsData || []).map((s) => ({ id: s.codigo.toLowerCase(), label: s.nombre, count: s.count })),
   ];
   const entities = (orgsData?.items || []).map(mapOrgToEntity);
-  const products = (bulletinsData?.items || []).slice(0, 3).map(mapBulletinToProduct);
+  const kpiCards = useMemo(() => (kpis ?? []).map(mapKPIToCardProps), [kpis]);
+  const products = useMemo(
+    () => (bulletinsData?.items || []).slice(0, 3).map(mapBulletinToProduct),
+    [bulletinsData],
+  );
 
   const handleExport = useCallback(async () => {
     setExporting(true);
@@ -232,7 +236,7 @@ export default function Dashboard() {
       />
 
       {sectorsError ? (
-        <div className="text-center text-red-500 py-4">Error al cargar sectores</div>
+        <div className="text-center text-danger py-4">Error al cargar sectores</div>
       ) : sectorsLoading ? (
         <div className="text-center text-text-muted py-4">Cargando sectores...</div>
       ) : (
@@ -242,13 +246,13 @@ export default function Dashboard() {
       {/* Section 2 — KPIs */}
       <section>
         {kpisError ? (
-          <div className="text-center text-red-500 py-8">Error al cargar KPIs</div>
+          <div className="text-center text-danger py-8">Error al cargar KPIs</div>
         ) : kpisLoading ? (
           <div className="text-center text-text-muted py-8">Cargando KPIs...</div>
         ) : (
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-            {kpis?.map((kpi, i) => (
-              <KPICard key={i} {...mapKPIToCardProps(kpi)} />
+            {kpiCards.map((kpi) => (
+              <KPICard key={kpi.label} {...kpi} />
             ))}
           </div>
         )}
@@ -272,7 +276,7 @@ export default function Dashboard() {
               </Button>
             </div>
             {alertsError ? (
-              <div className="text-center text-red-500 py-8">Error al cargar alertas</div>
+              <div className="text-center text-danger py-8">Error al cargar alertas</div>
             ) : alertsLoading ? (
               <div className="text-center text-text-muted py-8">Cargando alertas...</div>
             ) : (
@@ -295,7 +299,7 @@ export default function Dashboard() {
             </div>
             <div className="bg-surface rounded-lg border border-border flex-1">
               {orgsError ? (
-                <div className="text-center text-red-500 py-8">Error al cargar entidades</div>
+                <div className="text-center text-danger py-8">Error al cargar entidades</div>
               ) : orgsLoading ? (
                 <div className="text-center text-text-muted py-8">Cargando entidades...</div>
               ) : (
@@ -309,7 +313,7 @@ export default function Dashboard() {
             </div>
             <div className="bg-surface rounded-lg border border-border p-5 flex-1 mt-3">
               {timelineError ? (
-                <div className="text-center text-red-500 py-8">Error al cargar actividad reciente</div>
+                <div className="text-center text-danger py-8">Error al cargar actividad reciente</div>
               ) : timelineLoading ? (
                 <div className="text-center text-text-muted py-8">Cargando actividad reciente...</div>
               ) : (
@@ -330,13 +334,13 @@ export default function Dashboard() {
           </Button>
         </div>
         {bulletinsError ? (
-          <div className="text-center text-red-500 py-8">Error al cargar productos</div>
+          <div className="text-center text-danger py-8">Error al cargar productos</div>
         ) : bulletinsLoading ? (
           <div className="text-center text-text-muted py-8">Cargando productos...</div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {products.map((product, i) => (
-              <ProductCard key={i} {...product} />
+            {products.map((product) => (
+              <ProductCard key={product.title} {...product} />
             ))}
           </div>
         )}
