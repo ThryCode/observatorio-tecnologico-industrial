@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select';
 import { Building2, Globe, MapPin, Save, Plus, Edit3, Calendar, Phone } from 'lucide-react';
 import type { Organization } from '@/types';
+import { queryKeys } from '@/lib/queryKeys';
 
 export default function MiEmpresa() {
   const queryClient = useQueryClient();
@@ -25,8 +26,8 @@ export default function MiEmpresa() {
   const [success, setSuccess] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
-  const { data: org, isLoading } = useQuery({
-    queryKey: ['my-organization'],
+  const { data: org, isLoading, isError, error, refetch } = useQuery({
+    queryKey: queryKeys.myOrganization(),
     queryFn: async () => {
       const res = await client.get<Organization>('/auth/me/organization');
       return res.data;
@@ -35,17 +36,20 @@ export default function MiEmpresa() {
   });
 
   const { data: sectorsData } = useQuery({
-    queryKey: ['industrial-sectors'],
+    queryKey: queryKeys.industrialSectors.list(1, 100),
     queryFn: () => getIndustrialSectors(1, 100),
   });
 
   const { data: followStats } = useQuery({
-    queryKey: ['org-follow-stats', org?.id],
+    queryKey: queryKeys.orgFollowStats.list(org?.id),
     queryFn: () => getOrganizationFollowStats(org!.id),
     enabled: !!org,
   });
 
   const hasOrg = !!org;
+
+  // El backend responde 404 cuando el usuario aún no tiene empresa: se muestra el estado vacío (crear empresa)
+  const isNotFound = error instanceof AxiosError && error.response?.status === 404;
 
   const createForm = useForm({
     defaultValues: {
@@ -105,7 +109,7 @@ export default function MiEmpresa() {
       setSuccess(true);
       setServerError(null);
       setIsCreating(false);
-      queryClient.invalidateQueries({ queryKey: ['my-organization'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.myOrganization() });
     },
     onError: (error) => {
       setSuccess(false);
@@ -125,7 +129,7 @@ export default function MiEmpresa() {
     onSuccess: () => {
       setSuccess(true);
       setServerError(null);
-      queryClient.invalidateQueries({ queryKey: ['my-organization'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.myOrganization() });
     },
     onError: (error) => {
       setSuccess(false);
@@ -160,6 +164,25 @@ export default function MiEmpresa() {
     updateMutation.mutate(payload);
   };
 
+  if (isLoading) {
+    return <div className="text-center py-8">Cargando...</div>;
+  }
+
+  if (isError && !isNotFound) {
+    // TODO: usar <Alert variant="destructive"> cuando exista en @/components/ui/alert
+    return (
+      <div className="p-6">
+        <Card className="border-destructive/50">
+          <CardContent className="flex flex-col items-center gap-3 py-8">
+            <p className="text-sm font-medium text-destructive">Error al cargar los datos de tu empresa</p>
+            <p className="text-sm text-muted-foreground">El servidor no responde.</p>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>Reintentar</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex items-center justify-between">
@@ -172,20 +195,14 @@ export default function MiEmpresa() {
             </p>
           )}
         </div>
-        {!hasOrg && !isLoading && !isCreating && (
+        {!hasOrg && !isCreating && (
           <Button onClick={() => setIsCreating(true)}>
             <Plus className="h-4 w-4 mr-2" /> Crear empresa
           </Button>
         )}
       </div>
 
-      {isLoading && (
-        <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">Cargando...</CardContent>
-        </Card>
-      )}
-
-      {!isLoading && !hasOrg && !isCreating && (
+      {!hasOrg && !isCreating && (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
             <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />

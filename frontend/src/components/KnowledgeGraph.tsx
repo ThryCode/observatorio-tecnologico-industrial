@@ -4,6 +4,8 @@ import { cn } from '@/lib/utils';
 import ForceGraph2D from '@/components/ForceGraph2D';
 import { useGraphQuery } from '@/hooks/useGraph';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { buildGalaxy } from '@/lib/graphNav';
 
 interface KnowledgeGraphProps {
@@ -24,7 +26,7 @@ const legendItems: { type: string; label: string }[] = [
 
 export default function KnowledgeGraph({ className, height = 400, sectorCodigos }: KnowledgeGraphProps) {
   const navigate = useNavigate();
-  const { data, isLoading } = useGraphQuery(400, sectorCodigos);
+  const { data, isLoading, isError, refetch } = useGraphQuery(400, sectorCodigos);
 
   const { graphNodes, graphEdges, hiddenCounts, nodeCount, edgeCount } = useMemo(() => {
     if (!data) return { graphNodes: [], graphEdges: [], hiddenCounts: {}, nodeCount: 0, edgeCount: 0 };
@@ -40,6 +42,21 @@ export default function KnowledgeGraph({ className, height = 400, sectorCodigos 
 
   if (isLoading) {
     return <Skeleton className="w-full h-full rounded-lg" />;
+  }
+
+  if (isError) {
+    // TODO: usar <Alert variant="destructive"> cuando exista en @/components/ui/alert
+    return (
+      <div className={cn('overflow-hidden rounded-lg border border-destructive/50', className)} style={{ height }}>
+        <Card className="h-full border-0">
+          <CardContent className="flex flex-col items-center justify-center gap-3 h-full py-8">
+            <p className="text-sm font-medium text-destructive">Error al cargar el grafo de conocimiento</p>
+            <p className="text-sm text-muted-foreground">El servidor no responde.</p>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>Reintentar</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (

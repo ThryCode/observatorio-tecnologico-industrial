@@ -74,12 +74,12 @@ export default function Regulations() {
         renderForm={({ data, onChange }) => (
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="text-sm font-medium">Título *</label>
-              <Input value={data.title} onChange={(e) => onChange({ title: e.target.value })} placeholder="Título de la normativa" />
+              <label htmlFor="regulation-titulo" className="text-sm font-medium">Título *</label>
+              <Input id="regulation-titulo" value={data.title} onChange={(e) => onChange({ title: e.target.value })} placeholder="Título de la normativa" />
             </div>
             <div>
-              <label className="text-sm font-medium">Número *</label>
-              <Input value={data.regulation_number} onChange={(e) => onChange({ regulation_number: e.target.value })} placeholder="RES-2025-001" />
+              <label htmlFor="regulation-numero" className="text-sm font-medium">Número *</label>
+              <Input id="regulation-numero" value={data.regulation_number} onChange={(e) => onChange({ regulation_number: e.target.value })} placeholder="RES-2025-001" />
             </div>
             <div>
               <label className="text-sm font-medium">Categoría</label>
@@ -95,24 +95,24 @@ export default function Regulations() {
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium">Organismo</label>
-              <Input value={data.issuing_body} onChange={(e) => onChange({ issuing_body: e.target.value })} placeholder="MINDUS" />
+              <label htmlFor="regulation-organismo" className="text-sm font-medium">Organismo</label>
+              <Input id="regulation-organismo" value={data.issuing_body} onChange={(e) => onChange({ issuing_body: e.target.value })} placeholder="MINDUS" />
             </div>
             <div>
-              <label className="text-sm font-medium">Fecha publicación</label>
-              <Input type="date" value={data.publication_date} onChange={(e) => onChange({ publication_date: e.target.value })} />
+              <label htmlFor="regulation-fecha_publicacion" className="text-sm font-medium">Fecha publicación</label>
+              <Input id="regulation-fecha_publicacion" type="date" value={data.publication_date} onChange={(e) => onChange({ publication_date: e.target.value })} />
             </div>
             <div>
-              <label className="text-sm font-medium">Fecha vigencia</label>
-              <Input type="date" value={data.effective_date} onChange={(e) => onChange({ effective_date: e.target.value })} />
+              <label htmlFor="regulation-fecha_vigencia" className="text-sm font-medium">Fecha vigencia</label>
+              <Input id="regulation-fecha_vigencia" type="date" value={data.effective_date} onChange={(e) => onChange({ effective_date: e.target.value })} />
             </div>
             <div className="col-span-2">
-              <label className="text-sm font-medium">Resumen</label>
-              <textarea className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" value={data.summary} onChange={(e) => onChange({ summary: e.target.value })} placeholder="Resumen de la normativa" />
+              <label htmlFor="regulation-resumen" className="text-sm font-medium">Resumen</label>
+              <textarea id="regulation-resumen" className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" value={data.summary} onChange={(e) => onChange({ summary: e.target.value })} placeholder="Resumen de la normativa" />
             </div>
             <div className="col-span-2">
-              <label className="text-sm font-medium">Archivo adjunto</label>
-              <FileUpload onUpload={(url) => onChange({ file_url: url })} currentUrl={data.file_url} accept=".pdf,.doc,.docx" />
+              <label htmlFor="regulation-file_url" className="text-sm font-medium">Archivo adjunto</label>
+              <FileUpload id="regulation-file_url" onUpload={(url) => onChange({ file_url: url })} currentUrl={data.file_url} accept=".pdf,.doc,.docx" />
             </div>
           </div>
         )}

@@ -70,24 +70,24 @@ export default function Indicators() {
         renderForm={({ data, onChange }) => (
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="text-sm font-medium">Nombre *</label>
-              <Input value={data.name} onChange={(e) => onChange({ name: e.target.value })} placeholder="Nombre del indicador" />
+              <label htmlFor="indicator-nombre" className="text-sm font-medium">Nombre *</label>
+              <Input id="indicator-nombre" value={data.name} onChange={(e) => onChange({ name: e.target.value })} placeholder="Nombre del indicador" />
             </div>
             <div>
-              <label className="text-sm font-medium">Código *</label>
-              <Input value={data.code} onChange={(e) => onChange({ code: e.target.value })} placeholder="IPI-2025" />
+              <label htmlFor="indicator-codigo" className="text-sm font-medium">Código *</label>
+              <Input id="indicator-codigo" value={data.code} onChange={(e) => onChange({ code: e.target.value })} placeholder="IPI-2025" />
             </div>
             <div>
-              <label className="text-sm font-medium">Valor *</label>
-              <Input type="number" step="any" value={data.value} onChange={(e) => onChange({ value: e.target.value })} placeholder="0" />
+              <label htmlFor="indicator-valor" className="text-sm font-medium">Valor *</label>
+              <Input id="indicator-valor" type="number" step="any" value={data.value} onChange={(e) => onChange({ value: e.target.value })} placeholder="0" />
             </div>
             <div>
-              <label className="text-sm font-medium">Unidad</label>
-              <Input value={data.unit} onChange={(e) => onChange({ unit: e.target.value })} placeholder="porcentaje" />
+              <label htmlFor="indicator-unidad" className="text-sm font-medium">Unidad</label>
+              <Input id="indicator-unidad" value={data.unit} onChange={(e) => onChange({ unit: e.target.value })} placeholder="porcentaje" />
             </div>
             <div>
-              <label className="text-sm font-medium">Fuente</label>
-              <Input value={data.source} onChange={(e) => onChange({ source: e.target.value })} placeholder="ONEI" />
+              <label htmlFor="indicator-fuente" className="text-sm font-medium">Fuente</label>
+              <Input id="indicator-fuente" value={data.source} onChange={(e) => onChange({ source: e.target.value })} placeholder="ONEI" />
             </div>
             <div>
               <label className="text-sm font-medium">Periodo</label>
@@ -101,12 +101,12 @@ export default function Indicators() {
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium">Fecha</label>
-              <Input type="date" value={data.date} onChange={(e) => onChange({ date: e.target.value })} />
+              <label htmlFor="indicator-fecha" className="text-sm font-medium">Fecha</label>
+              <Input id="indicator-fecha" type="date" value={data.date} onChange={(e) => onChange({ date: e.target.value })} />
             </div>
             <div className="col-span-2">
-              <label className="text-sm font-medium">Descripción</label>
-              <textarea className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" value={data.description} onChange={(e) => onChange({ description: e.target.value })} placeholder="Descripción del indicador" />
+              <label htmlFor="indicator-descripcion" className="text-sm font-medium">Descripción</label>
+              <textarea id="indicator-descripcion" className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" value={data.description} onChange={(e) => onChange({ description: e.target.value })} placeholder="Descripción del indicador" />
             </div>
           </div>
         )}

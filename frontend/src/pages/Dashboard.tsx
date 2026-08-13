@@ -23,6 +23,7 @@ import { getIndustrialSectors } from '@/api/industrialSectors';
 import { listAlerts } from '@/api/alerts';
 import { getDashboardKPIs, getTimelineEvents, getDashboardSectors } from '@/api/dashboard';
 import { mapAlertToAlertItem } from '@/utils/alertUtils';
+import { queryKeys } from '@/lib/queryKeys';
 import type { DashboardKPI, Organization } from '@/types';
 import type { BulletinListItem } from '@/api/bulletins';
 import type { Entity } from '@/components/EntityTable';
@@ -138,16 +139,16 @@ export default function Dashboard() {
   const { data: kpis, isLoading: kpisLoading, isError: kpisError } = useDashboardKPIs(sectorParam);
   const { data: rawTimeline, isLoading: timelineLoading, isError: timelineError } = useTimelineEvents(sectorParam);
   const { data: sectorsData, isLoading: sectorsLoading, isError: sectorsError } = useQuery({
-    queryKey: ['dashboard', 'sectors'],
+    queryKey: queryKeys.dashboardSectors(),
     queryFn: getDashboardSectors,
     staleTime: 5 * 60 * 1000,
   });
   const { data: orgsData, isLoading: orgsLoading, isError: orgsError } = useQuery({
-    queryKey: ['organizations', { page: 1, per_page: 5, sector: sectorParam }],
+    queryKey: queryKeys.organizations.list(1, 5, sectorParam),
     queryFn: () => getOrganizations(1, 5, sectorParam),
   });
   const { data: bulletinsData, isLoading: bulletinsLoading, isError: bulletinsError } = useQuery({
-    queryKey: ['bulletins', { page: 1, per_page: 3 }],
+    queryKey: queryKeys.bulletins.list(1, 3),
     queryFn: () => listBulletins(1, 3),
   });
 

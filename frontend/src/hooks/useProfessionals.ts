@@ -6,17 +6,18 @@ import {
   updateMyProfessionalProfile,
 } from '@/api/professionals';
 import type { ProfessionalProfile } from '@/types';
+import { queryKeys } from '@/lib/queryKeys';
 
 export function useProfessionalList(page = 1, perPage = 20, especialidad?: string, q?: string, sortBy?: string, sortOrder?: string) {
   return useQuery({
-    queryKey: ['professionals', 'list', page, perPage, especialidad, q, sortBy, sortOrder],
+    queryKey: queryKeys.professionals.list(page, perPage, especialidad, q, sortBy, sortOrder),
     queryFn: () => listProfessionals(page, perPage, especialidad, q, sortBy, sortOrder),
   });
 }
 
 export function useSpecialties() {
   return useQuery({
-    queryKey: ['professionals', 'specialties'],
+    queryKey: queryKeys.professionals.specialties(),
     queryFn: listSpecialties,
     staleTime: 1000 * 60 * 30,
   });
@@ -24,7 +25,7 @@ export function useSpecialties() {
 
 export function useMyProfessionalProfile() {
   return useQuery({
-    queryKey: ['professionals', 'me'],
+    queryKey: queryKeys.professionals.me(),
     queryFn: getMyProfessionalProfile,
     retry: false,
   });
@@ -35,7 +36,7 @@ export function useUpdateMyProfessionalProfile() {
   return useMutation({
     mutationFn: (data: Partial<ProfessionalProfile>) => updateMyProfessionalProfile(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['professionals', 'me'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.professionals.me() });
     },
   });
 }

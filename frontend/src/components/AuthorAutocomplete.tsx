@@ -7,9 +7,10 @@ interface AuthorAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  id?: string;
 }
 
-export default function AuthorAutocomplete({ value, onChange, placeholder }: AuthorAutocompleteProps) {
+export default function AuthorAutocomplete({ value, onChange, placeholder, id }: AuthorAutocompleteProps) {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<Array<{ full_name: string; id: string }>>([]);
   const [open, setOpen] = useState(false);
@@ -105,6 +106,7 @@ export default function AuthorAutocomplete({ value, onChange, placeholder }: Aut
         ))}
         <input
           ref={inputRef}
+          id={id}
           value={query}
           onChange={(e) => { setQuery(e.target.value); setOpen(true); setHighlightedIndex(-1); }}
           onFocus={() => { if (query.length >= 1 || filteredSuggestions.length > 0) setOpen(true); }}

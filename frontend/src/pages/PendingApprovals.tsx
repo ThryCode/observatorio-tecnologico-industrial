@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { queryKeys } from '@/lib/queryKeys';
 
 export default function PendingApprovals() {
   const queryClient = useQueryClient();
@@ -39,15 +40,15 @@ export default function PendingApprovals() {
   }>({ open: false, user: null, reason: '' });
 
   const { data, isLoading } = useQuery({
-    queryKey: ['pending-users'],
+    queryKey: queryKeys.pendingUsers(),
     queryFn: authApi.listPending,
   });
 
   const approveMutation = useMutation({
     mutationFn: (userId: string) => authApi.approveUser(userId),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['pending-users'] });
-      await queryClient.refetchQueries({ queryKey: ['pending-users'] });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.pendingUsers() });
+      await queryClient.refetchQueries({ queryKey: queryKeys.pendingUsers() });
     },
   });
 
@@ -56,8 +57,8 @@ export default function PendingApprovals() {
       authApi.rejectUser(userId, { reason }),
     onSuccess: async () => {
       setRejectDialog({ open: false, user: null, reason: '' });
-      await queryClient.invalidateQueries({ queryKey: ['pending-users'] });
-      await queryClient.refetchQueries({ queryKey: ['pending-users'] });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.pendingUsers() });
+      await queryClient.refetchQueries({ queryKey: queryKeys.pendingUsers() });
     },
   });
 

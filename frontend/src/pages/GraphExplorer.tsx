@@ -10,6 +10,7 @@ import ForceGraph2D, { type ForceGraphNode } from '@/components/ForceGraph2D';
 import { buildGalaxy, buildSystem, primaryType, nodeTypeSpanish } from '@/lib/graphNav';
 import { Search, Network, AlertCircle, Loader2, ArrowLeft, MousePointerClick, X, Filter } from 'lucide-react';
 import { getIndustrialSectors } from '@/api/industrialSectors';
+import { queryKeys } from '@/lib/queryKeys';
 import SectorPills from '@/components/SectorPills';
 
 const LEGEND_COLORS: Record<string, string> = {
@@ -46,7 +47,7 @@ export default function GraphExplorer() {
   const sectorParam = activeSectors.length > 0 ? activeSectors.map((s) => s.toUpperCase()) : undefined;
 
   const { data: sectorsData } = useQuery({
-    queryKey: ['industrial-sectors'],
+    queryKey: queryKeys.industrialSectors.list(1, 100),
     queryFn: () => getIndustrialSectors(1, 100),
   });
 

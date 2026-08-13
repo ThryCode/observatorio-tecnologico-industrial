@@ -36,6 +36,9 @@ import { Search, Building2, Globe, MapPin, ExternalLink, Phone, Calendar, Plus, 
 import { formatDate } from '@/utils/formatters';
 import { usePermissions } from '@/hooks/usePermissions';
 import type { Organization } from '@/types';
+import { toast } from 'sonner';
+import { AxiosError } from 'axios';
+import { queryKeys } from '@/lib/queryKeys';
 
 const tipoOptions = [
   { value: 'centro_investigacion', label: 'Centro de Investigación' },
@@ -54,6 +57,7 @@ export default function Organizations() {
   const { user: currentUser } = useAuth();
   const [selectedOrg, setSelectedOrg] = useState<Organization | null>(null);
   const [followStatus, setFollowStatus] = useState<{ is_following: boolean; followers_count: number } | null>(null);
+  const [followPending, setFollowPending] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [orgToDelete, setOrgToDelete] = useState<Organization | null>(null);
@@ -78,19 +82,28 @@ export default function Organizations() {
 
   const handleFollow = async () => {
     if (!selectedOrg) return;
-    if (followStatus?.is_following) {
-      await unfollowOrganization(selectedOrg.id);
-      setFollowStatus({ is_following: false, followers_count: (followStatus.followers_count || 1) - 1 });
-    } else {
-      await followOrganization(selectedOrg.id);
-      setFollowStatus({ is_following: true, followers_count: (followStatus?.followers_count || 0) + 1 });
+    setFollowPending(true);
+    try {
+      if (followStatus?.is_following) {
+        await unfollowOrganization(selectedOrg.id);
+        setFollowStatus({ is_following: false, followers_count: (followStatus.followers_count || 1) - 1 });
+        toast.success('Has dejado de seguir a esta organización');
+      } else {
+        await followOrganization(selectedOrg.id);
+        setFollowStatus({ is_following: true, followers_count: (followStatus?.followers_count || 0) + 1 });
+        toast.success('Ahora sigues a esta organización');
+      }
+      queryClient.invalidateQueries({ queryKey: queryKeys.orgFollowStats.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.followStatus(selectedOrg.id) });
+    } catch {
+      toast.error('No se pudo seguir a la organización.');
+    } finally {
+      setFollowPending(false);
     }
-    queryClient.invalidateQueries({ queryKey: ['org-follow-stats'] });
-    queryClient.invalidateQueries({ queryKey: ['follow-status', selectedOrg.id] });
   };
 
   const { data: sectorsData } = useQuery({
-    queryKey: ['industrial-sectors'],
+    queryKey: queryKeys.industrialSectors.list(1, 100),
     queryFn: () => getIndustrialSectors(1, 100),
   });
 
@@ -109,17 +122,31 @@ export default function Organizations() {
 
   const handleSave = async () => {
     const data: Partial<Organization> = { ...formData, sector_codigo: formData.sector_codigo || undefined };
-    await createMutation.mutateAsync(data);
-    setDialogOpen(false);
-    resetForm();
+    try {
+      await createMutation.mutateAsync(data);
+      toast.success('Organización creada correctamente');
+      setDialogOpen(false);
+      resetForm();
+    } catch (error) {
+      let message = 'No se pudo crear la organización. Intenta de nuevo.';
+      if (error instanceof AxiosError && error.response?.data?.detail) {
+        message = error.response.data.detail;
+      }
+      toast.error(message);
+    }
   };
 
   const handleDelete = async () => {
     if (!orgToDelete) return;
-    await deleteMutation.mutateAsync(orgToDelete.id);
-    setDeleteDialogOpen(false);
-    setOrgToDelete(null);
-    if (selectedOrg?.id === orgToDelete.id) setSelectedOrg(null);
+    try {
+      await deleteMutation.mutateAsync(orgToDelete.id);
+      toast.success('Organización eliminada correctamente');
+      setDeleteDialogOpen(false);
+      setOrgToDelete(null);
+      if (selectedOrg?.id === orgToDelete.id) setSelectedOrg(null);
+    } catch {
+      toast.error('No se pudo eliminar la organización.');
+    }
   };
 
   if (isError) {
@@ -291,7 +318,7 @@ export default function Organizations() {
                     variant={followStatus?.is_following ? 'secondary' : 'default'}
                     size="sm"
                     onClick={handleFollow}
-                    disabled={!followStatus}
+                    disabled={!followStatus || followPending}
                   >
                     {followStatus?.is_following ? 'Siguiendo' : 'Seguir'}
                   </Button>
@@ -309,12 +336,12 @@ export default function Organizations() {
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="text-sm font-medium">Nombre *</label>
-              <Input value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} placeholder="Nombre de la organización" />
+              <label htmlFor="org-nombre" className="text-sm font-medium">Nombre *</label>
+              <Input id="org-nombre" value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} placeholder="Nombre de la organización" />
             </div>
             <div>
-              <label className="text-sm font-medium">Siglas *</label>
-              <Input value={formData.siglas} onChange={(e) => setFormData({ ...formData, siglas: e.target.value })} placeholder="Siglas" />
+              <label htmlFor="org-siglas" className="text-sm font-medium">Siglas *</label>
+              <Input id="org-siglas" value={formData.siglas} onChange={(e) => setFormData({ ...formData, siglas: e.target.value })} placeholder="Siglas" />
             </div>
             <div>
               <label className="text-sm font-medium">Tipo</label>
@@ -339,28 +366,28 @@ export default function Organizations() {
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium">País</label>
-              <Input value={formData.pais} onChange={(e) => setFormData({ ...formData, pais: e.target.value })} placeholder="País" />
+              <label htmlFor="org-pais" className="text-sm font-medium">País</label>
+              <Input id="org-pais" value={formData.pais} onChange={(e) => setFormData({ ...formData, pais: e.target.value })} placeholder="País" />
             </div>
             <div>
-              <label className="text-sm font-medium">Provincia</label>
-              <Input value={formData.provincia} onChange={(e) => setFormData({ ...formData, provincia: e.target.value })} placeholder="Provincia" />
+              <label htmlFor="org-provincia" className="text-sm font-medium">Provincia</label>
+              <Input id="org-provincia" value={formData.provincia} onChange={(e) => setFormData({ ...formData, provincia: e.target.value })} placeholder="Provincia" />
             </div>
             <div className="col-span-2">
-              <label className="text-sm font-medium">Sitio web</label>
-              <Input value={formData.sitio_web} onChange={(e) => setFormData({ ...formData, sitio_web: e.target.value })} placeholder="https://..." />
+              <label htmlFor="org-sitio_web" className="text-sm font-medium">Sitio web</label>
+              <Input id="org-sitio_web" value={formData.sitio_web} onChange={(e) => setFormData({ ...formData, sitio_web: e.target.value })} placeholder="https://..." />
             </div>
             <div>
-              <label className="text-sm font-medium">Email contacto</label>
-              <Input value={formData.email_contacto} onChange={(e) => setFormData({ ...formData, email_contacto: e.target.value })} placeholder="email@ejemplo.cu" />
+              <label htmlFor="org-email_contacto" className="text-sm font-medium">Email contacto</label>
+              <Input id="org-email_contacto" value={formData.email_contacto} onChange={(e) => setFormData({ ...formData, email_contacto: e.target.value })} placeholder="email@ejemplo.cu" />
             </div>
             <div>
-              <label className="text-sm font-medium">Contacto</label>
-              <Input value={formData.contacto} onChange={(e) => setFormData({ ...formData, contacto: e.target.value })} placeholder="Nombre contacto" />
+              <label htmlFor="org-contacto" className="text-sm font-medium">Contacto</label>
+              <Input id="org-contacto" value={formData.contacto} onChange={(e) => setFormData({ ...formData, contacto: e.target.value })} placeholder="Nombre contacto" />
             </div>
             <div>
-              <label className="text-sm font-medium">Fecha creación</label>
-              <Input type="date" value={formData.fecha_creacion} onChange={(e) => setFormData({ ...formData, fecha_creacion: e.target.value })} />
+              <label htmlFor="org-fecha_creacion" className="text-sm font-medium">Fecha creación</label>
+              <Input id="org-fecha_creacion" type="date" value={formData.fecha_creacion} onChange={(e) => setFormData({ ...formData, fecha_creacion: e.target.value })} />
             </div>
           </div>
           <DialogFooter>

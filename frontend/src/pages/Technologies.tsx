@@ -4,6 +4,7 @@ import CrudPage from '@/components/CrudPage';
 import type { CrudColumn } from '@/components/CrudPage';
 import { useTechnologies, useCreateTechnology, useUpdateTechnology, useDeleteTechnology } from '@/hooks/useTechnologies';
 import { getIndustrialSectors } from '@/api/industrialSectors';
+import { queryKeys } from '@/lib/queryKeys';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -29,7 +30,7 @@ export default function Technologies() {
   const [sector, setSector] = useState('all');
 
   const { data: sectorsData } = useQuery({
-    queryKey: ['industrial-sectors'],
+    queryKey: queryKeys.industrialSectors.list(1, 100),
     queryFn: () => getIndustrialSectors(1, 100),
   });
 
@@ -93,12 +94,12 @@ export default function Technologies() {
       renderForm={({ data, onChange }) => (
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium">Nombre *</label>
-            <Input value={data.nombre} onChange={(e) => onChange({ nombre: e.target.value })} placeholder="Nombre de la tecnología" />
+            <label htmlFor="technology-nombre" className="text-sm font-medium">Nombre *</label>
+            <Input id="technology-nombre" value={data.nombre} onChange={(e) => onChange({ nombre: e.target.value })} placeholder="Nombre de la tecnología" />
           </div>
           <div>
-            <label className="text-sm font-medium">Descripción</label>
-            <Textarea value={data.descripcion} onChange={(e) => onChange({ descripcion: e.target.value })} placeholder="Descripción de la tecnología" />
+            <label htmlFor="technology-descripcion" className="text-sm font-medium">Descripción</label>
+            <Textarea id="technology-descripcion" value={data.descripcion} onChange={(e) => onChange({ descripcion: e.target.value })} placeholder="Descripción de la tecnología" />
           </div>
           <div>
             <label className="text-sm font-medium">Sector</label>
@@ -119,8 +120,8 @@ export default function Technologies() {
             </Select>
           </div>
           <div>
-            <label className="text-sm font-medium">Palabras clave (separadas por coma)</label>
-            <Input value={data.palabras_clave} onChange={(e) => onChange({ palabras_clave: e.target.value })} placeholder="ej: ia, manufactura, sensores" />
+            <label htmlFor="technology-palabras_clave" className="text-sm font-medium">Palabras clave (separadas por coma)</label>
+            <Input id="technology-palabras_clave" value={data.palabras_clave} onChange={(e) => onChange({ palabras_clave: e.target.value })} placeholder="ej: ia, manufactura, sensores" />
           </div>
         </div>
       )}

@@ -10,9 +10,10 @@ interface FileUploadProps {
   onUpload: (url: string) => void;
   currentUrl?: string;
   accept?: string;
+  id?: string;
 }
 
-export default function FileUpload({ onUpload, currentUrl, accept }: FileUploadProps) {
+export default function FileUpload({ onUpload, currentUrl, accept, id }: FileUploadProps) {
   const [dragOver, setDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
@@ -79,7 +80,7 @@ export default function FileUpload({ onUpload, currentUrl, accept }: FileUploadP
             dragOver ? 'border-accent-orange bg-accent-subtle' : 'border-border hover:border-accent-orange',
           )}
         >
-          <input ref={inputRef} type="file" hidden onChange={handleChange} accept={accept} />
+          <input ref={inputRef} id={id} type="file" hidden onChange={handleChange} accept={accept} />
           {uploading ? (
             <div className="flex flex-col items-center gap-1">
               <div className="animate-spin h-5 w-5 border-2 border-accent-orange border-t-transparent rounded-full" />

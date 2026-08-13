@@ -24,6 +24,9 @@ import {
 } from '@/components/ui/select';
 import { mapAlertToAlertItem } from '@/utils/alertUtils';
 import type { Alert } from '@/types';
+import { toast } from 'sonner';
+import { AxiosError } from 'axios';
+import { queryKeys } from '@/lib/queryKeys';
 
 export default function AlertsPage() {
   const { can } = usePermissions();
@@ -44,7 +47,7 @@ export default function AlertsPage() {
   const unreadOnly = leidaFilter === 'no_leidas';
   const { data: rawAlerts, isLoading } = useAlerts(unreadOnly, page, 10, q || undefined, severidad, undefined, fechaDesde || undefined, fechaHasta || undefined, sortBy, sortOrder);
   const { data: sectorsData } = useQuery({
-    queryKey: ['industrial-sectors'],
+    queryKey: queryKeys.industrialSectors.list(1, 100),
     queryFn: () => getIndustrialSectors(1, 100),
     staleTime: 10 * 60 * 1000,
   });
@@ -90,20 +93,38 @@ export default function AlertsPage() {
       fecha: formData.fecha,
       sector_codigo: formData.sector || undefined,
     };
-    if (editingAlert) {
-      await updateMutation.mutateAsync({ id: editingAlert.id, data });
-    } else {
-      await createMutation.mutateAsync(data);
+    try {
+      if (editingAlert) {
+        await updateMutation.mutateAsync({ id: editingAlert.id, data });
+      } else {
+        await createMutation.mutateAsync(data);
+      }
+      toast.success(editingAlert ? 'Alerta actualizada correctamente' : 'Alerta creada correctamente');
+      setDialogOpen(false);
+      setEditingAlert(null);
+      resetForm();
+    } catch (error) {
+      let message = 'No se pudo guardar la alerta. Intenta de nuevo.';
+      if (error instanceof AxiosError && error.response?.data?.detail) {
+        message = error.response.data.detail;
+      }
+      toast.error(message);
     }
-    setDialogOpen(false);
-    setEditingAlert(null);
-    resetForm();
   };
 
   const handleDeleteConfirm = async () => {
     if (!deleteAlertId) return;
-    await deleteMutation.mutateAsync(deleteAlertId);
-    setDeleteAlertId(null);
+    try {
+      await deleteMutation.mutateAsync(deleteAlertId);
+      toast.success('Alerta eliminada correctamente');
+      setDeleteAlertId(null);
+    } catch (error) {
+      let message = 'No se pudo eliminar la alerta. Intenta de nuevo.';
+      if (error instanceof AxiosError && error.response?.data?.detail) {
+        message = error.response.data.detail;
+      }
+      toast.error(message);
+    }
   };
 
   const isSaving = createMutation.isPending || updateMutation.isPending;
@@ -193,12 +214,13 @@ export default function AlertsPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Título *</label>
-              <Input value={formData.titulo} onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} placeholder="Título de la alerta" />
+              <label htmlFor="alert-titulo" className="text-sm font-medium">Título *</label>
+              <Input id="alert-titulo" value={formData.titulo} onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} placeholder="Título de la alerta" />
             </div>
             <div>
-              <label className="text-sm font-medium">Descripción</label>
+              <label htmlFor="alert-descripcion" className="text-sm font-medium">Descripción</label>
               <textarea
+                id="alert-descripcion"
                 className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 value={formData.descripcion}
                 onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
@@ -217,8 +239,8 @@ export default function AlertsPage() {
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium">Fecha</label>
-              <Input type="date" value={formData.fecha} onChange={(e) => setFormData({ ...formData, fecha: e.target.value })} />
+              <label htmlFor="alert-fecha" className="text-sm font-medium">Fecha</label>
+              <Input id="alert-fecha" type="date" value={formData.fecha} onChange={(e) => setFormData({ ...formData, fecha: e.target.value })} />
             </div>
             <div>
               <label className="text-sm font-medium">Sector</label>

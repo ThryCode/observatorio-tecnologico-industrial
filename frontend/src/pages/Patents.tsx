@@ -340,12 +340,12 @@ export default function Patents() {
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="text-sm font-medium">Título *</label>
-              <Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Título de la patente" />
+              <label htmlFor="patent-titulo" className="text-sm font-medium">Título *</label>
+              <Input id="patent-titulo" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Título de la patente" />
             </div>
             <div>
-              <label className="text-sm font-medium">Número de patente *</label>
-              <Input value={formData.patent_number} onChange={(e) => setFormData({ ...formData, patent_number: e.target.value })} placeholder="CU2024/0001" />
+              <label htmlFor="patent-numero" className="text-sm font-medium">Número de patente *</label>
+              <Input id="patent-numero" value={formData.patent_number} onChange={(e) => setFormData({ ...formData, patent_number: e.target.value })} placeholder="CU2024/0001" />
             </div>
             <div>
               <label className="text-sm font-medium">Estado</label>
@@ -359,20 +359,20 @@ export default function Patents() {
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium">Solicitante *</label>
-              <Input value={formData.applicant} onChange={(e) => setFormData({ ...formData, applicant: e.target.value })} placeholder="Solicitante" />
+              <label htmlFor="patent-solicitante" className="text-sm font-medium">Solicitante *</label>
+              <Input id="patent-solicitante" value={formData.applicant} onChange={(e) => setFormData({ ...formData, applicant: e.target.value })} placeholder="Solicitante" />
             </div>
             <div>
-              <label className="text-sm font-medium">Inventor(es)</label>
-              <Input value={formData.inventor} onChange={(e) => setFormData({ ...formData, inventor: e.target.value })} placeholder="Inventor(es)" />
+              <label htmlFor="patent-inventor" className="text-sm font-medium">Inventor(es)</label>
+              <Input id="patent-inventor" value={formData.inventor} onChange={(e) => setFormData({ ...formData, inventor: e.target.value })} placeholder="Inventor(es)" />
             </div>
             <div>
-              <label className="text-sm font-medium">Fecha de solicitud</label>
-              <Input type="date" value={formData.filing_date} onChange={(e) => setFormData({ ...formData, filing_date: e.target.value })} />
+              <label htmlFor="patent-fecha_solicitud" className="text-sm font-medium">Fecha de solicitud</label>
+              <Input id="patent-fecha_solicitud" type="date" value={formData.filing_date} onChange={(e) => setFormData({ ...formData, filing_date: e.target.value })} />
             </div>
             <div>
-              <label className="text-sm font-medium">Fecha de publicación</label>
-              <Input type="date" value={formData.publication_date} onChange={(e) => setFormData({ ...formData, publication_date: e.target.value })} />
+              <label htmlFor="patent-fecha_publicacion" className="text-sm font-medium">Fecha de publicación</label>
+              <Input id="patent-fecha_publicacion" type="date" value={formData.publication_date} onChange={(e) => setFormData({ ...formData, publication_date: e.target.value })} />
             </div>
             <div>
               <label className="text-sm font-medium">Sector tecnológico</label>
@@ -386,12 +386,13 @@ export default function Patents() {
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium">País</label>
-              <Input value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })} placeholder="Cuba" />
+              <label htmlFor="patent-pais" className="text-sm font-medium">País</label>
+              <Input id="patent-pais" value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })} placeholder="Cuba" />
             </div>
             <div className="col-span-2">
-              <label className="text-sm font-medium">Resumen</label>
+              <label htmlFor="patent-resumen" className="text-sm font-medium">Resumen</label>
               <textarea
+                id="patent-resumen"
                 className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 value={formData.abstract}
                 onChange={(e) => setFormData({ ...formData, abstract: e.target.value })}
@@ -399,8 +400,9 @@ export default function Patents() {
               />
             </div>
             <div className="col-span-2">
-              <label className="text-sm font-medium">Archivo adjunto</label>
+              <label htmlFor="patent-file_url" className="text-sm font-medium">Archivo adjunto</label>
               <FileUpload
+                id="patent-file_url"
                 onUpload={(url) => setFormData({ ...formData, file_url: url })}
                 currentUrl={formData.file_url}
                 accept=".pdf,.doc,.docx"

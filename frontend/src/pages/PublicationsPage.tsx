@@ -4,6 +4,7 @@ import CrudPage from '@/components/CrudPage';
 import type { CrudColumn } from '@/components/CrudPage';
 import { useResearchPublications, useCreateResearchPublication, useUpdateResearchPublication, useDeleteResearchPublication } from '@/hooks/useResearchPublications';
 import { getIndustrialSectors } from '@/api/industrialSectors';
+import { queryKeys } from '@/lib/queryKeys';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,7 +23,7 @@ export default function PublicationsPage() {
   const { user } = useAuth();
 
   const { data: sectorsData } = useQuery({
-    queryKey: ['industrial-sectors'],
+    queryKey: queryKeys.industrialSectors.list(1, 100),
     queryFn: () => getIndustrialSectors(1, 100),
   });
 
@@ -98,12 +99,12 @@ export default function PublicationsPage() {
       validateForm={(form) => !form.titulo ? 'El título es obligatorio' : !form.autores ? 'Los autores son obligatorios' : !form.fecha_publicacion ? 'La fecha de publicación es obligatoria' : null}
       renderForm={({ data, onChange }) => (
         <div className="space-y-4">
-          <div><label className="text-sm font-medium">Título *</label><Input value={data.titulo} onChange={(e) => onChange({ titulo: e.target.value })} placeholder="Título del artículo" /></div>
-          <div><label className="text-sm font-medium">Autores *</label><AuthorAutocomplete value={data.autores} onChange={(v) => onChange({ autores: v })} placeholder="Buscar o escribir autores..." /></div>
-          <div><label className="text-sm font-medium">Resumen</label><textarea className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" value={data.resumen} onChange={(e) => onChange({ resumen: e.target.value })} placeholder="Resumen del artículo" /></div>
-          <div><label className="text-sm font-medium">DOI</label><Input value={data.doi} onChange={(e) => onChange({ doi: e.target.value })} placeholder="10.1234/ejemplo.2026.001" /></div>
-          <div><label className="text-sm font-medium">Journal / Revista</label><Input value={data.journal} onChange={(e) => onChange({ journal: e.target.value })} placeholder="Nombre de la revista" /></div>
-          <div><label className="text-sm font-medium">Fecha de publicación</label><Input type="date" value={data.fecha_publicacion} onChange={(e) => onChange({ fecha_publicacion: e.target.value })} /></div>
+          <div><label htmlFor="publication-titulo" className="text-sm font-medium">Título *</label><Input id="publication-titulo" value={data.titulo} onChange={(e) => onChange({ titulo: e.target.value })} placeholder="Título del artículo" /></div>
+          <div><label htmlFor="publication-autores" className="text-sm font-medium">Autores *</label><AuthorAutocomplete id="publication-autores" value={data.autores} onChange={(v) => onChange({ autores: v })} placeholder="Buscar o escribir autores..." /></div>
+          <div><label htmlFor="publication-resumen" className="text-sm font-medium">Resumen</label><textarea id="publication-resumen" className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" value={data.resumen} onChange={(e) => onChange({ resumen: e.target.value })} placeholder="Resumen del artículo" /></div>
+          <div><label htmlFor="publication-doi" className="text-sm font-medium">DOI</label><Input id="publication-doi" value={data.doi} onChange={(e) => onChange({ doi: e.target.value })} placeholder="10.1234/ejemplo.2026.001" /></div>
+          <div><label htmlFor="publication-journal" className="text-sm font-medium">Journal / Revista</label><Input id="publication-journal" value={data.journal} onChange={(e) => onChange({ journal: e.target.value })} placeholder="Nombre de la revista" /></div>
+          <div><label htmlFor="publication-fecha_publicacion" className="text-sm font-medium">Fecha de publicación</label><Input id="publication-fecha_publicacion" type="date" value={data.fecha_publicacion} onChange={(e) => onChange({ fecha_publicacion: e.target.value })} /></div>
           <div>
             <label className="text-sm font-medium">Sector</label>
             <Select value={data.sector_codigo} onValueChange={(v) => onChange({ sector_codigo: v })}>
@@ -113,8 +114,8 @@ export default function PublicationsPage() {
               </SelectContent>
             </Select>
           </div>
-          <div><label className="text-sm font-medium">Palabras clave (separadas por coma)</label><Input value={data.palabras_clave} onChange={(e) => onChange({ palabras_clave: e.target.value })} placeholder="ej: ia, manufactura, energía" /></div>
-          <div><label className="text-sm font-medium">URL</label><Input value={data.url} onChange={(e) => onChange({ url: e.target.value })} placeholder="https://..." /></div>
+          <div><label htmlFor="publication-palabras_clave" className="text-sm font-medium">Palabras clave (separadas por coma)</label><Input id="publication-palabras_clave" value={data.palabras_clave} onChange={(e) => onChange({ palabras_clave: e.target.value })} placeholder="ej: ia, manufactura, energía" /></div>
+          <div><label htmlFor="publication-url" className="text-sm font-medium">URL</label><Input id="publication-url" value={data.url} onChange={(e) => onChange({ url: e.target.value })} placeholder="https://..." /></div>
         </div>
       )}
       renderDetail={(pub) => (
