@@ -2,7 +2,7 @@
 import pytest
 
 from app.core.init_db import create_superuser_if_not_exists
-from app.models.user import User, UserRole, UserStatus
+from app.models.user import User, UserStatus
 
 
 @pytest.mark.asyncio
@@ -14,7 +14,7 @@ async def test_create_superuser_creates_new(db_session):
     await create_superuser_if_not_exists(db_session)
 
     result = await db_session.execute(
-        __import__('sqlalchemy').select(User).where(User.role == UserRole.ADMIN_MINDUS)
+        __import__('sqlalchemy').select(User).where(User.role == "admin_mindus")
     )
     user = result.scalar_one_or_none()
     assert user is not None
@@ -27,7 +27,7 @@ async def test_create_superuser_existing_approved(db_session):
     user = User(
         username="existing", email="existing@test.com",
         full_name="Admin", hashed_password="x",
-        role=UserRole.ADMIN_MINDUS, is_superuser=True,
+        role="admin_mindus", is_superuser=True,
         status=UserStatus.APPROVED.value,
     )
     db_session.add(user)
@@ -36,7 +36,7 @@ async def test_create_superuser_existing_approved(db_session):
     await create_superuser_if_not_exists(db_session)
 
     result = await db_session.execute(
-        __import__('sqlalchemy').select(User).where(User.role == UserRole.ADMIN_MINDUS)
+        __import__('sqlalchemy').select(User).where(User.role == "admin_mindus")
     )
     users = result.scalars().all()
     assert len(users) == 1
@@ -47,7 +47,7 @@ async def test_create_superuser_existing_pending(db_session):
     user = User(
         username="pending_admin", email="pending@test.com",
         full_name="Pending Admin", hashed_password="x",
-        role=UserRole.ADMIN_MINDUS, is_superuser=True,
+        role="admin_mindus", is_superuser=True,
         status=UserStatus.PENDING.value,
     )
     db_session.add(user)
@@ -71,7 +71,7 @@ async def test_create_superuser_email_format(db_session):
     await create_superuser_if_not_exists(db_session)
 
     result = await db_session.execute(
-        __import__('sqlalchemy').select(User).where(User.role == UserRole.ADMIN_MINDUS)
+        __import__('sqlalchemy').select(User).where(User.role == "admin_mindus")
     )
     user = result.scalar_one_or_none()
     assert user.email == "admin@mindus.gob.cu"

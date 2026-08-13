@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, require_role
-from app.models.user import User, UserRole
+from app.models.user import User
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.competitiveness import CompetitivenessCreate, CompetitivenessResponse, CompetitivenessUpdate
 from app.services.competitiveness_service import CompetitivenessService
@@ -44,7 +44,7 @@ async def get_competitiveness(index_id: UUID, db: AsyncSession = Depends(get_db)
 async def create_competitiveness(
     data: CompetitivenessCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    _: User = Depends(require_role("admin_mindus")),
 ):
     return await CompetitivenessService(db).create(data)
 
@@ -54,7 +54,7 @@ async def update_competitiveness(
     index_id: UUID,
     data: CompetitivenessUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    _: User = Depends(require_role("admin_mindus")),
 ):
     return await CompetitivenessService(db).update(index_id, data)
 
@@ -63,7 +63,7 @@ async def update_competitiveness(
 async def delete_competitiveness(
     index_id: UUID,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    _: User = Depends(require_role("admin_mindus")),
 ):
     await CompetitivenessService(db).delete(index_id)
     return Message(detail="Competitiveness index deleted")

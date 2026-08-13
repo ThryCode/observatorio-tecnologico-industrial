@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, require_role
-from app.models.user import User, UserRole
+from app.models.user import User
 from app.schemas.common import Message
 from app.schemas.patent_map import PatentMapCreate, PatentMapResponse, PatentMapUpdate
 from app.services.patent_map_service import PatentMapService
@@ -30,7 +30,7 @@ async def get_patent_map_entry(entry_id: UUID, db: AsyncSession = Depends(get_db
 async def create_patent_map_entry(
     data: PatentMapCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    _: User = Depends(require_role("admin_mindus")),
 ):
     return await PatentMapService(db).create(data)
 
@@ -40,7 +40,7 @@ async def update_patent_map_entry(
     entry_id: UUID,
     data: PatentMapUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    _: User = Depends(require_role("admin_mindus")),
 ):
     return await PatentMapService(db).update(entry_id, data)
 
@@ -49,7 +49,7 @@ async def update_patent_map_entry(
 async def delete_patent_map_entry(
     entry_id: UUID,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    _: User = Depends(require_role("admin_mindus")),
 ):
     await PatentMapService(db).delete(entry_id)
     return Message(detail="Patent map entry deleted")

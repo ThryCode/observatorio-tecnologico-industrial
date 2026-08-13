@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, require_role
 from app.graph.sync_trigger import schedule_graph_sync
-from app.models.user import User, UserRole
+from app.models.user import User
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.technology import TechnologyCreate, TechnologyResponse, TechnologyUpdate
 from app.services.technology_service import TechnologyService
@@ -42,7 +42,7 @@ async def create_technology(
     request: Request,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    current_user: User = Depends(require_role("admin_mindus")),
 ):
     ip = request.client.host if request.client else None
     result = await TechnologyService(db).create_with_audit(data, current_user.id, ip)
@@ -57,7 +57,7 @@ async def update_technology(
     request: Request,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    current_user: User = Depends(require_role("admin_mindus")),
 ):
     ip = request.client.host if request.client else None
     result = await TechnologyService(db).update_with_audit(tech_id, data, current_user.id, ip)
@@ -71,7 +71,7 @@ async def delete_technology(
     request: Request,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    current_user: User = Depends(require_role("admin_mindus")),
 ):
     ip = request.client.host if request.client else None
     await TechnologyService(db).delete_with_audit(tech_id, current_user.id, ip)

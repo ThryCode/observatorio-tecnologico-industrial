@@ -14,19 +14,9 @@ if TYPE_CHECKING:
     from app.models.professional_profile import ProfessionalProfile
 
 
-class UserRole(enum.StrEnum):
-    ADMIN_MINDUS = "admin_mindus"
-    REPRESENTANTE = "representante"
-    ANALISTA = "analista"
-    PROFESIONAL = "profesional"
-    CLIENTE = "cliente"
-    VISITANTE = "visitante"
-
-
-class AccountType(enum.StrEnum):
-    REPRESENTANTE = "representante"
-    ANALISTA = "analista"
-    PROFESIONAL = "profesional"
+ROLES = frozenset(
+    {"admin_mindus", "representante", "analista", "profesional", "cliente", "visitante"}
+)
 
 
 class UserStatus(enum.StrEnum):
@@ -42,7 +32,7 @@ class User(Base, UUIDMixin, TimestampMixin):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     hashed_password: Mapped[str] = mapped_column(String(255))
     full_name: Mapped[str] = mapped_column(String(150))
-    role: Mapped[str] = mapped_column(String(20), default=UserRole.VISITANTE.value)
+    role: Mapped[str] = mapped_column(String(20), default="visitante")
     phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
     job_title: Mapped[str | None] = mapped_column(String(100), nullable=True)
     organization_id: Mapped[uuid.UUID | None] = mapped_column(

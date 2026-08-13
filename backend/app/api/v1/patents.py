@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, require_role
 from app.graph.sync_trigger import schedule_graph_sync
-from app.models.user import User, UserRole
+from app.models.user import User
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.patent import PatentCreate, PatentResponse, PatentUpdate
 from app.services.patent_service import PatentService
@@ -46,7 +46,7 @@ async def create_patent(
     request: Request,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN_MINDUS, UserRole.ANALISTA)),
+    current_user: User = Depends(require_role("admin_mindus", "analista")),
 ):
     ip = request.client.host if request.client else None
     result = await PatentService(db).create_with_audit(data, current_user.id, ip)
@@ -61,7 +61,7 @@ async def update_patent(
     request: Request,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    current_user: User = Depends(require_role("admin_mindus")),
 ):
     ip = request.client.host if request.client else None
     result = await PatentService(db).update_with_audit(patent_id, data, current_user.id, ip)
@@ -75,7 +75,7 @@ async def delete_patent(
     request: Request,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    current_user: User = Depends(require_role("admin_mindus")),
 ):
     ip = request.client.host if request.client else None
     await PatentService(db).delete_with_audit(patent_id, current_user.id, ip)

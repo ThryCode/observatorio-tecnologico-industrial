@@ -13,7 +13,7 @@ from app.core.exceptions import AppException
 from app.dependencies import get_current_user, get_neo4j, get_redis, require_role
 from app.models.organization import Organization
 from app.models.patent import PatentStatus
-from app.models.user import User, UserRole
+from app.models.user import User
 from app.schemas.graph import (
     EnterpriseGraphEdge,
     EnterpriseGraphNode,
@@ -107,7 +107,7 @@ async def graph_stats(
 async def sync_graph(
     neo4j: AsyncDriver | None = Depends(get_neo4j),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    _: User = Depends(require_role("admin_mindus")),
 ):
     if not neo4j:
         raise AppException(503, "Neo4j is not available")
@@ -120,7 +120,7 @@ async def sync_graph(
 async def sync_enterprise_graph(
     neo4j: AsyncDriver | None = Depends(get_neo4j),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    _: User = Depends(require_role("admin_mindus")),
 ):
     if not neo4j:
         raise AppException(503, "Neo4j is not available")

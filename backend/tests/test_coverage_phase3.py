@@ -21,7 +21,7 @@ from app.models.professional_profile import ProfessionalProfile
 from app.models.regulation import Regulation, RegulationCategory
 from app.models.research_publication import ResearchPublication
 from app.models.technology import Technology
-from app.models.user import User, UserRole
+from app.models.user import User
 from app.services.file_service import FileServiceError
 
 # ---------------------------------------------------------------------------
@@ -35,7 +35,7 @@ async def _create_user(db, **kwargs):
         "email": f"{uuid.uuid4().hex[:8]}@test.com",
         "full_name": "Test User",
         "hashed_password": "$2b$12$hashed",
-        "role": UserRole.ADMIN_MINDUS,
+        "role": "admin_mindus",
         "is_active": True,
         "status": "approved",
     }
@@ -682,7 +682,7 @@ class TestDependencies:
 
     @pytest.mark.asyncio
     async def test_superuser_required(self, client, db_session):
-        user = await _create_user(db_session, role=UserRole.PROFESIONAL)
+        user = await _create_user(db_session, role="profesional")
         token = _token(user)
         resp = await client.get(
             "/api/v1/auth/pending",
@@ -692,7 +692,7 @@ class TestDependencies:
 
     @pytest.mark.asyncio
     async def test_require_role_wrong_role(self, client, db_session):
-        user = await _create_user(db_session, role=UserRole.PROFESIONAL)
+        user = await _create_user(db_session, role="profesional")
         token = _token(user)
         resp = await client.get(
             "/api/v1/auth/pending",
@@ -751,7 +751,7 @@ class TestAuthRegister:
 
     @pytest.mark.asyncio
     async def test_register_unauthorized(self, client, db_session):
-        user = await _create_user(db_session, role=UserRole.PROFESIONAL)
+        user = await _create_user(db_session, role="profesional")
         token = _token(user)
         resp = await client.post(
             "/api/v1/auth/register",
@@ -923,7 +923,7 @@ class TestAuthPendingApproveReject:
 class TestResearchPublicationCRUD:
     @pytest.mark.asyncio
     async def test_create_pub(self, client, db_session):
-        user = await _create_user(db_session, role=UserRole.ADMIN_MINDUS)
+        user = await _create_user(db_session, role="admin_mindus")
         token = _token(user)
         await _create_sector(db_session)
         resp = await client.post(
@@ -941,7 +941,7 @@ class TestResearchPublicationCRUD:
 
     @pytest.mark.asyncio
     async def test_update_pub_owner(self, client, db_session):
-        user = await _create_user(db_session, role=UserRole.ADMIN_MINDUS)
+        user = await _create_user(db_session, role="admin_mindus")
         token = _token(user)
         await _create_sector(db_session)
         pub = ResearchPublication(
@@ -965,7 +965,7 @@ class TestResearchPublicationCRUD:
     @pytest.mark.asyncio
     async def test_update_pub_author_match(self, client, db_session):
         user = await _create_user(
-            db_session, role=UserRole.ADMIN_MINDUS, full_name="John Smith"
+            db_session, role="admin_mindus", full_name="John Smith"
         )
         token = _token(user)
         await _create_sector(db_session)
@@ -989,7 +989,7 @@ class TestResearchPublicationCRUD:
     @pytest.mark.asyncio
     async def test_update_pub_forbidden(self, client, db_session):
         user = await _create_user(
-            db_session, role=UserRole.PROFESIONAL, full_name="Other User"
+            db_session, role="profesional", full_name="Other User"
         )
         token = _token(user)
         await _create_sector(db_session)
@@ -1013,7 +1013,7 @@ class TestResearchPublicationCRUD:
     @pytest.mark.asyncio
     async def test_delete_pub_forbidden(self, client, db_session):
         user = await _create_user(
-            db_session, role=UserRole.PROFESIONAL, full_name="Other User"
+            db_session, role="profesional", full_name="Other User"
         )
         token = _token(user)
         await _create_sector(db_session)
@@ -1036,7 +1036,7 @@ class TestResearchPublicationCRUD:
     @pytest.mark.asyncio
     async def test_delete_pub_author_match(self, client, db_session):
         user = await _create_user(
-            db_session, role=UserRole.ADMIN_MINDUS, full_name="Jane Doe"
+            db_session, role="admin_mindus", full_name="Jane Doe"
         )
         token = _token(user)
         await _create_sector(db_session)
@@ -1217,7 +1217,7 @@ class TestUserEndpoints:
 
     @pytest.mark.asyncio
     async def test_list_users_unauthorized(self, client, db_session):
-        user = await _create_user(db_session, role=UserRole.PROFESIONAL)
+        user = await _create_user(db_session, role="profesional")
         token = _token(user)
         resp = await client.get(
             "/api/v1/users",
@@ -1278,7 +1278,7 @@ class TestOrganizationEndpoints:
     @pytest.mark.asyncio
     async def test_update_organization_forbidden(self, client, db_session):
         await _create_sector(db_session)
-        user = await _create_user(db_session, role=UserRole.REPRESENTANTE)
+        user = await _create_user(db_session, role="representante")
         token = _token(user)
         org = await _create_org(db_session)
         resp = await client.put(
@@ -2071,7 +2071,7 @@ class TestProfessionalProfileServiceSearch:
         from app.services.professional_profile_service import (
             ProfessionalProfileService,
         )
-        user = await _create_user(db_session, full_name="Dr. Smith", role=UserRole.PROFESIONAL)
+        user = await _create_user(db_session, full_name="Dr. Smith", role="profesional")
         pp = ProfessionalProfile(user_id=user.id, especialidad="CS")
         db_session.add(pp)
         await db_session.flush()
@@ -2087,7 +2087,7 @@ class TestProfessionalProfileServiceSearch:
         from app.services.professional_profile_service import (
             ProfessionalProfileService,
         )
-        user = await _create_user(db_session, email="sort@test.com", role=UserRole.PROFESIONAL)
+        user = await _create_user(db_session, email="sort@test.com", role="profesional")
         pp = ProfessionalProfile(user_id=user.id, especialidad="CS")
         db_session.add(pp)
         await db_session.flush()
@@ -2101,7 +2101,7 @@ class TestProfessionalProfileServiceSearch:
         from app.services.professional_profile_service import (
             ProfessionalProfileService,
         )
-        user = await _create_user(db_session, role=UserRole.PROFESIONAL)
+        user = await _create_user(db_session, role="profesional")
         pp = ProfessionalProfile(user_id=user.id, especialidad="AI")
         db_session.add(pp)
         await db_session.flush()

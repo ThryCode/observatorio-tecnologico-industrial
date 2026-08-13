@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import AppException
 from app.dependencies import get_db, require_role
 from app.graph.sync_trigger import schedule_graph_sync
-from app.models.user import User, UserRole
+from app.models.user import User
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.organization import OrganizationCreate, OrganizationResponse, OrganizationUpdate
 from app.schemas.user import UserResponse
@@ -61,7 +61,7 @@ async def create_organization(
     data: OrganizationCreate,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.REPRESENTANTE)),
+    _: User = Depends(require_role("representante")),
 ):
     result = await OrganizationService(db).create(data)
     schedule_graph_sync(background_tasks)
@@ -74,7 +74,7 @@ async def update_organization(
     data: OrganizationUpdate,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.REPRESENTANTE)),
+    current_user: User = Depends(require_role("representante")),
 ):
     if current_user.organization_id != org_id:
         raise AppException(403, "Solo puedes editar tu propia empresa")
@@ -88,7 +88,7 @@ async def delete_organization(
     org_id: UUID,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    _: User = Depends(require_role("admin_mindus")),
 ):
     await OrganizationService(db).delete(org_id)
     schedule_graph_sync(background_tasks)

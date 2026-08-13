@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, require_role
-from app.models.user import User, UserRole
+from app.models.user import User
 from app.schemas.audit_log import AuditLogResponse
 from app.schemas.common import PaginatedResponse
 from app.services.audit_service import AuditService
@@ -20,7 +20,7 @@ async def list_audit_logs(
     page: int = Query(1, ge=1),
     per_page: int = Query(20, ge=1, le=100),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    current_user: User = Depends(require_role("admin_mindus")),
 ):
     offset = (page - 1) * per_page
     items, total = await AuditService(db).get_logs(

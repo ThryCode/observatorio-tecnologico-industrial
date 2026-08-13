@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, get_redis, require_role
 from app.graph.sync_trigger import schedule_graph_sync
-from app.models.user import User, UserRole
+from app.models.user import User
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.indicator import IndicatorCreate, IndicatorResponse, IndicatorUpdate
 from app.services.indicator_service import IndicatorService
@@ -50,7 +50,7 @@ async def create_indicator(
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     redis=Depends(get_redis),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS, UserRole.ANALISTA)),
+    _: User = Depends(require_role("admin_mindus", "analista")),
 ):
     result = await _service(db, redis).create(data)
     schedule_graph_sync(background_tasks)
@@ -64,7 +64,7 @@ async def update_indicator(
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     redis=Depends(get_redis),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    _: User = Depends(require_role("admin_mindus")),
 ):
     result = await _service(db, redis).update(indicator_id, data)
     schedule_graph_sync(background_tasks)
@@ -77,7 +77,7 @@ async def delete_indicator(
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
     redis=Depends(get_redis),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    _: User = Depends(require_role("admin_mindus")),
 ):
     await _service(db, redis).delete(indicator_id)
     schedule_graph_sync(background_tasks)

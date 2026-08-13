@@ -7,7 +7,7 @@ from app.core.exceptions import AppException
 from app.core.security import get_password_hash
 from app.models.alert import Alert
 from app.models.organization import Organization
-from app.models.user import User, UserRole
+from app.models.user import User
 from app.schemas.indicator import IndicatorCreate, IndicatorUpdate
 from app.services.alert_service import AlertService
 from app.services.audit_service import AuditService
@@ -281,7 +281,7 @@ class TestAuthServiceExtended:
         result = await db_session.execute(select(User).where(User.username == "prouser1"))
         user = result.scalar_one_or_none()
         assert user is not None
-        assert user.role == UserRole.PROFESIONAL.value
+        assert user.role == "profesional"
 
     @pytest.mark.asyncio
     async def test_register_public_duplicate(self, db_session):

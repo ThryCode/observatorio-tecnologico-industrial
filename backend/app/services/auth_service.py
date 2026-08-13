@@ -8,7 +8,7 @@ from app.core.exceptions import AppException
 from app.core.security import create_access_token, get_password_hash, verify_password
 from app.models.organization import Organization
 from app.models.professional_profile import ProfessionalProfile
-from app.models.user import User, UserRole, UserStatus
+from app.models.user import User, UserStatus
 from app.schemas.auth import LoginRequest, RegisterRequest
 from app.schemas.user import UserCreate
 

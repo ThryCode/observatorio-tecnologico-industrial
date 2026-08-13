@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db, require_role
-from app.models.user import User, UserRole
+from app.models.user import User
 from app.schemas.alert import AlertCreate, AlertResponse, AlertUpdate
 from app.schemas.common import Message, PaginatedResponse
 from app.services.alert_service import AlertService
@@ -115,7 +115,7 @@ async def delete_alert(
     alert_id: UUID,
     request: Request,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    current_user: User = Depends(require_role("admin_mindus")),
 ):
     old = await AlertService(db).get(alert_id)
     await AlertService(db).delete(alert_id)

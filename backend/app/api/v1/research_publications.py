@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppException
 from app.dependencies import get_current_user, get_db, require_role
-from app.models.user import User, UserRole
+from app.models.user import User
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.research_publication import (
     ResearchPublicationCreate,
@@ -58,7 +58,7 @@ async def get_research_publication(
 async def create_research_publication(
     data: ResearchPublicationCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN_MINDUS, UserRole.PROFESIONAL)),
+    current_user: User = Depends(require_role("admin_mindus", "profesional")),
 ):
     pub = await ResearchPublicationService(db).create(data)
     pub.created_by = current_user.id
@@ -72,12 +72,12 @@ async def update_research_publication(
     pub_id: UUID,
     data: ResearchPublicationUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN_MINDUS, UserRole.PROFESIONAL)),
+    current_user: User = Depends(require_role("admin_mindus", "profesional")),
 ):
     service = ResearchPublicationService(db)
     pub = await service.get(pub_id)
     is_author = current_user.full_name.lower() in (pub.autores or "").lower()
-    if pub.created_by != current_user.id and not is_author and current_user.role != UserRole.ADMIN_MINDUS:
+    if pub.created_by != current_user.id and not is_author and current_user.role != "admin_mindus":
         raise AppException(403, "No tienes permiso para editar esta publicación")
     return await service.update(pub_id, data)
 
@@ -86,12 +86,12 @@ async def update_research_publication(
 async def delete_research_publication(
     pub_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_role(UserRole.ADMIN_MINDUS, UserRole.PROFESIONAL)),
+    current_user: User = Depends(require_role("admin_mindus", "profesional")),
 ):
     service = ResearchPublicationService(db)
     pub = await service.get(pub_id)
     is_author = current_user.full_name.lower() in (pub.autores or "").lower()
-    if pub.created_by != current_user.id and not is_author and current_user.role != UserRole.ADMIN_MINDUS:
+    if pub.created_by != current_user.id and not is_author and current_user.role != "admin_mindus":
         raise AppException(403, "No tienes permiso para eliminar esta publicación")
     await service.delete(pub_id)
     return Message(detail="Research publication deleted")

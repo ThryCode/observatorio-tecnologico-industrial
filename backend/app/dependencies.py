@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.db import get_db
 from app.core.exceptions import AppException
 from app.core.security import decode_token
-from app.models.user import User
+from app.models.user import ROLES, User
 
 security_scheme = HTTPBearer()
 
@@ -52,6 +52,9 @@ async def get_current_superuser(current_user: User = Depends(get_current_user)) 
 
 
 def require_role(*roles: str):
+    invalid = [r for r in roles if r not in ROLES]
+    if invalid:
+        raise AppException(500, f"Invalid role(s) in require_role: {', '.join(invalid)}")
     async def _require_role(current_user: User = Depends(get_current_user)) -> User:
         if current_user.role not in roles:
             raise AppException(

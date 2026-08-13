@@ -24,7 +24,7 @@ from app.models.patent_map import PatentMapEntry
 from app.models.professional_profile import ProfessionalProfile
 from app.models.research_publication import ResearchPublication
 from app.models.technology import Technology
-from app.models.user import User, UserRole, UserStatus
+from app.models.user import User, UserStatus
 
 # ---------------------------------------------------------------------------
 # Organizations
@@ -140,7 +140,7 @@ _USERS = [
         "username": "carlos",
         "full_name": "Carlos Mendez",
         "password": "test12345",
-        "role": UserRole.REPRESENTANTE,
+        "role": "representante",
         "status": UserStatus.APPROVED,
         "org_siglas": "BNC",
     },
@@ -149,7 +149,7 @@ _USERS = [
         "username": "ana",
         "full_name": "Ana Rodriguez",
         "password": "test12345",
-        "role": UserRole.REPRESENTANTE,
+        "role": "representante",
         "status": UserStatus.APPROVED,
         "org_siglas": "ATS",
     },
@@ -158,7 +158,7 @@ _USERS = [
         "username": "pedro",
         "full_name": "Pedro Castillo",
         "password": "test12345",
-        "role": UserRole.REPRESENTANTE,
+        "role": "representante",
         "status": UserStatus.APPROVED,
         "org_siglas": "QCI",
     },
@@ -167,7 +167,7 @@ _USERS = [
         "username": "enmanuel",
         "full_name": "Enmanuel Perez",
         "password": "12345678",
-        "role": UserRole.REPRESENTANTE,
+        "role": "representante",
         "status": UserStatus.APPROVED,
         "org_siglas": "ENW",
     },
@@ -200,7 +200,7 @@ _USERS = [
         "username": "marta",
         "email": "marta@investigacion.cu",
         "full_name": "Marta Fernandez",
-        "role": UserRole.PROFESIONAL,
+        "role": "profesional",
         "password": "marta123",
         "status": UserStatus.APPROVED,
     },
@@ -208,7 +208,7 @@ _USERS = [
         "username": "luis",
         "email": "luis@investigacion.cu",
         "full_name": "Luis Ramirez",
-        "role": UserRole.PROFESIONAL,
+        "role": "profesional",
         "password": "luis123",
         "status": UserStatus.APPROVED,
     },
@@ -216,7 +216,7 @@ _USERS = [
         "username": "sofia",
         "email": "sofia@biotech.cu",
         "full_name": "Sofia Torres",
-        "role": UserRole.PROFESIONAL,
+        "role": "profesional",
         "password": "sofia123",
         "status": UserStatus.APPROVED,
     },
@@ -224,7 +224,7 @@ _USERS = [
         "username": "jorge",
         "email": "jorge@energia.cu",
         "full_name": "Jorge Navarro",
-        "role": UserRole.PROFESIONAL,
+        "role": "profesional",
         "password": "jorge123",
         "status": UserStatus.APPROVED,
     },

@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, require_role
 from app.graph.sync_trigger import schedule_graph_sync
-from app.models.user import User, UserRole
+from app.models.user import User
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.industrial_sector import (
     IndustrialSectorCreate,
@@ -44,7 +44,7 @@ async def create_sector(
     data: IndustrialSectorCreate,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    _: User = Depends(require_role("admin_mindus")),
 ):
     result = await IndustrialSectorService(db).create(data)
     schedule_graph_sync(background_tasks)
@@ -57,7 +57,7 @@ async def update_sector(
     data: IndustrialSectorUpdate,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    _: User = Depends(require_role("admin_mindus")),
 ):
     result = await IndustrialSectorService(db).update(codigo, data)
     schedule_graph_sync(background_tasks)
@@ -69,7 +69,7 @@ async def delete_sector(
     codigo: str,
     background_tasks: BackgroundTasks,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role(UserRole.ADMIN_MINDUS)),
+    _: User = Depends(require_role("admin_mindus")),
 ):
     await IndustrialSectorService(db).delete(codigo)
     schedule_graph_sync(background_tasks)
