@@ -4,7 +4,8 @@ import ForceGraph2D, { type ForceGraphNode } from '@/components/ForceGraph2D';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { Lightbulb, Loader2 } from 'lucide-react';
+import EmptyState from '@/components/ui/empty-state';
+import { Lightbulb, Loader2, GitBranch } from 'lucide-react';
 import type { EnterpriseGraphNode } from '@/types';
 
 export default function EnterpriseGraph() {
@@ -87,11 +88,20 @@ export default function EnterpriseGraph() {
         <Card className="lg:col-span-2">
           <CardContent className="p-0">
             <div className="h-[600px]">
-              <ForceGraph2D
-                nodes={graphNodes}
-                edges={data?.edges ?? []}
-                onNodeClick={handleNodeClick}
-              />
+              {graphNodes.length === 0 ? (
+                <EmptyState
+                  className="h-full"
+                  icon={<GitBranch className="h-10 w-10 text-text-muted" />}
+                  title="Grafo empresarial vacío"
+                  description="Aún no hay relaciones de seguimiento entre empresas registradas."
+                />
+              ) : (
+                <ForceGraph2D
+                  nodes={graphNodes}
+                  edges={data?.edges ?? []}
+                  onNodeClick={handleNodeClick}
+                />
+              )}
             </div>
           </CardContent>
         </Card>

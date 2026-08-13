@@ -1,7 +1,9 @@
 import PageHeader from '@/components/PageHeader';
+import EmptyState from '@/components/ui/empty-state';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useCompetitiveness } from '@/hooks/useCompetitiveness';
 import { chartColors } from '@/lib/graph-colors';
+import { BarChart3 } from 'lucide-react';
 
 export default function Competitiveness() {
   const { data, isLoading } = useCompetitiveness();
@@ -17,6 +19,13 @@ export default function Competitiveness() {
         <h3 className="text-base font-bold text-foreground mb-4">Índice de Competitividad Industrial por Sector</h3>
         {isLoading ? (
           <div className="text-center text-text-muted py-8">Cargando datos de competitividad...</div>
+        ) : !data || data.length === 0 ? (
+          <EmptyState
+            className="py-10"
+            icon={<BarChart3 className="h-10 w-10 text-text-muted" />}
+            title="Sin datos de competitividad"
+            description="No hay datos disponibles para comparar la competitividad industrial por sectores."
+          />
         ) : (
           <div className="h-[400px]">
             <ResponsiveContainer width="100%" height="100%">

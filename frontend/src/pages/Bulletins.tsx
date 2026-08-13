@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import PageHeader from '@/components/PageHeader';
 import ProductCard from '@/components/ProductCard';
+import EmptyState from '@/components/ui/empty-state';
 import { FileText, Clock, User, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
@@ -72,6 +73,14 @@ export default function Bulletins() {
       />
       {isLoading ? (
         <div className="text-center text-text-muted py-8">Cargando publicaciones...</div>
+      ) : bulletins.length === 0 ? (
+        <div className="bg-surface rounded-lg border border-border">
+          <EmptyState
+            icon={<FileText className="h-10 w-10 text-text-muted" />}
+            title="No hay publicaciones"
+            description="Aún no se han publicado boletines, alertas tecnológicas ni estudios de inteligencia."
+          />
+        </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {bulletins.map((item) => (

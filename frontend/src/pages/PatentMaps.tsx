@@ -1,7 +1,9 @@
 import PageHeader from '@/components/PageHeader';
+import EmptyState from '@/components/ui/empty-state';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { usePatentMaps } from '@/hooks/usePatentMaps';
 import { chartColors } from '@/lib/graph-colors';
+import { Map } from 'lucide-react';
 
 export default function PatentMaps() {
   const { data, isLoading } = usePatentMaps();
@@ -15,6 +17,14 @@ export default function PatentMaps() {
       />
       {isLoading ? (
         <div className="text-center text-text-muted py-8">Cargando mapas de patentes...</div>
+      ) : !data || data.length === 0 ? (
+        <div className="bg-surface rounded-lg border border-border">
+          <EmptyState
+            icon={<Map className="h-10 w-10 text-text-muted" />}
+            title="Sin mapas de patentes"
+            description="No hay datos de actividad patentaria disponibles para visualizar."
+          />
+        </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="bg-surface rounded-lg border border-border p-6">

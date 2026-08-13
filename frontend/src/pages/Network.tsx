@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useProfessionalList, useSpecialties } from '@/hooks/useProfessionals';
 import type { ProfessionalListItem } from '@/types';
 import PageHeader from '@/components/PageHeader';
@@ -7,14 +7,24 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 
 export default function Network() {
   const [page, setPage] = useState(1);
   const [specialty, setSpecialty] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+      setPage(1);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [searchQuery]);
 
   const { data: specialtiesData } = useSpecialties();
-  const { data, isLoading } = useProfessionalList(page, 20, specialty || undefined);
+  const { data, isLoading } = useProfessionalList(page, 20, specialty || undefined, debouncedQuery || undefined);
 
   const getInitials = (name: string) =>
     name
@@ -37,10 +47,20 @@ export default function Network() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nombre..."
-            className="pl-9"
-            disabled
+            placeholder="Buscar por nombre, cargo o institución..."
+            className="pl-9 pr-9"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-foreground"
+              aria-label="Limpiar búsqueda"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
         <Select
           value={specialty}

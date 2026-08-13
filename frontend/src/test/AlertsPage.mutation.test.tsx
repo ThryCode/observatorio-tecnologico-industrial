@@ -10,7 +10,7 @@ const mockDeleteAlert = vi.fn();
 const mockMarkAllRead = vi.fn();
 
 vi.mock('@/hooks/useAlerts', () => ({
-  useAlerts: () => ({ data: [], isLoading: false }),
+  useAlerts: () => ({ data: { items: [], total: 0, page: 1, per_page: 10, total_pages: 0 }, isLoading: false }),
   useCreateAlert: () => ({ mutateAsync: mockCreateAlert, isPending: false }),
   useUpdateAlert: () => ({ mutateAsync: mockUpdateAlert, isPending: false }),
   useDeleteAlert: () => ({ mutateAsync: mockDeleteAlert, isPending: false }),
@@ -40,7 +40,8 @@ function buildAxiosError(detail: string): AxiosError {
 
 async function openCreateDialog() {
   renderWithProviders(<AlertsPage />);
-  fireEvent.click(screen.getByRole('button', { name: /Nueva Alerta/i }));
+  const buttons = screen.getAllByRole('button', { name: /Nueva Alerta/i });
+  fireEvent.click(buttons[0]);
   await screen.findByRole('dialog');
 }
 

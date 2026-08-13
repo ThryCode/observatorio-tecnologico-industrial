@@ -57,9 +57,10 @@ describe('useSpecialties', () => {
 });
 
 vi.mock('@/api/alerts', () => ({
-  listAlerts: vi.fn((unreadOnly: boolean) =>
-    Promise.resolve(unreadOnly ? mockAlerts.filter(a => !a.leida) : mockAlerts),
-  ),
+  listAlerts: vi.fn((unreadOnly: boolean) => {
+    const items = unreadOnly ? mockAlerts.filter(a => !a.leida) : mockAlerts;
+    return Promise.resolve({ items, total: items.length, page: 1, per_page: items.length, total_pages: 1 });
+  }),
   getAlert: vi.fn().mockResolvedValue(null),
   markAlertRead: vi.fn().mockResolvedValue({}),
 }));
@@ -69,15 +70,15 @@ describe('useAlerts', () => {
     const { useAlerts } = await import('@/hooks/useAlerts');
     const { result } = renderHook(() => useAlerts(false), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data).toHaveLength(3);
+    expect(result.current.data?.items).toHaveLength(3);
   });
 
   it('returns unread alerts only when unreadOnly=true', async () => {
     const { useAlerts } = await import('@/hooks/useAlerts');
     const { result } = renderHook(() => useAlerts(true), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data).toHaveLength(2);
-    expect(result.current.data?.every(alert => !alert.leida)).toBe(true);
+    expect(result.current.data?.items).toHaveLength(2);
+    expect(result.current.data?.items.every(alert => !alert.leida)).toBe(true);
   });
 });
 

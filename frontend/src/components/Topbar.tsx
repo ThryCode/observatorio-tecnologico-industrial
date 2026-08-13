@@ -17,17 +17,31 @@ import {
 const routeNames: Record<string, string> = {
   '/': 'Dashboard',
   '/graph': 'Grafo de Conocimiento',
+  '/technologies': 'Tecnologías',
   '/patents': 'Patentes',
+  '/indicators': 'Indicadores',
   '/publications': 'Publicaciones',
+  '/regulations': 'Regulaciones',
   '/alerts': 'Alertas',
   '/bulletins': 'Boletines',
   '/competitiveness': 'Análisis de Competitividad',
   '/patent-maps': 'Mapas de Patentes',
   '/organizations': 'Entidades CTI',
   '/network': 'Red Profesional',
+  '/mi-empresa': 'Mi Empresa',
+  '/enterprise-graph': 'Grafo Empresarial',
+  '/graph-analytics': 'Analítica del Grafo',
   '/settings': 'Configuración',
   '/profile': 'Perfil',
+  '/admin/pending': 'Aprobaciones Pendientes',
 };
+
+function breadcrumbLabel(route: string, part: string): string {
+  const mapped = routeNames[route];
+  if (mapped) return mapped;
+  if (route === '/admin/pending') return 'Aprobaciones Pendientes';
+  return part.charAt(0).toUpperCase() + part.slice(1).replace(/-/g, ' ');
+}
 
 export default function Topbar() {
   const { user, logout } = useAuth();
@@ -39,7 +53,7 @@ export default function Topbar() {
   const [notifClicked, setNotifClicked] = useState(false);
   const today = new Date().toISOString().slice(0, 10);
   const { data: upcomingAlerts } = useAlerts(false, 1, 1, undefined, undefined, undefined, today);
-  const rawCount = Array.isArray(upcomingAlerts) ? upcomingAlerts.length : 0;
+  const rawCount = upcomingAlerts?.items.length ?? 0;
   const lastSeen = parseInt(localStorage.getItem('lastAlertUpcomingCount') ?? '-1', 10);
   const notifCount = notifClicked ? 0 : (lastSeen === -1 ? rawCount : Math.max(0, rawCount - lastSeen));
 
@@ -66,7 +80,7 @@ export default function Topbar() {
   let currentPath = '';
   for (const part of pathParts) {
     currentPath += `/${part}`;
-    breadcrumbs.push({ path: currentPath, label: routeNames[currentPath] || part });
+    breadcrumbs.push({ path: currentPath, label: breadcrumbLabel(currentPath, part) });
   }
 
   return (

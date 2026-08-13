@@ -1,6 +1,14 @@
 import client, { USE_MOCK } from './client';
 import type { Alert } from '@/types';
 
+export interface PaginatedAlerts {
+  items: Alert[];
+  total: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
+}
+
 const MOCK_ALERTS: Alert[] = [
   { id: '1', titulo: 'Nueva patente en biotecnología', descripcion: 'Se ha registrado una patente clave en el sector biotecnológico.', severidad: 'alta', fecha: '2026-07-20', sector_codigo: 'BIO', leida: false },
   { id: '2', titulo: 'Actualización regulatoria sector energético', descripcion: 'Nueva normativa para eficiencia energética publicada.', severidad: 'media', fecha: '2026-07-19', sector_codigo: 'ENE', leida: false },
@@ -26,7 +34,7 @@ export async function listAlerts(
   fechaHasta?: string,
   sortBy?: string,
   sortOrder?: string,
-): Promise<Alert[]> {
+): Promise<PaginatedAlerts> {
   if (USE_MOCK) {
     let filtered = [...MOCK_ALERTS];
     if (unreadOnly) filtered = filtered.filter(a => !a.leida);
@@ -39,7 +47,15 @@ export async function listAlerts(
       const codes = sector.split(',');
       filtered = filtered.filter(a => !a.sector_codigo || codes.includes(a.sector_codigo));
     }
-    return filtered;
+    const total = filtered.length;
+    const start = (page - 1) * perPage;
+    return {
+      items: filtered.slice(start, start + perPage),
+      total,
+      page,
+      per_page: perPage,
+      total_pages: Math.ceil(total / perPage),
+    };
   }
   const params = new URLSearchParams({ page: String(page), per_page: String(perPage) });
   if (unreadOnly) params.set('unread_only', 'true');
@@ -50,8 +66,8 @@ export async function listAlerts(
   if (fechaHasta) params.set('fecha_hasta', fechaHasta);
   if (sortBy) params.set('sort_by', sortBy);
   if (sortOrder) params.set('sort_order', sortOrder);
-  const res = await client.get<{ items: Alert[] }>(`/alerts?${params}`);
-  return res.data.items;
+  const res = await client.get<PaginatedAlerts>(`/alerts?${params}`);
+  return res.data;
 }
 
 export async function markAllAlertsRead(): Promise<void> {

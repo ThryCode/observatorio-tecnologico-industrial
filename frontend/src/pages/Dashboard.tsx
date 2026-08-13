@@ -9,6 +9,7 @@ import AlertList from '@/components/AlertList';
 import EntityTable from '@/components/EntityTable';
 import DashboardTimeline from '@/components/DashboardTimeline';
 import ProductCard from '@/components/ProductCard';
+import EmptyState from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAlerts } from '@/hooks/useAlerts';
@@ -49,6 +50,7 @@ const iconBgMap: Record<string, 'blue' | 'orange' | 'green' | 'gold'> = {
   'graduation': 'blue',
 };
 
+// TODO: tipar el KPI por código/type del backend en lugar de label en español (frágil ante cambios de labels)
 function labelToIconKey(label: string): IconKey {
   const map: Record<string, IconKey> = {
     Organizaciones: 'users',
@@ -152,7 +154,7 @@ export default function Dashboard() {
     queryFn: () => listBulletins(1, 3),
   });
 
-  const alerts = rawAlerts?.map(mapAlertToAlertItem) || [];
+  const alerts = (rawAlerts?.items ?? []).map(mapAlertToAlertItem) || [];
   const timelineEvents = rawTimeline || [];
   const totalCount = sectorsData?.reduce((s, item) => s + item.count, 0) || 0;
   const sectors = [
@@ -183,7 +185,7 @@ export default function Dashboard() {
         fetchSafe(() => getOrganizations(1, 200), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
         fetchSafe(() => getRegulations(1, 200), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
         fetchSafe(() => getIndicators(1, 200), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
-        fetchSafe(() => listAlerts(), []),
+        fetchSafe(() => listAlerts(), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
         fetchSafe(() => listBulletins(1, 200), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
         fetchSafe(() => getIndustrialSectors(1, 200), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
         fetchSafe(() => getTimelineEvents(), []),
@@ -196,7 +198,7 @@ export default function Dashboard() {
           organizations={orgsRes.items}
           regulations={regsRes.items}
           indicators={indicsRes.items}
-          alerts={alertsRes}
+          alerts={alertsRes.items}
           bulletins={bullsRes.items}
           industrialSectors={sectorsRes.items}
           timeline={timelineRes}
@@ -279,6 +281,15 @@ export default function Dashboard() {
               <div className="text-center text-danger py-8">Error al cargar alertas</div>
             ) : alertsLoading ? (
               <div className="text-center text-text-muted py-8">Cargando alertas...</div>
+            ) : alerts.length === 0 ? (
+              <div className="bg-surface rounded-lg border border-border">
+                <EmptyState
+                  className="py-10"
+                  icon={<AlertTriangle className="h-10 w-10 text-text-muted" />}
+                  title="Sin alertas"
+                  description="No hay alertas de vigilancia recientes."
+                />
+              </div>
             ) : (
               <AlertList alerts={alerts} />
             )}
@@ -302,6 +313,13 @@ export default function Dashboard() {
                 <div className="text-center text-danger py-8">Error al cargar entidades</div>
               ) : orgsLoading ? (
                 <div className="text-center text-text-muted py-8">Cargando entidades...</div>
+              ) : entities.length === 0 ? (
+                <EmptyState
+                  className="py-10"
+                  icon={<Users className="h-10 w-10 text-text-muted" />}
+                  title="Sin entidades"
+                  description="No hay entidades CTI registradas todavía."
+                />
               ) : (
                 <EntityTable entities={entities} />
               )}
@@ -337,6 +355,15 @@ export default function Dashboard() {
           <div className="text-center text-danger py-8">Error al cargar productos</div>
         ) : bulletinsLoading ? (
           <div className="text-center text-text-muted py-8">Cargando productos...</div>
+        ) : products.length === 0 ? (
+          <div className="bg-surface rounded-lg border border-border">
+            <EmptyState
+              className="py-10"
+              icon={<BookOpen className="h-10 w-10 text-text-muted" />}
+              title="Sin productos de inteligencia"
+              description="Aún no se han publicado boletines ni estudios."
+            />
+          </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {products.map((product) => (
@@ -361,7 +388,8 @@ export default function Dashboard() {
           <span className="font-mono">v2.4.0</span>
           <span className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse-dot" />
-            Última sincronización: hace 5 min
+            {/* TODO: conectar al timestamp real del endpoint de health cuando exista */}
+            Última sincronización: en tiempo real
           </span>
         </div>
       </footer>

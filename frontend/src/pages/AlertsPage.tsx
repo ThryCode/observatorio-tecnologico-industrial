@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import PageHeader from '@/components/PageHeader';
 import AlertList from '@/components/AlertList';
+import EmptyState from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Bell } from 'lucide-react';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useAlerts, useCreateAlert, useUpdateAlert, useDeleteAlert, useMarkAllAlertsRead } from '@/hooks/useAlerts';
 import { getIndustrialSectors } from '@/api/industrialSectors';
@@ -37,24 +38,22 @@ export default function AlertsPage() {
   const [fechaHasta, setFechaHasta] = useState('');
   const [proximasActive, setProximasActive] = useState(false);
   const [page, setPage] = useState(1);
-  const [sortBy] = useState<string | undefined>('fecha');
-  const [sortOrder] = useState<string | undefined>('desc');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAlert, setEditingAlert] = useState<Alert | null>(null);
   const [deleteAlertId, setDeleteAlertId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ titulo: '', descripcion: '', severidad: 'media', fecha: '', sector: '' });
   const today = new Date().toISOString().slice(0, 10);
   const unreadOnly = leidaFilter === 'no_leidas';
-  const { data: rawAlerts, isLoading } = useAlerts(unreadOnly, page, 10, q || undefined, severidad, undefined, fechaDesde || undefined, fechaHasta || undefined, sortBy, sortOrder);
+  const { data: rawAlerts, isLoading } = useAlerts(unreadOnly, page, 10, q || undefined, severidad, undefined, fechaDesde || undefined, fechaHasta || undefined);
   const { data: sectorsData } = useQuery({
     queryKey: queryKeys.industrialSectors.list(1, 100),
     queryFn: () => getIndustrialSectors(1, 100),
     staleTime: 10 * 60 * 1000,
   });
   const sectorOptions = (sectorsData?.items || []).map((s) => ({ value: s.codigo, label: s.nombre }));
-  const allAlerts = Array.isArray(rawAlerts)
-    ? leidaFilter === 'leidas' ? rawAlerts.filter(a => a.leida) : rawAlerts
-    : [];
+  // TODO: backend solo expone `unread_only` (booleano); el filtro "solo leídas"
+  // no es expresable server-side y se aplica en memoria sobre la página actual.
+  const allAlerts = (rawAlerts?.items ?? []).filter((a) => leidaFilter !== 'leidas' || a.leida);
   const alerts = allAlerts.map(mapAlertToAlertItem);
   const markAllRead = useMarkAllAlertsRead();
   const createMutation = useCreateAlert();
@@ -72,7 +71,7 @@ export default function AlertsPage() {
   };
 
   const openEdit = (id: string) => {
-    const alert = rawAlerts?.find((a) => a.id === id);
+    const alert = rawAlerts?.items.find((a) => a.id === id);
     if (!alert) return;
     setEditingAlert(alert);
     setFormData({
@@ -171,7 +170,7 @@ export default function AlertsPage() {
             <Button variant={proximasActive ? 'default' : 'outline'} size="sm" onClick={() => { setProximasActive(!proximasActive); setFechaDesde(proximasActive ? '' : today); setFechaHasta(''); setPage(1); }}>
               Próximas
             </Button>
-            {Array.isArray(rawAlerts) && rawAlerts.some(a => !a.leida) && (
+            {Array.isArray(rawAlerts?.items) && rawAlerts.items.some(a => !a.leida) && (
               <Button variant="outline" size="sm" onClick={() => markAllRead.mutate()} disabled={markAllRead.isPending}>
                 {markAllRead.isPending ? 'Marcando...' : 'Marcar todas como leídas'}
               </Button>
@@ -187,6 +186,15 @@ export default function AlertsPage() {
       />
       {isLoading ? (
         <div className="text-center text-text-muted py-8">Cargando alertas...</div>
+      ) : alerts.length === 0 ? (
+        <div className="bg-surface rounded-lg border border-border">
+          <EmptyState
+            icon={<Bell className="h-10 w-10 text-text-muted" />}
+            title="No hay alertas"
+            description="No se encontraron alertas con los filtros actuales. Ajusta los filtros o crea una nueva alerta."
+            action={can('alerts', 'create') ? { label: 'Nueva alerta', onClick: openCreate } : undefined}
+          />
+        </div>
       ) : (
         <AlertList
           alerts={alerts}
@@ -199,8 +207,8 @@ export default function AlertsPage() {
           <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>
             Anteriores
           </Button>
-          <span className="text-sm text-text-muted">Página {page}</span>
-          <Button variant="outline" size="sm" disabled={allAlerts.length < 10} onClick={() => setPage(p => p + 1)}>
+          <span className="text-sm text-text-muted">Página {page} de {Math.max(1, rawAlerts?.total_pages ?? 1)}</span>
+          <Button variant="outline" size="sm" disabled={page >= (rawAlerts?.total_pages ?? 1)} onClick={() => setPage(p => p + 1)}>
             Siguientes
           </Button>
         </div>

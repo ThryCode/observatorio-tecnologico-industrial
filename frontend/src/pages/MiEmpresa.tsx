@@ -226,14 +226,20 @@ export default function MiEmpresa() {
                 <Label htmlFor="nombre">Nombre de la empresa *</Label>
                 <div className="flex items-center gap-2">
                   <Building2 className="h-4 w-4 text-muted-foreground" />
-                  <Input id="nombre" placeholder="Nombre de la entidad" {...createForm.register('nombre', { required: true })} />
+                  <Input id="nombre" placeholder="Nombre de la entidad" aria-invalid={!!createForm.formState.errors.nombre} {...createForm.register('nombre', { required: true })} />
                 </div>
+                {createForm.formState.errors.nombre && (
+                  <p className="text-xs text-danger mt-1">{createForm.formState.errors.nombre.message || 'Este campo es requerido'}</p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="siglas">Siglas *</Label>
-                  <Input id="siglas" placeholder="CAI" {...createForm.register('siglas', { required: true })} />
+                  <Input id="siglas" placeholder="CAI" aria-invalid={!!createForm.formState.errors.siglas} {...createForm.register('siglas', { required: true })} />
+                  {createForm.formState.errors.siglas && (
+                    <p className="text-xs text-danger mt-1">{createForm.formState.errors.siglas.message || 'Este campo es requerido'}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="tipo">Tipo</Label>
