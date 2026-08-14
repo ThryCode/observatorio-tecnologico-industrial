@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import EmptyState from '@/components/ui/empty-state';
+import { SectionErrorBoundary } from '@/components/SectionErrorBoundary';
 import { Lightbulb, Loader2, GitBranch } from 'lucide-react';
 import type { EnterpriseGraphNode } from '@/types';
 
@@ -88,20 +89,22 @@ export default function EnterpriseGraph() {
         <Card className="lg:col-span-2">
           <CardContent className="p-0">
             <div className="h-[600px]">
-              {graphNodes.length === 0 ? (
-                <EmptyState
-                  className="h-full"
-                  icon={<GitBranch className="h-10 w-10 text-text-muted" />}
-                  title="Grafo empresarial vacío"
-                  description="Aún no hay relaciones de seguimiento entre empresas registradas."
-                />
-              ) : (
-                <ForceGraph2D
-                  nodes={graphNodes}
-                  edges={data?.edges ?? []}
-                  onNodeClick={handleNodeClick}
-                />
-              )}
+              <SectionErrorBoundary title="Grafo Empresarial">
+                {graphNodes.length === 0 ? (
+                  <EmptyState
+                    className="h-full"
+                    icon={<GitBranch className="h-10 w-10 text-text-muted" />}
+                    title="Grafo empresarial vacío"
+                    description="Aún no hay relaciones de seguimiento entre empresas registradas."
+                  />
+                ) : (
+                  <ForceGraph2D
+                    nodes={graphNodes}
+                    edges={data?.edges ?? []}
+                    onNodeClick={handleNodeClick}
+                  />
+                )}
+              </SectionErrorBoundary>
             </div>
           </CardContent>
         </Card>

@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useCompetitiveness } from '@/hooks/useCompetitiveness';
 import { chartColors } from '@/lib/graph-colors';
+import { SectionErrorBoundary } from '@/components/SectionErrorBoundary';
 import { BarChart3 } from 'lucide-react';
 
 export default function Competitiveness() {
@@ -34,27 +35,29 @@ export default function Competitiveness() {
             description="No hay datos disponibles para comparar la competitividad industrial por sectores."
           />
         ) : (
-          <div className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border-subtle" />
-                <XAxis dataKey="sector" className="text-xs text-text-muted" />
-                <YAxis className="text-xs text-text-muted" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--surface))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                  }}
-                />
-                <Legend />
-                <Bar dataKey="Cuba" fill={chartColors.accent} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Chile" fill={chartColors.gold} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="México" fill={chartColors.blue} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Brasil" fill={chartColors.green} radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <SectionErrorBoundary title="Gráfico de Competitividad">
+            <div className="h-[400px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border-subtle" />
+                  <XAxis dataKey="sector" className="text-xs text-text-muted" />
+                  <YAxis className="text-xs text-text-muted" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--surface))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                    }}
+                  />
+                  <Legend />
+                  <Bar dataKey="Cuba" fill={chartColors.accent} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Chile" fill={chartColors.gold} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="México" fill={chartColors.blue} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Brasil" fill={chartColors.green} radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </SectionErrorBoundary>
         )}
       </div>
     </div>

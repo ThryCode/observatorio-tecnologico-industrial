@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import ForceGraph2D, { type ForceGraphNode } from '@/components/ForceGraph2D';
 import { buildGalaxy, buildSystem, primaryType, nodeTypeSpanish } from '@/lib/graphNav';
 import { Search, Network, AlertCircle, Loader2, ArrowLeft, MousePointerClick, X, Filter } from 'lucide-react';
+import { SectionErrorBoundary } from '@/components/SectionErrorBoundary';
 import { getIndustrialSectors } from '@/api/industrialSectors';
 import { queryKeys } from '@/lib/queryKeys';
 import { nodeTypeHex } from '@/lib/graph-colors';
@@ -195,25 +196,27 @@ export default function GraphExplorer() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="h-[620px]">
-                {graphLoading || !visible ? (
-                  <div className="flex items-center justify-center h-full">
-                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                  </div>
-                ) : visible.nodes.length === 0 ? (
-                  <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
-                    No hay nodos para visualizar.
-                  </div>
-                ) : (
-                  <ForceGraph2D
-                    nodes={visible.nodes}
-                    edges={visible.edges}
-                    centerId={centerId}
-                    hideCenter={hasFocus}
-                    onNodeClick={handleNodeClick}
-                    onExpandNode={handleExpandNode}
-                    showEdgeLabels
-                  />
-                )}
+                <SectionErrorBoundary title="Visualización del Grafo">
+                  {graphLoading || !visible ? (
+                    <div className="flex items-center justify-center h-full">
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : visible.nodes.length === 0 ? (
+                    <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+                      No hay nodos para visualizar.
+                    </div>
+                  ) : (
+                    <ForceGraph2D
+                      nodes={visible.nodes}
+                      edges={visible.edges}
+                      centerId={centerId}
+                      hideCenter={hasFocus}
+                      onNodeClick={handleNodeClick}
+                      onExpandNode={handleExpandNode}
+                      showEdgeLabels
+                    />
+                  )}
+                </SectionErrorBoundary>
               </div>
             </CardContent>
           </Card>

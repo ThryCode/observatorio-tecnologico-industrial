@@ -10,6 +10,7 @@ import EntityTable from '@/components/EntityTable';
 import DashboardTimeline from '@/components/DashboardTimeline';
 import ProductCard from '@/components/ProductCard';
 import EmptyState from '@/components/ui/empty-state';
+import { SectionErrorBoundary } from '@/components/SectionErrorBoundary';
 import { Button } from '@/components/ui/button';
 import { Skeleton, CardSkeleton, TableSkeleton } from '@/components/ui/skeleton';
 import { useAlerts } from '@/hooks/useAlerts';
@@ -273,9 +274,11 @@ export default function Dashboard() {
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <h3 className="text-base font-bold text-foreground mb-3">Grafo de Conocimiento Industrial</h3>
-            <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
-              <KnowledgeGraph height={620} className="rounded-lg border border-border" sectorCodigos={activeSectors.map((s) => s.toUpperCase())} />
-            </Suspense>
+            <SectionErrorBoundary title="Grafo de Conocimiento">
+              <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
+                <KnowledgeGraph height={620} className="rounded-lg border border-border" sectorCodigos={activeSectors.map((s) => s.toUpperCase())} />
+              </Suspense>
+            </SectionErrorBoundary>
           </div>
           <div>
             <div className="flex items-center justify-between mb-3">
@@ -309,7 +312,9 @@ export default function Dashboard() {
                 />
               </div>
             ) : (
-              <AlertList alerts={alerts} />
+              <SectionErrorBoundary title="Alertas">
+                <AlertList alerts={alerts} />
+              </SectionErrorBoundary>
             )}
           </div>
         </div>
@@ -341,7 +346,9 @@ export default function Dashboard() {
                   description="No hay entidades CTI registradas todavía."
                 />
               ) : (
-                <EntityTable entities={entities} />
+                <SectionErrorBoundary title="Entidades CTI">
+                  <EntityTable entities={entities} />
+                </SectionErrorBoundary>
               )}
             </div>
           </div>
@@ -365,7 +372,9 @@ export default function Dashboard() {
                   ))}
                 </div>
               ) : (
-                <DashboardTimeline events={timelineEvents.slice(0, 6)} />
+                <SectionErrorBoundary title="Actividad Reciente">
+                  <DashboardTimeline events={timelineEvents.slice(0, 6)} />
+                </SectionErrorBoundary>
               )}
             </div>
           </div>
