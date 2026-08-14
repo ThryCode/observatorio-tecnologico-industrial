@@ -35,6 +35,10 @@ class User(Base, UUIDMixin, TimestampMixin):
     role: Mapped[str] = mapped_column(String(20), default="visitante")
     phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
     job_title: Mapped[str | None] = mapped_column(String(100), nullable=True)
+
+    # Notification preferences
+    email_notifications: Mapped[bool] = mapped_column(Boolean, default=True)
+    summary_frequency: Mapped[str] = mapped_column(String(20), default="diario")
     organization_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("organizations.id"), nullable=True
     )

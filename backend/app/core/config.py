@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     smtp_use_tls: bool = True
     email_from: str = "Observatorio Tecnologico Industrial <noreply@mindus.gob.cu>"
     frontend_url: str = "http://localhost:5173"
+    summary_send_hour: int = 7
 
     upload_dir: str = "./uploads"
     max_upload_size: int = 10_485_760  # 10MB

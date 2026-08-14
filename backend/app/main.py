@@ -76,7 +76,25 @@ async def lifespan(app: FastAPI):
 
     logger.info("Application startup complete")
 
+    # Background summary email scheduler (only if SMTP is configured)
+    summary_task = None
+    if settings.smtp_host:
+        import asyncio
+
+        from app.services.notification_service import summary_scheduler_loop
+
+        stop_event = asyncio.Event()
+        summary_task = asyncio.create_task(summary_scheduler_loop(stop_event))
+
     yield
+
+    if summary_task:
+        stop_event.set()
+        summary_task.cancel()
+        try:
+            await summary_task
+        except asyncio.CancelledError:
+            logger.info("Summary scheduler cancelled")
 
     logger.info("Shutting down Observatorio API")
     await db.close_db()

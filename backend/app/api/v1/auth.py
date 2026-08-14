@@ -63,7 +63,7 @@ async def update_me(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    allowed = {"full_name", "phone", "job_title"}
+    allowed = {"full_name", "phone", "job_title", "email_notifications", "summary_frequency"}
     for key, val in data.model_dump(exclude_unset=True).items():
         if key in allowed:
             setattr(current_user, key, val)

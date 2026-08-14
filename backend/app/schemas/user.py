@@ -39,6 +39,8 @@ class UserUpdate(BaseModel):
     job_title: str | None = None
     organization_id: UUID | None = None
     is_active: bool | None = None
+    email_notifications: bool | None = None
+    summary_frequency: str | None = None
 
     @field_validator("email")
     @classmethod
@@ -52,6 +54,13 @@ class UserUpdate(BaseModel):
     def validate_role(cls, v: str | None) -> str | None:
         if v is not None and v not in VALID_ROLES:
             raise ValueError(f"Role must be one of: {', '.join(sorted(VALID_ROLES))}")
+        return v
+
+    @field_validator("summary_frequency")
+    @classmethod
+    def validate_summary_frequency(cls, v: str | None) -> str | None:
+        if v is not None and v not in {"diario", "semanal", "mensual"}:
+            raise ValueError("summary_frequency must be one of: diario, semanal, mensual")
         return v
 
 
@@ -73,6 +82,8 @@ class UserResponse(BaseModel):
     role: str
     phone: str | None
     job_title: str | None
+    email_notifications: bool
+    summary_frequency: str
     organization_id: UUID | None
     is_active: bool
     is_superuser: bool

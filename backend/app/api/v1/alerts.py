@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 from uuid import UUID
 
@@ -10,6 +11,7 @@ from app.schemas.alert import AlertCreate, AlertResponse, AlertUpdate
 from app.schemas.common import Message, PaginatedResponse
 from app.services.alert_service import AlertService
 from app.services.audit_service import AuditService
+from app.services.notification_service import notify_new_alert
 from app.ws_manager import manager
 
 router = APIRouter(prefix="/alerts", tags=["alerts"])
@@ -69,6 +71,8 @@ async def create_alert(
     await manager.send_to_user(str(current_user.id), {
         "type": "new_alert", "alert": {"id": str(alert.id), "titulo": alert.titulo},
     })
+    # Email notification to subscribed users (fire-and-forget)
+    asyncio.create_task(notify_new_alert(str(alert.id), alert.titulo, alert.descripcion, alert.severidad))
     return alert
 
 

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><title>Resumen {{ frequency }}</title></head>
+<body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+  <h2 style="color:#1a5c8a;">Observatorio Tecnol&oacute;gico Industrial</h2>
+  <p><strong>Resumen {{ frequency }}</strong> &mdash; novedades de los &uacute;ltimos {{ period }} d&iacute;a(s):</p>
+  {% if items %}
+  <ul style="padding:0;list-style:none;">
+    {% for item in items %}
+    <li style="border-bottom:1px solid #eee;padding:10px 0;">
+      <strong>{{ item.titulo }}</strong>
+      <span style="font-size:12px;color:#888;">[{{ item.severidad }}]</span>
+      {% if item.descripcion %}<p style="margin:4px 0 0;color:#555;font-size:13px;">{{ item.descripcion }}</p>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>No hay novedades en el periodo.</p>
+  {% endif %}
+  <p><a href="{{ alerts_url }}" style="display:inline-block;padding:10px 20px;background:#1a5c8a;color:white;text-decoration:none;border-radius:4px;">Ver alertas</a></p>
+  <hr style="margin-top:30px;">
+  <p style="font-size:12px;color:#888;">Ministerio de Industrias &mdash; MINDUS</p>
+</body>
+</html>

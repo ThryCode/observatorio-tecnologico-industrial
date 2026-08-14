@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><title>Nueva alerta</title></head>
+<body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+  <h2 style="color:#1a5c8a;">Observatorio Tecnol&oacute;gico Industrial</h2>
+  <p><strong>Nueva alerta de vigilancia</strong> (severidad: {{ severidad }}):</p>
+  <div style="border-left:4px solid #e86a33;padding:12px 16px;background:#f7f8fa;">
+    <h3 style="margin:0 0 6px;color:#222;">{{ titulo }}</h3>
+    <p style="margin:0;color:#555;">{{ descripcion }}</p>
+  </div>
+  <p><a href="{{ alerts_url }}" style="display:inline-block;padding:10px 20px;background:#1a5c8a;color:white;text-decoration:none;border-radius:4px;">Ver alertas</a></p>
+  <hr style="margin-top:30px;">
+  <p style="font-size:12px;color:#888;">Ministerio de Industrias &mdash; MINDUS</p>
+</body>
+</html>

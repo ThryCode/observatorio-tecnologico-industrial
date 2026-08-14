@@ -10,6 +10,8 @@ export interface User {
   role: UserRole;
   phone?: string;
   job_title?: string;
+  email_notifications?: boolean;
+  summary_frequency?: 'diario' | 'semanal' | 'mensual';
   organization_id?: string;
   is_active: boolean;
   is_superuser: boolean;

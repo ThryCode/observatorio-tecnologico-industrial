@@ -37,6 +37,20 @@ export async function getMe(): Promise<User> {
   return res.data;
 }
 
+export interface UpdateMePayload {
+  full_name?: string;
+  phone?: string;
+  job_title?: string;
+  email_notifications?: boolean;
+  summary_frequency?: 'diario' | 'semanal' | 'mensual';
+}
+
+export async function updateMe(data: UpdateMePayload): Promise<User> {
+  if (USE_MOCK) return { ...MOCK_USER, ...data };
+  const res = await client.put<User>('/auth/me', data);
+  return res.data;
+}
+
 export async function registerPublic(data: RegisterRequest): Promise<{ detail: string }> {
   const res = await client.post<{ detail: string }>('/auth/register/public', data);
   return res.data;
