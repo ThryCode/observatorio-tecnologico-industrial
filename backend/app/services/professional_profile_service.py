@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.exceptions import AppException
+from app.models.organization import Organization
 from app.models.professional_profile import ProfessionalProfile
 from app.models.user import User, UserStatus
 from app.schemas.professional import ProfessionalListItem, ProfessionalProfileUpdate
@@ -37,7 +38,14 @@ class ProfessionalProfileService:
             count_query = count_query.where(ProfessionalProfile.especialidad == especialidad)
         if q:
             like = f"%{q}%"
-            cond = func.lower(User.full_name).like(func.lower(like)) | func.lower(User.email).like(func.lower(like))
+            cond = (
+                func.lower(User.full_name).like(func.lower(like))
+                | func.lower(User.email).like(func.lower(like))
+                | func.lower(User.job_title).like(func.lower(like))
+            )
+            query = query.outerjoin(Organization, Organization.id == User.organization_id)
+            count_query = count_query.outerjoin(Organization, Organization.id == User.organization_id)
+            cond = cond | func.lower(Organization.nombre).like(func.lower(like))
             query = query.where(cond)
             count_query = count_query.where(cond)
 
