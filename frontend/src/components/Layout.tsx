@@ -1,9 +1,11 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '@/components/Sidebar';
 import Topbar from '@/components/Topbar';
+import { useWebSocket } from '@/hooks/useWebSocket';
 
 export default function Layout() {
   const location = useLocation();
+  useWebSocket();
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
