@@ -1,26 +1,30 @@
 import { useNavigate } from 'react-router-dom';
-import { Compass } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { ArrowLeft, Home } from 'lucide-react';
 
-export default function NotFound() {
+export function NotFound() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] py-16 px-8">
-      <div className="text-border-strong mb-6">
-        <Compass className="h-16 w-16" strokeWidth={1.5} />
-      </div>
-      <p className="text-6xl font-extrabold text-accent-red mb-2">404</p>
-      <h1 className="text-2xl font-bold text-foreground mb-2">Página no encontrada</h1>
-      <p className="text-base text-text-muted text-center max-w-sm leading-relaxed mb-8">
-        La ruta que buscas no existe o fue movida. Verifica la URL o vuelve al inicio.
-      </p>
-      <div className="flex items-center gap-3">
-        <Button variant="outline" onClick={() => navigate(-1)}>
-          Volver atrás
-        </Button>
-        <Button onClick={() => navigate('/')}>Ir al inicio</Button>
-      </div>
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <Card className="mx-auto max-w-md p-8 text-center">
+        <div className="mb-4 text-6xl font-bold text-muted-foreground">404</div>
+        <h1 className="mb-2 text-2xl font-bold">Página no encontrada</h1>
+        <p className="mb-6 text-muted-foreground">
+          La página que busca no existe o fue movida a otra ubicación.
+        </p>
+        <div className="flex justify-center gap-3">
+          <Button variant="outline" onClick={() => navigate(-1)}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Volver
+          </Button>
+          <Button onClick={() => navigate('/')}>
+            <Home className="mr-2 h-4 w-4" />
+            Dashboard
+          </Button>
+        </div>
+      </Card>
     </div>
   );
 }
