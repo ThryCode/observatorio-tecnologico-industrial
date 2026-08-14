@@ -6,6 +6,7 @@ import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import PageHeader from '@/components/PageHeader';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import client from '@/api/client';
 import { queryKeys } from '@/lib/queryKeys';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ const serviceLabels: Record<string, string> = {
 
 export default function SettingsPage() {
   const { user, loginSuccess } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const form = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
@@ -146,6 +148,21 @@ export default function SettingsPage() {
             <p className="text-sm text-text-muted mb-4">Configuración de idioma, notificaciones y apariencia.</p>
             <div className="space-y-4">
               <div className="flex items-center justify-between py-2">
+                <div>
+                  <p className="text-sm font-medium text-foreground">Apariencia</p>
+                  <p className="text-xs text-text-muted">Tema de la interfaz: claro, oscuro o seguir el sistema</p>
+                </div>
+                <select
+                  className="bg-background border border-border rounded-md px-3 py-1.5 text-sm text-foreground"
+                  value={theme}
+                  onChange={(e) => setTheme(e.target.value as 'light' | 'dark' | 'system')}
+                >
+                  <option value="light">Claro</option>
+                  <option value="dark">Oscuro</option>
+                  <option value="system">Sistema</option>
+                </select>
+              </div>
+              <div className="flex items-center justify-between py-2 border-t border-border-subtle">
                 <div>
                   <p className="text-sm font-medium text-foreground">Idioma del sistema</p>
                   <p className="text-xs text-text-muted">Idioma predeterminado para la interfaz</p>

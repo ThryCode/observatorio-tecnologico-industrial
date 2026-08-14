@@ -84,7 +84,7 @@ export default function Topbar() {
   }
 
   return (
-    <header className="sticky top-0 z-20 h-topbar bg-white/[0.92] backdrop-blur-[12px] saturate-[180%] border-b border-border">
+    <header className="sticky top-0 z-20 h-topbar bg-background/90 backdrop-blur-[12px] saturate-[180%] border-b border-border">
       <div className="flex items-center justify-between h-full px-8">
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">
