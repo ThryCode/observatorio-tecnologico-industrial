@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import client from '@/api/client';
 import { useMyProfessionalProfile, useUpdateMyProfessionalProfile } from '@/hooks/useProfessionals';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { TableSkeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -208,7 +209,9 @@ export default function Profile() {
 
       {isProfessional && profLoading && (
         <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">Cargando perfil profesional...</CardContent>
+          <CardContent className="py-6">
+            <TableSkeleton rows={3} />
+          </CardContent>
         </Card>
       )}
 

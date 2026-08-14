@@ -6,6 +6,7 @@ import client from '@/api/client';
 import { getIndustrialSectors } from '@/api/industrialSectors';
 import { getOrganizationFollowStats } from '@/api/follows';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton, TableSkeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -165,7 +166,17 @@ export default function MiEmpresa() {
   };
 
   if (isLoading) {
-    return <div className="text-center py-8">Cargando...</div>;
+    return (
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-56" />
+          <Skeleton className="h-4 w-80" />
+        </div>
+        <Card className="p-6">
+          <TableSkeleton rows={5} />
+        </Card>
+      </div>
+    );
   }
 
   if (isError && !isNotFound) {

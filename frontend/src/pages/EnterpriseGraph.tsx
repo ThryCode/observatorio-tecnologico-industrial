@@ -45,7 +45,7 @@ export default function EnterpriseGraph() {
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Grafo Empresarial</h2>
-          <p className="text-muted-foreground">Cargando datos del grafo empresarial...</p>
+          <Skeleton className="h-4 w-64 mt-2" />
         </div>
         <div className="grid gap-4 md:grid-cols-3">
           {Array.from({ length: 3 }).map((_, i) => (

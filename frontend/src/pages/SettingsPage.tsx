@@ -14,7 +14,7 @@ import type { TranslationKey } from '@/i18n/translations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, Key, User, Phone, Briefcase, Mail } from 'lucide-react';
+import { Save, User, Phone, Briefcase, Mail, ShieldAlert } from 'lucide-react';
 
 const profileSchema = z.object({
   full_name: z.string().min(1, 'El nombre es requerido'),
@@ -277,10 +277,15 @@ export default function SettingsPage() {
           <div className="bg-surface rounded-lg border border-border p-6">
             <h3 className="text-base font-bold text-foreground mb-1">{t('settings.security.title')}</h3>
             <p className="text-sm text-text-muted mb-4">{t('settings.security.subtitle')}</p>
-            <div className="flex items-center gap-2 text-sm text-text-muted">
-              <Key className="h-4 w-4" />
-              {/* TODO: backend no expone endpoint de cambio de contraseña ni gestión de sesiones/logs */}
-              {t('settings.security.unavailable')}
+            <div className="flex items-center gap-3 rounded-lg border border-dashed border-border-strong bg-background/50 p-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-subtle">
+                <ShieldAlert className="h-5 w-5 text-accent-orange" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-foreground">{t('settings.security.password')}</p>
+                <p className="text-xs text-text-muted mt-0.5">{t('settings.security.passwordDesc')}</p>
+              </div>
+              <span className="text-xs font-semibold px-2 py-1 rounded-full bg-muted text-text-muted">{t('settings.security.comingSoon')}</span>
             </div>
           </div>
         </div>

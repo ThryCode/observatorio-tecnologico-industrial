@@ -2,6 +2,7 @@ import { useState } from 'react';
 import PageHeader from '@/components/PageHeader';
 import AlertList from '@/components/AlertList';
 import EmptyState from '@/components/ui/empty-state';
+import { TableSkeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Plus, Search, Bell } from 'lucide-react';
@@ -185,7 +186,9 @@ export default function AlertsPage() {
         }
       />
       {isLoading ? (
-        <div className="text-center text-text-muted py-8">Cargando alertas...</div>
+        <div className="rounded-lg border border-border bg-surface p-5">
+          <TableSkeleton rows={6} />
+        </div>
       ) : alerts.length === 0 ? (
         <div className="bg-surface rounded-lg border border-border">
           <EmptyState

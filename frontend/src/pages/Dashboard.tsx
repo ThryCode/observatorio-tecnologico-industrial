@@ -11,7 +11,7 @@ import DashboardTimeline from '@/components/DashboardTimeline';
 import ProductCard from '@/components/ProductCard';
 import EmptyState from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton, CardSkeleton, TableSkeleton } from '@/components/ui/skeleton';
 import { useAlerts } from '@/hooks/useAlerts';
 import { useDashboardKPIs, useTimelineEvents } from '@/hooks/useDashboard';
 import { getPatents } from '@/api/patents';
@@ -240,7 +240,11 @@ export default function Dashboard() {
       {sectorsError ? (
         <div className="text-center text-danger py-4">Error al cargar sectores</div>
       ) : sectorsLoading ? (
-        <div className="text-center text-text-muted py-4">Cargando sectores...</div>
+        <div className="flex flex-wrap gap-2">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-8 w-28 rounded-full" />
+          ))}
+        </div>
       ) : (
         <SectorPills sectors={sectors} active={activeSectors} onChange={setActiveSectors} />
       )}
@@ -250,7 +254,11 @@ export default function Dashboard() {
         {kpisError ? (
           <div className="text-center text-danger py-8">Error al cargar KPIs</div>
         ) : kpisLoading ? (
-          <div className="text-center text-text-muted py-8">Cargando KPIs...</div>
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <CardSkeleton key={i} />
+            ))}
+          </div>
         ) : (
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
             {kpiCards.map((kpi) => (
@@ -280,7 +288,17 @@ export default function Dashboard() {
             {alertsError ? (
               <div className="text-center text-danger py-8">Error al cargar alertas</div>
             ) : alertsLoading ? (
-              <div className="text-center text-text-muted py-8">Cargando alertas...</div>
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton variant="circle" className="h-8 w-8 shrink-0" />
+                    <div className="flex-1 space-y-1.5">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-3 w-2/3" />
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : alerts.length === 0 ? (
               <div className="bg-surface rounded-lg border border-border">
                 <EmptyState
@@ -312,7 +330,9 @@ export default function Dashboard() {
               {orgsError ? (
                 <div className="text-center text-danger py-8">Error al cargar entidades</div>
               ) : orgsLoading ? (
-                <div className="text-center text-text-muted py-8">Cargando entidades...</div>
+                <div className="p-5">
+                  <TableSkeleton rows={3} />
+                </div>
               ) : entities.length === 0 ? (
                 <EmptyState
                   className="py-10"
@@ -333,7 +353,17 @@ export default function Dashboard() {
               {timelineError ? (
                 <div className="text-center text-danger py-8">Error al cargar actividad reciente</div>
               ) : timelineLoading ? (
-                <div className="text-center text-text-muted py-8">Cargando actividad reciente...</div>
+                <div className="space-y-3">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <Skeleton variant="circle" className="h-8 w-8 shrink-0" />
+                      <div className="flex-1 space-y-1.5">
+                        <Skeleton className="h-4 w-4/5" />
+                        <Skeleton className="h-3 w-1/2" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               ) : (
                 <DashboardTimeline events={timelineEvents.slice(0, 6)} />
               )}
@@ -354,7 +384,11 @@ export default function Dashboard() {
         {bulletinsError ? (
           <div className="text-center text-danger py-8">Error al cargar productos</div>
         ) : bulletinsLoading ? (
-          <div className="text-center text-text-muted py-8">Cargando productos...</div>
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <CardSkeleton key={i} />
+            ))}
+          </div>
         ) : products.length === 0 ? (
           <div className="bg-surface rounded-lg border border-border">
             <EmptyState

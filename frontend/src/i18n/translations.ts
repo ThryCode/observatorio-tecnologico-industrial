@@ -56,6 +56,9 @@ export const es = {
 
   'settings.security.title': 'Seguridad',
   'settings.security.subtitle': 'Gestión de acceso y autenticación.',
+  'settings.security.password': 'Cambio de contraseña',
+  'settings.security.passwordDesc': 'Actualiza tu contraseña de acceso desde aquí cuando esté disponible.',
+  'settings.security.comingSoon': 'Próximamente',
   'settings.security.unavailable': 'Funcionalidad no disponible',
 } as const;
 
@@ -119,5 +122,8 @@ export const en: Record<TranslationKey, string> = {
 
   'settings.security.title': 'Security',
   'settings.security.subtitle': 'Access and authentication management.',
+  'settings.security.password': 'Change password',
+  'settings.security.passwordDesc': 'Update your access password from here once available.',
+  'settings.security.comingSoon': 'Coming soon',
   'settings.security.unavailable': 'Feature not available',
 };

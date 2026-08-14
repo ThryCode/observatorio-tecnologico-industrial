@@ -104,6 +104,31 @@
   ::selection {
     @apply bg-accent-orange/20 text-foreground;
   }
+  /* Smooth theme switching */
+  :where(body, header, aside, main, nav, footer, section, article, div, button, input, select, textarea) {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-duration: 300ms;
+    transition-timing-function: ease;
+  }
+  /* Slim custom scrollbars */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border-strong));
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--text-placeholder));
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border-strong)) transparent;
+  }
 }
 
 @layer utilities {

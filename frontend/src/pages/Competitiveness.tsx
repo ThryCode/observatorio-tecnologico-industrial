@@ -1,5 +1,6 @@
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/ui/empty-state';
+import { Skeleton } from '@/components/ui/skeleton';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useCompetitiveness } from '@/hooks/useCompetitiveness';
 import { chartColors } from '@/lib/graph-colors';
@@ -18,7 +19,13 @@ export default function Competitiveness() {
       <div className="bg-surface rounded-lg border border-border p-6">
         <h3 className="text-base font-bold text-foreground mb-4">Índice de Competitividad Industrial por Sector</h3>
         {isLoading ? (
-          <div className="text-center text-text-muted py-8">Cargando datos de competitividad...</div>
+          <div className="space-y-3">
+            <Skeleton className="h-[320px] w-full" />
+            <div className="flex gap-3">
+              <Skeleton className="h-8 w-32" />
+              <Skeleton className="h-8 w-32" />
+            </div>
+          </div>
         ) : !data || data.length === 0 ? (
           <EmptyState
             className="py-10"

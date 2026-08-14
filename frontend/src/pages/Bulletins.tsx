@@ -2,6 +2,7 @@ import { useState } from 'react';
 import PageHeader from '@/components/PageHeader';
 import ProductCard from '@/components/ProductCard';
 import EmptyState from '@/components/ui/empty-state';
+import { CardSkeleton } from '@/components/ui/skeleton';
 import { FileText, Clock, User, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
@@ -72,7 +73,11 @@ export default function Bulletins() {
         }
       />
       {isLoading ? (
-        <div className="text-center text-text-muted py-8">Cargando publicaciones...</div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <CardSkeleton key={i} />
+          ))}
+        </div>
       ) : bulletins.length === 0 ? (
         <div className="bg-surface rounded-lg border border-border">
           <EmptyState

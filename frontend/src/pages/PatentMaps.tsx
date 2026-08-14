@@ -1,5 +1,6 @@
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/ui/empty-state';
+import { Skeleton } from '@/components/ui/skeleton';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { usePatentMaps } from '@/hooks/usePatentMaps';
 import { chartColors } from '@/lib/graph-colors';
@@ -16,7 +17,13 @@ export default function PatentMaps() {
         description="Distribución de la actividad patentaria por dominios tecnológicos de interés industrial."
       />
       {isLoading ? (
-        <div className="text-center text-text-muted py-8">Cargando mapas de patentes...</div>
+        <div className="space-y-3">
+          <Skeleton className="h-[320px] w-full" />
+          <div className="flex gap-3">
+            <Skeleton className="h-8 w-32" />
+            <Skeleton className="h-8 w-32" />
+          </div>
+        </div>
       ) : !data || data.length === 0 ? (
         <div className="bg-surface rounded-lg border border-border">
           <EmptyState
