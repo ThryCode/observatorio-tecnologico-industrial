@@ -203,7 +203,7 @@ async def _enterprise_graph_from_neo4j(neo4j: AsyncDriver) -> EnterpriseGraphRes
         edges_data = [dict(r) async for r in follows_result]
 
         patents_result = await session.run(
-            "MATCH (p:Patent)-[:FILED_BY]->(o:Enterprise) "
+            "MATCH (o:Enterprise)-[:HAS_PATENT]->(p:Patent) "
             "RETURN o.id AS org_id, p.id AS id, p.title AS title, "
             "p.patent_number AS patent_number, p.status AS status, "
             "p.filing_date AS filing_date, p.publication_date AS publication_date, "

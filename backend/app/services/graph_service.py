@@ -27,7 +27,7 @@ class GraphService:
         }
 
         follows_result = await self.db.execute(
-            select(Follow).where(Follow.follower_type == "user")
+            select(Follow)
         )
         follows = follows_result.scalars().all()
 
@@ -79,7 +79,12 @@ class GraphService:
         edges: list[EnterpriseGraphEdge] = []
         seen_edges: set[str] = set()
         for f in follows:
-            follower_org_id = user_org_map.get(str(f.follower_id))
+            if f.follower_type == "user":
+                follower_org_id = user_org_map.get(str(f.follower_id))
+            elif f.follower_type == "organization":
+                follower_org_id = str(f.follower_id)
+            else:
+                continue
             if not follower_org_id or follower_org_id == str(f.organization_id):
                 continue
             if follower_org_id in orgs and str(f.organization_id) in orgs:

@@ -48,6 +48,7 @@ const EDGE_TYPE_SPANISH: Record<string, string> = {
   PART_OF: 'parte de',
   HAS_TECHNOLOGY: 'tiene tecnología',
   HAS_PATENT: 'tiene patente',
+  FOLLOWS: 'sigue a',
 };
 
 function edgeLabel(type: string): string {
@@ -207,8 +208,8 @@ function relaxPositions(
   positions: NodePos[],
   ringRadiusFor: number[],
 ): NodePos[] {
-  const cx0 = 50;
-  const cy0 = 50;
+  const cx0 = 70;
+  const cy0 = 70;
   const pos = positions.map((p) => ({ x: p.x, y: p.y }));
   const edgeCurvatures = computeEdgeCurvatures(edges);
   const sampleEdge = (e: ForceGraphEdge, idx: number): { src: NodePos; ctrl: CurvePoint; tgt: NodePos } | null => {
@@ -321,7 +322,7 @@ function computeSolarLayout(
       const radius = R0 + d * Rstep;
       rings.push(radius);
       const interleaved = orderRingByConnectivity(ids, adj);
-      placeRing(interleaved, radius, 50, 50);
+      placeRing(interleaved, radius, 70, 70);
     }
   } else {
     const sectorIds = nodes.filter((n) => n.nodeType === 'IndustrialSector').map((n) => n.id);
@@ -334,21 +335,25 @@ function computeSolarLayout(
         const angle = (2 * Math.PI * ci) / sectorIds.length - Math.PI / 2;
         const idx = indexOf.get(id);
         if (idx === undefined) return;
-        positions[idx] = { x: 50 + R * Math.cos(angle), y: 50 + R * Math.sin(angle) };
+        positions[idx] = { x: 70 + R * Math.cos(angle), y: 70 + R * Math.sin(angle) };
       });
     }
     if (orphans.length > 0) {
-      placeRing(orphans, 12, 50, 50, (2 * Math.PI * sectorIds.length) / Math.max(sectorIds.length, 1) - Math.PI / 2 + Math.PI / sectorIds.length);
-      rings.push(12);
+      const orphanRadius = Math.max(60, 20 + orphans.length * 6);
+      const orphanStartAngle = sectorIds.length > 0
+        ? (2 * Math.PI * sectorIds.length) / sectorIds.length - Math.PI / 2 + Math.PI / sectorIds.length
+        : -Math.PI / 2;
+      placeRing(orphans, orphanRadius, 70, 70, orphanStartAngle);
+      rings.push(orphanRadius);
     }
   }
 
   for (let i = 0; i < nodes.length; i++) {
-    if (!positions[i]) positions[i] = { x: 50 + (i - nodes.length / 2) * 6, y: 50 };
+    if (!positions[i]) positions[i] = { x: 70 + (i - nodes.length / 2) * 6, y: 70 };
   }
 
   if (centerId && indexOf.has(centerId)) {
-    const ringRadiusFor = positions.map((p) => Math.sqrt((p.x - 50) ** 2 + (p.y - 50) ** 2));
+    const ringRadiusFor = positions.map((p) => Math.sqrt((p.x - 70) ** 2 + (p.y - 70) ** 2));
     const relaxed = relaxPositions(nodes, edges, positions, ringRadiusFor);
     for (let i = 0; i < positions.length; i++) positions[i] = relaxed[i];
   }
@@ -378,7 +383,7 @@ export default function ForceGraph2D({
 
   const layoutCenter = useMemo(() => {
     const pts = initialLayout.positions;
-    if (pts.length === 0) return { x: 50, y: 50 };
+    if (pts.length === 0) return { x: 70, y: 70 };
     let minX = Infinity;
     let maxX = -Infinity;
     let minY = Infinity;
@@ -393,11 +398,11 @@ export default function ForceGraph2D({
   }, [initialLayout.positions]);
 
   const centeredView = useCallback(
-    (k: number) => ({ x: 50 - layoutCenter.x * k, y: 50 - layoutCenter.y * k, k }),
+    (k: number) => ({ x: 70 - layoutCenter.x * k, y: 70 - layoutCenter.y * k, k }),
     [layoutCenter],
   );
 
-  const initialView = centeredView(1.5);
+  const initialView = centeredView(1.4);
   const [view, setView] = useState(initialView);
   const viewRef = useRef(view);
   viewRef.current = view;
@@ -515,7 +520,7 @@ export default function ForceGraph2D({
     });
   }, []);
 
-  const resetView = useCallback(() => setView(centeredView(1.2)), [centeredView]);
+  const resetView = useCallback(() => setView(centeredView(1.0)), [centeredView]);
 
   const moveNodeFocus = useCallback(
     (dx: number, dy: number) => {
@@ -598,7 +603,7 @@ export default function ForceGraph2D({
 
   useEffect(() => {
     setPositions(initialLayout.positions);
-    setView(centeredView(1.5));
+    setView(centeredView(1.0));
   }, [initialLayout, centeredView]);
 
   const centerIndex = centerId != null ? (nodeIndexMap.get(centerId) ?? -1) : -1;
@@ -641,7 +646,7 @@ export default function ForceGraph2D({
       </div>
       <svg
         ref={svgRef}
-        viewBox="-40 -40 180 180"
+        viewBox="-50 -50 200 200"
         className="w-full h-full select-none relative z-10"
         preserveAspectRatio="xMidYMid meet"
         onMouseMove={handleMouseMove}
@@ -655,10 +660,10 @@ export default function ForceGraph2D({
         </defs>
 
         <rect
-          x="-40"
-          y="-40"
-          width="180"
-          height="180"
+          x="-50"
+          y="-50"
+          width="200"
+          height="200"
           fill="transparent"
           style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
           onMouseDown={handleBackgroundMouseDown}
@@ -669,8 +674,8 @@ export default function ForceGraph2D({
         {initialLayout.rings.map((r, i) => (
           <circle
             key={`ring-${i}`}
-            cx={50}
-            cy={50}
+            cx={70}
+            cy={70}
             r={r}
             fill="none"
             stroke="rgba(255,255,255,0.05)"
@@ -836,25 +841,34 @@ export default function ForceGraph2D({
                 </g>
               )}
 
-              <text
-                x={0} y={r + 4}
-                textAnchor="middle"
-                fill={c.label}
-                fontSize="4"
-                fontWeight="600"
-                className="pointer-events-none select-none"
-              >
-                {n.label.split('(')[0].trim()}
-              </text>
-              <text
-                x={0} y={r + 8.2}
-                textAnchor="middle"
-                fill="rgba(255,255,255,0.45)"
-                fontSize="2.8"
-                className="pointer-events-none select-none"
-              >
-                {n.subtitle || nodeTypeSpanish(n.nodeType)}
-              </text>
+              {(() => {
+                const labelBelow = pos.y <= layoutCenter.y;
+                const labelY = labelBelow ? r + 4 : -(r + 4);
+                const subY = labelBelow ? r + 8.2 : -(r + 8.2);
+                return (
+                  <>
+                    <text
+                      x={0} y={labelY}
+                      textAnchor="middle"
+                      fill={c.label}
+                      fontSize="4"
+                      fontWeight="600"
+                      className="pointer-events-none select-none"
+                    >
+                      {n.label.split('(')[0].trim()}
+                    </text>
+                    <text
+                      x={0} y={subY}
+                      textAnchor="middle"
+                      fill="rgba(255,255,255,0.45)"
+                      fontSize="2.8"
+                      className="pointer-events-none select-none"
+                    >
+                      {n.subtitle || nodeTypeSpanish(n.nodeType)}
+                    </text>
+                  </>
+                );
+              })()}
             </g>
           );
         })}
