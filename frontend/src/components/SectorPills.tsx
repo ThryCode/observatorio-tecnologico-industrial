@@ -33,8 +33,8 @@ export default function SectorPills({ sectors, active, onChange, className }: Se
             className={cn(
               'inline-flex items-center gap-2 px-3 py-2 rounded-full text-xs font-semibold transition-all duration-150 border',
               isActive
-                ? 'bg-accent-orange text-white border-accent-orange shadow-glow-orange'
-                : 'bg-surface text-text-secondary border-border hover:border-accent-orange hover:text-accent-orange hover:bg-accent-subtle hover:-translate-y-0.5',
+                ? 'bg-accent-red text-white border-accent-red shadow-glow-red'
+                : 'bg-surface text-text-secondary border-border hover:border-accent-red hover:text-accent-red hover:bg-accent-subtle hover:-translate-y-0.5',
             )}
           >
             {sector.label}

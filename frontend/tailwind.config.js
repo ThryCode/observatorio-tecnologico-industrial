@@ -45,7 +45,7 @@ export default {
         accent: {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
-          orange: 'hsl(var(--accent-orange))',
+          red: 'hsl(var(--accent-red))',
           hover: 'hsl(var(--accent-hover))',
           subtle: 'hsl(var(--accent-subtle))',
         },
@@ -57,8 +57,8 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        gold: {
-          DEFAULT: 'hsl(var(--gold))',
+        brick: {
+          DEFAULT: 'hsl(var(--brick))',
         },
         success: {
           DEFAULT: 'hsl(var(--success))',
@@ -122,7 +122,7 @@ export default {
         md: '0 4px 12px rgba(10, 37, 64, 0.08)',
         lg: '0 8px 24px rgba(10, 37, 64, 0.12)',
         xl: '0 16px 48px rgba(10, 37, 64, 0.16)',
-        'glow-orange': '0 0 20px rgba(232, 106, 51, 0.2)',
+        'glow-red': '0 0 20px rgba(229, 78, 75, 0.2)',
       },
       keyframes: {
         'fade-in-up': {

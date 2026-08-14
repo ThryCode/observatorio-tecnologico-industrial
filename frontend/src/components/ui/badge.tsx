@@ -15,8 +15,8 @@ const badgeVariants = cva(
         warning: 'border-transparent bg-warning-bg text-warning',
         danger: 'border-transparent bg-danger-bg text-danger',
         info: 'border-transparent bg-info-bg text-info',
-        gold: 'border-transparent bg-gold/10 text-gold',
-        accent: 'border-transparent bg-accent-subtle text-accent-orange',
+        gold: 'border-transparent bg-brick/10 text-brick',
+        accent: 'border-transparent bg-accent-subtle text-accent-red',
       },
     },
     defaultVariants: {
@@ -41,8 +41,8 @@ function Badge({ className, variant, dot, children, ...props }: BadgeProps) {
           variant === 'warning' && 'bg-warning',
           variant === 'danger' && 'bg-danger',
           variant === 'info' && 'bg-info',
-          variant === 'gold' && 'bg-gold',
-          variant === 'accent' && 'bg-accent-orange',
+          variant === 'gold' && 'bg-brick',
+          variant === 'accent' && 'bg-accent-red',
           (!variant || variant === 'default') && 'bg-primary-foreground',
         )} />
       )}

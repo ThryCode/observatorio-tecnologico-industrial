@@ -13,15 +13,15 @@ interface KPICardProps {
 
 const iconBgMap = {
   blue: 'bg-info-bg text-info',
-  orange: 'bg-accent-subtle text-accent-orange',
+  orange: 'bg-accent-subtle text-accent-red',
   green: 'bg-success-bg text-success',
-  gold: 'bg-gold/10 text-gold',
+  gold: 'bg-brick/10 text-brick',
 };
 
 function KPICard({ label, value, change, changeType = 'neutral', icon, iconBg = 'blue' }: KPICardProps) {
   return (
     <div className="group relative bg-surface rounded-lg border border-border p-5 transition-all duration-base hover:shadow-lg hover:-translate-y-0.5 overflow-hidden" role="region" aria-label={`${label}: ${value}`}>
-      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-orange to-gold opacity-0 group-hover:opacity-100 transition-opacity duration-base" />
+      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-red to-brick opacity-0 group-hover:opacity-100 transition-opacity duration-base" />
       <div className="flex items-start justify-between mb-3">
         <span className="text-xs uppercase font-semibold tracking-wider text-text-muted">{label}</span>
         <div className={cn(

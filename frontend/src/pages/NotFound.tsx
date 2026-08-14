@@ -10,7 +10,7 @@ export default function NotFound() {
       <div className="text-border-strong mb-6">
         <Compass className="h-16 w-16" strokeWidth={1.5} />
       </div>
-      <p className="text-6xl font-extrabold text-accent-orange mb-2">404</p>
+      <p className="text-6xl font-extrabold text-accent-red mb-2">404</p>
       <h1 className="text-2xl font-bold text-foreground mb-2">Página no encontrada</h1>
       <p className="text-base text-text-muted text-center max-w-sm leading-relaxed mb-8">
         La ruta que buscas no existe o fue movida. Verifica la URL o vuelve al inicio.

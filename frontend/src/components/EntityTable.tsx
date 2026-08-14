@@ -39,7 +39,7 @@ export default function EntityTable({ entities, className }: EntityTableProps) {
               <tr
                 key={entity.id}
                 className={cn(
-                  'transition-colors duration-150 hover:bg-accent-orange/[0.02]',
+                  'transition-colors duration-150 hover:bg-accent-red/[0.02]',
                   !isLast && 'border-b border-border-subtle',
                 )}
               >

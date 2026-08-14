@@ -10,19 +10,19 @@
     --card-foreground: 220 26% 14%;
     --popover: 0 0% 100%;
     --popover-foreground: 220 26% 14%;
-    --primary: 216 73% 15%;
+    --primary: 208 56% 46%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 204 63% 22%;
-    --primary-lighter: 204 61% 30%;
+    --primary-light: 208 57% 36%;
+    --primary-lighter: 208 62% 55%;
     --secondary: 210 17% 96%;
     --secondary-foreground: 219 17% 35%;
     --muted: 210 38% 95%;
     --muted-foreground: 215 14% 52%;
     --accent: 210 38% 95%;
     --accent-foreground: 220 26% 14%;
-    --accent-orange: 18 80% 55%;
-    --accent-hover: 18 70% 48%;
-    --accent-subtle: 18 80% 55% / 0.08;
+    --accent-red: 2 75% 60%;
+    --accent-hover: 2 70% 48%;
+    --accent-subtle: 2 75% 60% / 0.08;
     --destructive: 6 63% 46%;
     --destructive-foreground: 0 0% 100%;
     --success: 142 51% 36%;
@@ -33,41 +33,41 @@
     --danger-bg: 6 63% 46% / 0.1;
     --info: 203 64% 44%;
     --info-bg: 203 64% 44% / 0.1;
-    --gold: 44 54% 54%;
+    --brick: 8 53% 47%;
     --border: 214 32% 91%;
     --border-subtle: 210 38% 95%;
     --border-strong: 215 25% 84%;
     --input: 214 32% 91%;
-    --ring: 18 80% 55%;
+    --ring: 2 75% 60%;
     --text-secondary: 219 17% 35%;
     --text-muted: 215 14% 52%;
     --text-placeholder: 215 20% 69%;
     --surface: 210 14% 98%;
-    --sidebar-bg: 216 73% 15%;
+    --sidebar-bg: 208 73% 15%;
     --sidebar-hover: 255 255% 100% / 0.06;
-    --sidebar-active: 18 80% 55% / 0.15;
+    --sidebar-active: 2 75% 60% / 0.15;
   }
 
   .dark {
     --background: 220 26% 14%;
     --foreground: 0 0% 100%;
-    --card: 216 73% 15%;
+    --card: 208 73% 15%;
     --card-foreground: 0 0% 100%;
-    --popover: 216 73% 15%;
+    --popover: 208 73% 15%;
     --popover-foreground: 0 0% 100%;
-    --primary: 204 61% 30%;
+    --primary: 208 56% 52%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 204 61% 22%;
-    --primary-lighter: 204 61% 38%;
+    --primary-light: 208 57% 40%;
+    --primary-lighter: 208 62% 60%;
     --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217 33% 17%;
     --muted-foreground: 215 20% 65%;
     --accent: 217 33% 17%;
     --accent-foreground: 210 40% 98%;
-    --accent-orange: 18 74% 60%;
-    --accent-hover: 18 70% 52%;
-    --accent-subtle: 18 80% 55% / 0.15;
+    --accent-red: 2 75% 63%;
+    --accent-hover: 2 70% 52%;
+    --accent-subtle: 2 75% 60% / 0.15;
     --destructive: 6 63% 52%;
     --destructive-foreground: 0 0% 100%;
     --success: 142 45% 48%;
@@ -78,19 +78,19 @@
     --danger-bg: 6 63% 46% / 0.14;
     --info: 203 72% 58%;
     --info-bg: 203 64% 44% / 0.14;
-    --gold: 44 62% 62%;
+    --brick: 8 55% 55%;
     --border: 217 33% 17%;
     --border-subtle: 217 33% 17% / 0.7;
     --border-strong: 217 33% 22%;
     --input: 217 33% 17%;
-    --ring: 224 76% 48%;
+    --ring: 2 75% 62%;
     --text-secondary: 210 40% 85%;
     --text-muted: 215 20% 65%;
     --text-placeholder: 215 20% 42%;
     --surface: 217 30% 19%;
-    --sidebar-bg: 216 73% 12%;
+    --sidebar-bg: 208 73% 12%;
     --sidebar-hover: 255 255% 100% / 0.06;
-    --sidebar-active: 18 80% 55% / 0.16;
+    --sidebar-active: 2 75% 60% / 0.16;
   }
 }
 
@@ -102,7 +102,7 @@
     @apply bg-background text-foreground font-sans antialiased;
   }
   ::selection {
-    @apply bg-accent-orange/20 text-foreground;
+    @apply bg-accent-red/20 text-foreground;
   }
   /* Smooth theme switching */
   :where(body, header, aside, main, nav, footer, section, article, div, button, input, select, textarea) {
@@ -133,11 +133,11 @@
 
 @layer utilities {
   .text-gradient-accent {
-    @apply bg-gradient-to-r from-accent-orange to-gold bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-accent-red to-brick bg-clip-text text-transparent;
   }
   .underline-gradient {
     text-decoration: none;
-    background-image: linear-gradient(90deg, hsl(var(--accent-orange)), hsl(var(--gold)));
+    background-image: linear-gradient(90deg, hsl(var(--accent-red)), hsl(var(--brick)));
     background-repeat: no-repeat;
     background-position: bottom 0 left 0;
     background-size: 100% 3px;

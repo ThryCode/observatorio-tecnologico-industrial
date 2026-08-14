@@ -211,7 +211,7 @@ export default function SettingsPage() {
                     disabled={updatePreferencesMutation.isPending}
                     onChange={(e) => updatePreferencesMutation.mutate({ email_notifications: e.target.checked })}
                   />
-                  <div className="w-11 h-6 bg-border-subtle rounded-full peer peer-checked:bg-accent-orange peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
+                  <div className="w-11 h-6 bg-border-subtle rounded-full peer peer-checked:bg-accent-red peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
                 </label>
               </div>
               <div className="flex items-center justify-between py-2 border-t border-border-subtle">
@@ -279,7 +279,7 @@ export default function SettingsPage() {
             <p className="text-sm text-text-muted mb-4">{t('settings.security.subtitle')}</p>
             <div className="flex items-center gap-3 rounded-lg border border-dashed border-border-strong bg-background/50 p-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-subtle">
-                <ShieldAlert className="h-5 w-5 text-accent-orange" />
+                <ShieldAlert className="h-5 w-5 text-accent-red" />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-semibold text-foreground">{t('settings.security.password')}</p>

@@ -12,10 +12,10 @@ export interface ProductCardProps {
 }
 
 const typeConfig = {
-  alerta: { label: 'Alerta Tecnológica', color: 'text-accent-orange', icon: AlertTriangle },
+  alerta: { label: 'Alerta Tecnológica', color: 'text-accent-red', icon: AlertTriangle },
   boletin: { label: 'Boletín', color: 'text-info', icon: BookOpen },
   estudio: { label: 'Estudio', color: 'text-success', icon: GraduationCap },
-  mapa: { label: 'Mapa', color: 'text-gold', icon: Map },
+  mapa: { label: 'Mapa', color: 'text-brick', icon: Map },
 };
 
 function ProductCard({ type, title, excerpt, meta, className }: ProductCardProps) {
@@ -28,7 +28,7 @@ function ProductCard({ type, title, excerpt, meta, className }: ProductCardProps
       className,
     )}>
       {/* Accent bar on hover */}
-      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-accent-orange to-gold opacity-0 group-hover:opacity-100 transition-opacity duration-base rounded-r-sm" />
+      <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-accent-red to-brick opacity-0 group-hover:opacity-100 transition-opacity duration-base rounded-r-sm" />
 
       <div className="flex items-center gap-2 mb-3">
         <TypeIcon className={cn('h-4 w-4', config.color)} />

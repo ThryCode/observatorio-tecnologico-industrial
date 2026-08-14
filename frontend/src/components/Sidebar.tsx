@@ -94,7 +94,7 @@ export default function Sidebar() {
         'flex items-center gap-3 px-4 h-16 border-b border-white/10 shrink-0',
         collapsed && 'justify-center px-2',
       )}>
-        <div className="w-9 h-9 rounded-md bg-gradient-to-br from-accent-orange to-gold flex items-center justify-center shadow-glow-orange shrink-0">
+        <div className="w-9 h-9 rounded-md bg-gradient-to-br from-accent-red to-brick flex items-center justify-center shadow-glow-red shrink-0">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3" />
             <line x1="12" y1="2" x2="12" y2="6" />
@@ -172,7 +172,7 @@ export default function Sidebar() {
               : 'hover:bg-sidebar-hover hover:border hover:border-white/10',
           )}
         >
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent-orange to-gold flex items-center justify-center shrink-0 text-white text-sm font-bold">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-accent-red to-brick flex items-center justify-center shrink-0 text-white text-sm font-bold">
             {initials}
           </div>
           {!collapsed && (
@@ -276,15 +276,15 @@ function NavItem({
         'relative flex items-center gap-3 rounded-md transition-all duration-150 group',
         collapsed ? 'justify-center p-3' : 'px-3 py-3',
         active
-          ? 'bg-sidebar-active text-accent-orange font-semibold'
+          ? 'bg-sidebar-active text-accent-red font-semibold'
           : 'text-white/70 hover:bg-sidebar-hover hover:text-white',
       )}
       aria-current={active ? 'page' : undefined}
     >
       {active && (
-        <span className="absolute left-0 top-1 bottom-1 w-0.5 rounded-r-full bg-accent-orange shadow-glow-orange" />
+        <span className="absolute left-0 top-1 bottom-1 w-0.5 rounded-r-full bg-accent-red shadow-glow-red" />
       )}
-      <Icon className={cn('h-5 w-5 shrink-0', active ? 'text-accent-orange' : 'text-white/70 group-hover:text-white')} />
+      <Icon className={cn('h-5 w-5 shrink-0', active ? 'text-accent-red' : 'text-white/70 group-hover:text-white')} />
       {!collapsed && (
         <>
           <span className="text-sm font-medium truncate">{label}</span>
@@ -292,8 +292,8 @@ function NavItem({
             <span className={cn(
               'ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center',
               badgeVariant === 'danger'
-                ? 'bg-accent-orange text-white'
-                : 'bg-accent-orange/20 text-accent-orange',
+                ? 'bg-accent-red text-white'
+                : 'bg-accent-red/20 text-accent-red',
             )}>
               {badge}
             </span>

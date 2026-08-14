@@ -16,7 +16,7 @@ interface TimelineProps {
 export default function Timeline({ events, className }: TimelineProps) {
   return (
     <div className={cn('relative pl-6', className)} role="list" aria-label="Actividad reciente">
-      <div className="absolute left-[7px] top-1 bottom-1 w-0.5 bg-gradient-to-b from-accent-orange via-gold to-border rounded-full" aria-hidden="true" />
+      <div className="absolute left-[7px] top-1 bottom-1 w-0.5 bg-gradient-to-b from-accent-red via-brick to-border rounded-full" aria-hidden="true" />
       {events.map((event, i) => (
         <div
           key={event.id}
@@ -28,18 +28,18 @@ export default function Timeline({ events, className }: TimelineProps) {
         >
           <div className={cn(
             'absolute -left-[22px] top-1 rounded-full bg-surface border-2 flex items-center justify-center shadow-[0_0_0_3px_hsl(var(--background))]',
-            event.type === 'small' ? 'w-2.5 h-2.5 border-gold left-[19px]' : 'w-3.5 h-3.5 border-accent-orange',
+            event.type === 'small' ? 'w-2.5 h-2.5 border-brick left-[19px]' : 'w-3.5 h-3.5 border-accent-red',
           )}>
             <div className={cn(
               'rounded-full',
-              event.type === 'small' ? 'w-1.5 h-1.5 bg-gold' : 'w-[5px] h-[5px] bg-accent-orange',
+              event.type === 'small' ? 'w-1.5 h-1.5 bg-brick' : 'w-[5px] h-[5px] bg-accent-red',
             )} />
           </div>
           <p className="text-base text-foreground leading-relaxed">
             {event.highlight ? (
               <>
                 {event.content.split(event.highlight)[0]}
-                <span className="text-accent-orange font-semibold">{event.highlight}</span>
+                <span className="text-accent-red font-semibold">{event.highlight}</span>
                 {event.content.split(event.highlight)[1]}
               </>
             ) : event.content}

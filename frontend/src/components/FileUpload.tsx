@@ -63,7 +63,7 @@ export default function FileUpload({ onUpload, currentUrl, accept, id }: FileUpl
     <div className="space-y-2">
       {currentUrl ? (
         <div className="flex items-center gap-2 p-2 rounded-md border border-border bg-surface">
-          <FileText className="h-4 w-4 text-accent-orange" />
+          <FileText className="h-4 w-4 text-accent-red" />
           <span className="text-sm text-foreground flex-1 truncate">{currentUrl.split('/').pop()}</span>
           <button onClick={() => onUpload('')} className="text-text-muted hover:text-danger transition-colors" title="Quitar archivo">
             <X className="h-4 w-4" />
@@ -77,13 +77,13 @@ export default function FileUpload({ onUpload, currentUrl, accept, id }: FileUpl
           onClick={() => inputRef.current?.click()}
           className={cn(
             'border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors',
-            dragOver ? 'border-accent-orange bg-accent-subtle' : 'border-border hover:border-accent-orange',
+            dragOver ? 'border-accent-red bg-accent-subtle' : 'border-border hover:border-accent-red',
           )}
         >
           <input ref={inputRef} id={id} type="file" hidden onChange={handleChange} accept={accept} />
           {uploading ? (
             <div className="flex flex-col items-center gap-1">
-              <div className="animate-spin h-5 w-5 border-2 border-accent-orange border-t-transparent rounded-full" />
+              <div className="animate-spin h-5 w-5 border-2 border-accent-red border-t-transparent rounded-full" />
               <span className="text-sm text-text-muted">Subiendo...</span>
             </div>
           ) : (

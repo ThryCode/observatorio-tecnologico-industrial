@@ -35,7 +35,7 @@ export default function DashboardTimeline({ events, className }: DashboardTimeli
   return (
     <div className={cn('relative pl-7', className)} role="list" aria-label="Actividad reciente">
       <div
-        className="absolute left-[11px] top-1 bottom-1 w-0.5 bg-gradient-to-b from-accent-orange via-gold to-border rounded-full"
+        className="absolute left-[11px] top-1 bottom-1 w-0.5 bg-gradient-to-b from-accent-red via-brick to-border rounded-full"
         aria-hidden="true"
       />
       {events.map((event, i) => {

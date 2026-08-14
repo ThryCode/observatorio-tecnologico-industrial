@@ -20,7 +20,7 @@ export default function PageHeader({ title, highlight, description, actions, cla
           {parts ? (
             <>
               {parts[0]}
-              <span className="underline-gradient text-accent-orange">{highlight}</span>
+              <span className="underline-gradient text-accent-red">{highlight}</span>
               {parts[1]}
             </>
           ) : title}

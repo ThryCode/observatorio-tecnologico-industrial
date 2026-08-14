@@ -62,7 +62,7 @@ export default function PatentMaps() {
                   <span className="w-32 text-sm text-text-muted truncate">{item.tecnologia}</span>
                   <div className="flex-1 h-2 bg-border-subtle rounded-full overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-accent-orange to-gold"
+                      className="h-full rounded-full bg-gradient-to-r from-accent-red to-brick"
                       style={{ width: `${(item.patentes / 34) * 100}%` }}
                     />
                   </div>

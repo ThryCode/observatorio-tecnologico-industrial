@@ -121,7 +121,7 @@ export default function Topbar() {
                 onBlur={() => !searchQuery && setSearchOpen(false)}
                 className={cn(
                   'w-full h-10 rounded-full border border-border bg-background pl-10 pr-12 text-sm text-foreground placeholder:text-text-placeholder outline-none transition-all duration-150',
-                  searchOpen && 'border-accent-orange shadow-[0_0_0_3px_hsl(var(--accent-subtle))] shadow-sm',
+                  searchOpen && 'border-accent-red shadow-[0_0_0_3px_hsl(var(--accent-subtle))] shadow-sm',
                 )}
                 aria-label="Buscar en el observatorio"
               />
@@ -132,17 +132,17 @@ export default function Topbar() {
           </div>
 
           {/* Notifications */}
-          <button onClick={() => { setNotifClicked(true); localStorage.setItem('lastAlertUpcomingCount', String(rawCount)); navigate('/alerts'); }} className="relative w-10 h-10 rounded-full border border-border bg-surface text-text-secondary hover:bg-background hover:border-accent-orange hover:text-accent-orange hover:-translate-y-0.5 transition-all duration-150 flex items-center justify-center" aria-label="Alertas" title="Alertas">
+          <button onClick={() => { setNotifClicked(true); localStorage.setItem('lastAlertUpcomingCount', String(rawCount)); navigate('/alerts'); }} className="relative w-10 h-10 rounded-full border border-border bg-surface text-text-secondary hover:bg-background hover:border-accent-red hover:text-accent-red hover:-translate-y-0.5 transition-all duration-150 flex items-center justify-center" aria-label="Alertas" title="Alertas">
             <Bell className="h-4 w-4" />
             {notifCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] rounded-full bg-accent-orange text-white text-[10px] font-bold flex items-center justify-center border-2 border-surface">
+              <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] rounded-full bg-accent-red text-white text-[10px] font-bold flex items-center justify-center border-2 border-surface">
                 {notifCount}
               </span>
             )}
           </button>
 
           {/* Settings */}
-          <button onClick={() => navigate('/settings')} className="w-10 h-10 rounded-full border border-border bg-surface text-text-secondary hover:bg-background hover:border-accent-orange hover:text-accent-orange hover:-translate-y-0.5 transition-all duration-150 flex items-center justify-center" aria-label="Configuración" title="Configuración">
+          <button onClick={() => navigate('/settings')} className="w-10 h-10 rounded-full border border-border bg-surface text-text-secondary hover:bg-background hover:border-accent-red hover:text-accent-red hover:-translate-y-0.5 transition-all duration-150 flex items-center justify-center" aria-label="Configuración" title="Configuración">
             <Settings className="h-4 w-4" />
           </button>
 
@@ -152,13 +152,13 @@ export default function Topbar() {
           {/* User info */}
           <div className="hidden sm:flex items-center gap-2 text-sm">
             <span className="text-sm font-medium text-foreground">{user?.full_name || user?.username}</span>
-            <span className="rounded-full bg-accent-subtle text-accent-orange px-2.5 py-0.5 text-[11px] font-semibold">
+            <span className="rounded-full bg-accent-subtle text-accent-red px-2.5 py-0.5 text-[11px] font-semibold">
               {roleLabels[user?.role || ''] || user?.role}
             </span>
           </div>
 
           {/* Logout */}
-          <Button variant="ghost" size="icon" onClick={logout} title="Cerrar sesión" className="text-text-muted hover:text-accent-orange">
+          <Button variant="ghost" size="icon" onClick={logout} title="Cerrar sesión" className="text-text-muted hover:text-accent-red">
             <LogOut className="h-4 w-4" />
           </Button>
         </div>

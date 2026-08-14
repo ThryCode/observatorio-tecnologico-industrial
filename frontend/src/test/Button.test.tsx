@@ -11,7 +11,7 @@ describe('Button', () => {
   it('renders with default variant', () => {
     render(<Button>Test</Button>);
     const btn = screen.getByRole('button');
-    expect(btn.className).toContain('bg-accent-orange');
+    expect(btn.className).toContain('bg-accent-red');
   });
 
   it('renders as disabled', () => {
