@@ -21,9 +21,9 @@ interface Props {
   nodes: ForceGraphNode[];
   edges: ForceGraphEdge[];
   centerId?: string | null;
-  hiddenCounts?: Record<string, number>;
   expandedIds?: Set<string>;
   hideCenter?: boolean;
+  layoutMode?: 'solar' | 'scatter';
   onNodeClick?: (node: ForceGraphNode | null) => void;
   onExpandNode?: (nodeId: string) => void;
   showEdgeLabels?: boolean;
@@ -286,11 +286,28 @@ interface SolarLayoutResult {
   rings: number[];
 }
 
+function computeScatterLayout(nodes: ForceGraphNode[]): SolarLayoutResult {
+  if (nodes.length === 0) return { positions: [], rings: [] };
+  const cx = 50;
+  const cy = 50;
+  if (nodes.length === 1) {
+    return { positions: [{ x: cx, y: cy }], rings: [] };
+  }
+  const radius = Math.max(18, nodes.length * 4.5);
+  const positions: NodePos[] = nodes.map((_, i) => {
+    const angle = (2 * Math.PI * i) / nodes.length - Math.PI / 2;
+    return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
+  });
+  return { positions, rings: [radius] };
+}
+
 function computeSolarLayout(
   nodes: ForceGraphNode[],
   edges: ForceGraphEdge[],
   centerId: string | null | undefined,
+  layoutMode: 'solar' | 'scatter' = 'solar',
 ): SolarLayoutResult {
+  if (layoutMode === 'scatter') return computeScatterLayout(nodes);
   if (nodes.length === 0) return { positions: [], rings: [] };
 
   const adj = buildAdjacency(nodes, edges);
@@ -365,16 +382,17 @@ export default function ForceGraph2D({
   nodes,
   edges,
   centerId,
-  hiddenCounts = {},
   expandedIds,
   hideCenter = false,
+  layoutMode,
   onNodeClick,
   onExpandNode,
   showEdgeLabels = false,
   className,
 }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const initialLayout = useMemo(() => computeSolarLayout(nodes, edges, centerId), [nodes, edges, centerId]);
+  const isScatter = layoutMode === 'scatter';
+  const initialLayout = useMemo(() => computeSolarLayout(nodes, edges, centerId, layoutMode), [nodes, edges, centerId, layoutMode]);
   const [positions, setPositions] = useState<NodePos[]>(initialLayout.positions);
   const [dragging, setDragging] = useState<{ index: number; offsetX: number; offsetY: number } | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
@@ -402,7 +420,9 @@ export default function ForceGraph2D({
     [layoutCenter],
   );
 
-  const initialView = centeredView(1.4);
+  const initialView = centeredView(isScatter ? 2.0 : 1.4);
+  const vb = isScatter ? { x: -60, y: -60, w: 220, h: 220 } : { x: -50, y: -50, w: 200, h: 200 };
+  const viewBox = `${vb.x} ${vb.y} ${vb.w} ${vb.h}`;
   const [view, setView] = useState(initialView);
   const viewRef = useRef(view);
   viewRef.current = view;
@@ -520,7 +540,7 @@ export default function ForceGraph2D({
     });
   }, []);
 
-  const resetView = useCallback(() => setView(centeredView(1.0)), [centeredView]);
+  const resetView = useCallback(() => setView(centeredView(isScatter ? 2.0 : 1.4)), [centeredView, isScatter]);
 
   const moveNodeFocus = useCallback(
     (dx: number, dy: number) => {
@@ -646,7 +666,7 @@ export default function ForceGraph2D({
       </div>
       <svg
         ref={svgRef}
-        viewBox="-50 -50 200 200"
+        viewBox={viewBox}
         className="w-full h-full select-none relative z-10"
         preserveAspectRatio="xMidYMid meet"
         onMouseMove={handleMouseMove}
@@ -660,10 +680,10 @@ export default function ForceGraph2D({
         </defs>
 
         <rect
-          x="-50"
-          y="-50"
-          width="200"
-          height="200"
+          x={vb.x}
+          y={vb.y}
+          width={vb.w}
+          height={vb.h}
           fill="transparent"
           style={{ cursor: isPanning ? 'grabbing' : 'grab' }}
           onMouseDown={handleBackgroundMouseDown}
@@ -749,7 +769,6 @@ export default function ForceGraph2D({
           const isCenter = i === centerIndex;
           const scale = isDragging ? 1.3 : isHovered ? 1.15 : 1;
           const r = isCenter ? 9 : isDragging ? 7 : 5.5;
-          const hidden = hiddenCounts[n.id] ?? 0;
           const isExpanded = expandedIds?.has(n.id) ?? false;
 
           return (
@@ -824,21 +843,6 @@ export default function ForceGraph2D({
 
               {isDragging && (
                 <circle cx={0} cy={0} r={r + 3} fill="none" stroke="#ffffff" strokeWidth="0.3" opacity="0.5" strokeDasharray="2 1.5" />
-              )}
-
-              {hidden > 0 && (
-                <g className="pointer-events-none">
-                  <circle cx={r * 0.8} cy={-r * 0.8} r={5} fill="#0f172a" stroke={c.node} strokeWidth="0.5" />
-                  <text
-                    x={r * 0.8} y={-r * 0.8 + 1.7}
-                    textAnchor="middle"
-                    fill={c.label}
-                    fontSize="4.2"
-                    fontWeight="700"
-                  >
-                    {hidden}
-                  </text>
-                </g>
               )}
 
               {(() => {

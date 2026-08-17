@@ -101,6 +101,7 @@ export default function EnterpriseGraph() {
                   <ForceGraph2D
                     nodes={graphNodes}
                     edges={data?.edges ?? []}
+                    layoutMode="scatter"
                     onNodeClick={handleNodeClick}
                   />
                 )}

@@ -418,9 +418,9 @@ class GraphRepository:
                     await session.run(
                         """
                         UNWIND $batch AS item
-                        MATCH (org:Organization:Enterprise {id: item.org_id})
+                        MATCH (tech:Technology {id: item.tech_id})
                         MATCH (s:IndustrialSector {codigo: item.sector_codigo})
-                        MERGE (org)-[:BELONGS_TO_SECTOR]->(s)
+                        MERGE (tech)-[:BELONGS_TO_SECTOR]->(s)
                         """,
                         batch=sector_rels,
                     )
