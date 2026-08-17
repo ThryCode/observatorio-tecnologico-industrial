@@ -49,6 +49,9 @@ const EDGE_TYPE_SPANISH: Record<string, string> = {
   HAS_TECHNOLOGY: 'tiene tecnología',
   HAS_PATENT: 'tiene patente',
   FOLLOWS: 'sigue a',
+  REGULATES: 'regula',
+  COLLABORATES_WITH: 'colabora con',
+  DEPENDS_ON: 'depende de',
 };
 
 function edgeLabel(type: string): string {

@@ -13,18 +13,20 @@ export const NODE_TYPE_PRIORITY = [
 ];
 
 export function primaryType(labels: string[]): string {
-  return NODE_TYPE_PRIORITY.find((t) => labels.includes(t)) ?? (labels[0] ?? 'Unknown');
+  return NODE_TYPE_PRIORITY.find((t) => labels.includes(t)) ?? (labels[0] ?? 'Desconocido');
 }
 
 export const NODE_TYPE_SPANISH: Record<string, string> = {
   Technology: 'Tecnología',
   Organization: 'Organización',
+  Enterprise: 'Empresa',
   Patent: 'Patente',
   Regulation: 'Regulación',
   Person: 'Persona',
   Indicator: 'Indicador',
   IndustrialSector: 'Sector',
   Cluster: 'Agrupación',
+  Unknown: 'Desconocido',
 };
 
 export function nodeTypeSpanish(type: string): string {

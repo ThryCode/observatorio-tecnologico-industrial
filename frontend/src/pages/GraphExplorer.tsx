@@ -185,7 +185,7 @@ export default function GraphExplorer() {
               <Card key={stat.label}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
-                    {stat.label}
+                    {nodeTypeSpanish(stat.label)}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

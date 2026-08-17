@@ -7,7 +7,16 @@ import { Badge } from '@/components/ui/badge';
 import EmptyState from '@/components/ui/empty-state';
 import { SectionErrorBoundary } from '@/components/SectionErrorBoundary';
 import { Lightbulb, Loader2, GitBranch } from 'lucide-react';
+import { nodeTypeSpanish } from '@/lib/graphNav';
 import type { EnterpriseGraphNode } from '@/types';
+
+const PATENT_STATUS_SPANISH: Record<string, string> = {
+  granted: 'Concedida',
+  examination: 'En examen',
+  filed: 'Solicitada',
+  expired: 'Expirada',
+  rejected: 'Rechazada',
+};
 
 export default function EnterpriseGraph() {
   const { data, isLoading } = useEnterpriseGraph();
@@ -160,7 +169,7 @@ export default function EnterpriseGraph() {
                               p.status === 'examination' ? 'text-blue-600' :
                               p.status === 'filed' ? 'text-yellow-600' :
                               'text-muted-foreground'
-                            }`}>{p.status}</span>
+                            }`}>{PATENT_STATUS_SPANISH[p.status] ?? p.status}</span>
                           </div>
                           {p.filing_date && (
                             <p className="text-muted-foreground">Presentada: {p.filing_date}</p>
@@ -207,7 +216,7 @@ export default function EnterpriseGraph() {
                         <div className="flex items-center justify-between gap-2">
                           <p className="text-sm font-medium truncate">{item.label}</p>
                           <Badge variant="secondary" className="shrink-0 text-xs">
-                            {item.type}
+                            {nodeTypeSpanish(item.type)}
                           </Badge>
                         </div>
                         <p className="text-xs text-muted-foreground">{item.reason}</p>
