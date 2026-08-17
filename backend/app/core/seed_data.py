@@ -19,12 +19,14 @@ from app.models.competitiveness import CompetitivenessIndex
 from app.models.indicator import Indicator, IndicatorPeriod
 from app.models.industrial_sector import IndustrialSector
 from app.models.organization import Organization
+from app.models.follow import Follow
 from app.models.patent import Patent, PatentStatus
 from app.models.patent_map import PatentMapEntry
 from app.models.professional_profile import ProfessionalProfile
 from app.models.research_publication import ResearchPublication
 from app.models.technology import Technology
 from app.models.user import User, UserStatus
+from app.core.seed_follows_data import FOLLOWS_DATA
 
 # ---------------------------------------------------------------------------
 # Organizations
@@ -966,10 +968,42 @@ async def seed_patents(session: AsyncSession) -> int:
     return inserted
 
 
+async def seed_follows(session: AsyncSession) -> int:
+    """Seed organization-to-organization follow relationships (enterprise graph)."""
+    orgs = (await session.execute(select(Organization))).scalars().all()
+    org_map = {o.siglas: str(o.id) for o in orgs}
+
+    existing = {
+        (str(f.follower_id), str(f.organization_id))
+        for f in (await session.execute(select(Follow))).scalars().all()
+    }
+
+    inserted = 0
+    for src, tgt in FOLLOWS_DATA:
+        src_id = org_map.get(src)
+        tgt_id = org_map.get(tgt)
+        if not src_id or not tgt_id:
+            continue
+        if (src_id, tgt_id) in existing:
+            continue
+        session.add(Follow(
+            follower_id=src_id,
+            follower_type="organization",
+            organization_id=tgt_id,
+        ))
+        inserted += 1
+
+    if inserted:
+        await session.flush()
+        logger.info(f"Seeded {inserted} organization follows")
+    return inserted
+
+
 async def seed_all(session: AsyncSession) -> None:
     """Run all seed functions in the correct order."""
     await seed_industrial_sectors(session)
     await seed_organizations(session)
+    await seed_follows(session)
     await seed_users(session)
     await seed_professional_profiles(session)
     await seed_technologies(session)
