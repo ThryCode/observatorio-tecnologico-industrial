@@ -3,6 +3,23 @@ import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
 import { listProfessionals } from '@/api/professionals';
 
+const GRADO_ABBREV: Record<string, string> = {
+  doctor: 'DrC',
+  doctora: 'DrC',
+  maestro: 'MSc',
+  máster: 'MSc',
+  master: 'MSc',
+  ingeniero: 'Ing',
+  ingeniera: 'Ing',
+  licenciado: 'Lic',
+  licenciada: 'Lic',
+};
+
+function abbrevGrado(grado?: string): string | undefined {
+  if (!grado) return undefined;
+  return GRADO_ABBREV[grado.toLowerCase()] || grado;
+}
+
 interface AuthorAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
@@ -12,7 +29,7 @@ interface AuthorAutocompleteProps {
 
 export default function AuthorAutocomplete({ value, onChange, placeholder, id }: AuthorAutocompleteProps) {
   const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState<Array<{ full_name: string; id: string }>>([]);
+  const [suggestions, setSuggestions] = useState<Array<{ full_name: string; id: string; grado_cientifico?: string }>>([]);
   const [open, setOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -28,7 +45,7 @@ export default function AuthorAutocomplete({ value, onChange, placeholder, id }:
     }
     try {
       const res = await listProfessionals(1, 10, undefined, q);
-      setSuggestions(res.items.map((p) => ({ full_name: p.full_name, id: p.id })));
+      setSuggestions(res.items.map((p) => ({ full_name: p.full_name, id: p.id, grado_cientifico: p.profile?.grado_cientifico })));
     } catch {
       setSuggestions([]);
     }
@@ -50,12 +67,19 @@ export default function AuthorAutocomplete({ value, onChange, placeholder, id }:
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const addAuthor = (name: string) => {
+  const addAuthor = (name: string, grado?: string) => {
     const trimmed = name.trim();
-    if (trimmed && !selectedAuthors.includes(trimmed)) {
-      const newAuthors = [...selectedAuthors, trimmed].join(', ');
-      onChange(newAuthors);
+    if (!trimmed || selectedAuthors.includes(trimmed)) {
+      setQuery('');
+      setSuggestions([]);
+      setOpen(false);
+      inputRef.current?.focus();
+      return;
     }
+    const abbr = abbrevGrado(grado);
+    const displayName = abbr && !trimmed.startsWith(abbr) ? `${abbr}. ${trimmed}` : trimmed;
+    const newAuthors = [...selectedAuthors, displayName].join(', ');
+    onChange(newAuthors);
     setQuery('');
     setSuggestions([]);
     setOpen(false);
@@ -71,7 +95,7 @@ export default function AuthorAutocomplete({ value, onChange, placeholder, id }:
     if (e.key === 'Enter') {
       e.preventDefault();
       if (highlightedIndex >= 0 && highlightedIndex < suggestions.length) {
-        addAuthor(suggestions[highlightedIndex].full_name);
+        addAuthor(suggestions[highlightedIndex].full_name, suggestions[highlightedIndex].grado_cientifico);
       } else if (query.trim()) {
         addAuthor(query);
       }
@@ -137,8 +161,11 @@ export default function AuthorAutocomplete({ value, onChange, placeholder, id }:
               role="option"
               aria-selected={i === highlightedIndex}
               className={`cursor-pointer rounded-sm px-2 py-1.5 hover:bg-accent hover:text-accent-foreground ${i === highlightedIndex ? 'bg-accent text-accent-foreground' : ''}`}
-              onMouseDown={(e) => { e.preventDefault(); addAuthor(s.full_name); }}
+              onMouseDown={(e) => { e.preventDefault(); addAuthor(s.full_name, s.grado_cientifico); }}
             >
+              {s.grado_cientifico && (
+                <span className="text-xs text-muted-foreground mr-1">{abbrevGrado(s.grado_cientifico)}.</span>
+              )}
               {s.full_name}
             </div>
           ))}
