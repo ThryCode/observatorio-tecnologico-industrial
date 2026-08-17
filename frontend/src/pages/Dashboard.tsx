@@ -138,7 +138,7 @@ export default function Dashboard() {
   const [activeSectors, setActiveSectors] = useState<string[]>([]);
   const [exporting, setExporting] = useState(false);
   const sectorParam = activeSectors.length > 0 ? activeSectors.map((s) => s.toUpperCase()).join(',') : undefined;
-  const { data: rawAlerts, isLoading: alertsLoading, isError: alertsError } = useAlerts(false, 1, 20, undefined, undefined, sectorParam);
+  const { data: rawAlerts, isLoading: alertsLoading, isError: alertsError } = useAlerts(false, 1, 5, undefined, undefined, sectorParam);
   const { data: kpis, isLoading: kpisLoading, isError: kpisError } = useDashboardKPIs(sectorParam);
   const { data: rawTimeline, isLoading: timelineLoading, isError: timelineError } = useTimelineEvents(sectorParam);
   const { data: sectorsData, isLoading: sectorsLoading, isError: sectorsError } = useQuery({
