@@ -55,22 +55,6 @@ async def lifespan(app: FastAPI):
                 repo = GraphRepository(neo4j)
                 result = await repo.sync_enterprise_graph(session)
                 logger.info(f"Neo4j enterprise sync: {result}")
-
-                if result.get("relationships_merged", 0) == 0:
-                    from sqlalchemy import select
-
-                    from app.models.organization import Organization
-                    orgs = (await session.execute(select(Organization))).scalars().all()
-                    if len(orgs) >= 2:
-                        org_ids = [str(o.id) for o in orgs[:5]]
-                        async with neo4j.session() as neo_session:
-                            for i in range(len(org_ids) - 1):
-                                await neo_session.run(
-                                    "MATCH (a:Enterprise {id: $src}), (b:Enterprise {id: $tgt}) "
-                                    "MERGE (a)-[:FOLLOWS]->(b)",
-                                    src=org_ids[i], tgt=org_ids[i + 1]
-                                )
-                            logger.info(f"Created {len(org_ids)-1} sample FOLLOWS relationships")
         except Exception as e:
             logger.warning(f"Neo4j enterprise sync failed: {e}")
 
