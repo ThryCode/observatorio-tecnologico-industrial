@@ -43,11 +43,8 @@ export default function PublicationsPage() {
         <FileText className="h-4 w-4 text-muted-foreground shrink-0" />{p.titulo}
       </span>
     )},
-    { header: 'Autores', className: 'text-muted-foreground whitespace-nowrap', render: (p) => p.autores },
     { header: 'Journal', className: 'text-muted-foreground whitespace-nowrap', render: (p) => p.journal || '-' },
     { header: 'DOI', render: (p) => p.doi ? <span className="text-xs font-mono text-muted-foreground whitespace-nowrap">{p.doi}</span> : <span className="text-muted-foreground">-</span> },
-    { header: 'Sector', className: 'whitespace-nowrap', render: (p) => sectorMap.get(p.sector_codigo ?? '') || p.sector_codigo || '-' },
-    { header: 'Publicado', className: 'text-muted-foreground whitespace-nowrap', render: (p) => formatDate(p.fecha_publicacion) },
   ];
 
   const canEdit = (pub: ResearchPublication) => isAdmin || isOwner(pub) || isAuthor(pub);
@@ -118,20 +115,52 @@ export default function PublicationsPage() {
           <div><label htmlFor="publication-url" className="text-sm font-medium">URL</label><Input id="publication-url" value={data.url} onChange={(e) => onChange({ url: e.target.value })} placeholder="https://..." /></div>
         </div>
       )}
-      renderDetail={(pub) => (
+      renderSidebar={(pub) => (
         <div className="space-y-4">
-          <div><span className="text-sm font-medium">Autores:</span><p className="text-sm text-muted-foreground">{pub.autores}</p></div>
-          {pub.resumen && <div><span className="text-sm font-medium">Resumen:</span><p className="text-sm text-muted-foreground">{pub.resumen}</p></div>}
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div><span className="font-medium">Journal:</span><p className="text-muted-foreground">{pub.journal || '-'}</p></div>
-            <div><span className="font-medium">DOI:</span><p className="text-muted-foreground">{pub.doi || '-'}</p></div>
-            <div><span className="font-medium">Sector:</span><p className="text-muted-foreground">{sectorMap.get(pub.sector_codigo ?? '') || pub.sector_codigo || '-'}</p></div>
-            <div><span className="font-medium">Publicado:</span><p className="text-muted-foreground">{formatDate(pub.fecha_publicacion)}</p></div>
+          <div className="flex items-start gap-2">
+            <FileText className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+            <div>
+              <p className="text-base font-semibold leading-tight">{pub.titulo}</p>
+              <p className="text-xs text-muted-foreground mt-1">{pub.autores}</p>
+            </div>
+          </div>
+          {pub.resumen && (
+            <div className="border-t border-border pt-3">
+              <p className="text-xs font-medium text-muted-foreground mb-1">Resumen</p>
+              <p className="text-sm text-foreground/80 leading-relaxed">{pub.resumen}</p>
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-3 border-t border-border pt-3">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-1">Journal</p>
+              <p className="text-sm">{pub.journal || '-'}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-1">DOI</p>
+              <p className="text-sm font-mono">{pub.doi || '-'}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-1">Sector</p>
+              <p className="text-sm">{sectorMap.get(pub.sector_codigo ?? '') || '-'}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-1">Publicado</p>
+              <p className="text-sm">{formatDate(pub.fecha_publicacion)}</p>
+            </div>
           </div>
           {pub.palabras_clave && pub.palabras_clave.length > 0 && (
-            <div><span className="text-sm font-medium">Palabras clave:</span><div className="flex flex-wrap gap-1 mt-1">{pub.palabras_clave.map((kw) => <Badge key={kw} variant="secondary">{kw}</Badge>)}</div></div>
+            <div className="border-t border-border pt-3">
+              <p className="text-xs font-medium text-muted-foreground mb-2">Palabras clave</p>
+              <div className="flex flex-wrap gap-1.5">
+                {pub.palabras_clave.map((kw) => <Badge key={kw} variant="secondary" className="text-xs">{kw}</Badge>)}
+              </div>
+            </div>
           )}
-          {pub.url && <div className="text-sm"><a href={pub.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{pub.url}</a></div>}
+          {pub.url && (
+            <div className="border-t border-border pt-3">
+              <a href={pub.url} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">{pub.url}</a>
+            </div>
+          )}
         </div>
       )}
     />

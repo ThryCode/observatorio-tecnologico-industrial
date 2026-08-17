@@ -42,16 +42,8 @@ export default function Technologies() {
 
   const columns: CrudColumn<Technology>[] = [
     { header: 'Nombre', render: (t) => <span className="font-medium">{t.nombre}</span> },
-    { header: 'Descripción', className: 'max-w-xs truncate text-muted-foreground', render: (t) => t.descripcion || '-' },
     { header: 'TRL', render: (t) => t.trl_nivel ? <Badge variant="outline">TRL {t.trl_nivel}</Badge> : <span className="text-muted-foreground">-</span> },
-    { header: 'Sector', render: (t) => sectorMap.get(t.sector_codigo ?? '') || t.sector_codigo || '-' },
-    { header: 'Palabras Clave', render: (t) => (
-      <div className="flex flex-wrap gap-1">
-        {t.palabras_clave?.slice(0, 3).map((kw) => <Badge key={kw} variant="secondary" className="text-xs">{kw}</Badge>)}
-        {(t.palabras_clave?.length ?? 0) > 3 && <Badge variant="secondary" className="text-xs">+{t.palabras_clave!.length - 3}</Badge>}
-      </div>
-    )},
-    { header: 'Creado', render: (t) => <span className="text-muted-foreground">{formatDate(t.created_at)}</span> },
+    { header: 'Sector', render: (t) => <span className="text-[11px] text-text-muted">{sectorMap.get(t.sector_codigo ?? '') || t.sector_codigo || '-'}</span> },
   ];
 
   return (
@@ -125,17 +117,32 @@ export default function Technologies() {
           </div>
         </div>
       )}
-      renderDetail={(tech) => (
+      renderSidebar={(tech) => (
         <div className="space-y-4">
-          {tech.descripcion && <p className="text-sm text-muted-foreground">{tech.descripcion}</p>}
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div><span className="font-medium">Sector:</span><p className="text-muted-foreground">{sectorMap.get(tech.sector_codigo ?? '') || tech.sector_codigo || '-'}</p></div>
-            <div><span className="font-medium">TRL Nivel:</span><p className="text-muted-foreground">{tech.trl_nivel ? `TRL ${tech.trl_nivel}` : '-'}</p></div>
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-base font-semibold">{tech.nombre}</p>
+              <p className="text-xs text-muted-foreground">{sectorMap.get(tech.sector_codigo ?? '') || '-'}</p>
+            </div>
+            {tech.trl_nivel && <Badge variant="outline">TRL {tech.trl_nivel}</Badge>}
           </div>
-          {tech.palabras_clave && tech.palabras_clave.length > 0 && (
-            <div><span className="text-sm font-medium">Palabras clave:</span><div className="flex flex-wrap gap-1 mt-1">{tech.palabras_clave.map((kw) => <Badge key={kw} variant="secondary">{kw}</Badge>)}</div></div>
+          {tech.descripcion && (
+            <div className="border-t border-border pt-3">
+              <p className="text-xs font-medium text-muted-foreground mb-1">Descripción</p>
+              <p className="text-sm text-foreground/80 leading-relaxed">{tech.descripcion}</p>
+            </div>
           )}
-          <div className="text-sm text-muted-foreground">Creado: {formatDate(tech.created_at)}</div>
+          {tech.palabras_clave && tech.palabras_clave.length > 0 && (
+            <div className="border-t border-border pt-3">
+              <p className="text-xs font-medium text-muted-foreground mb-2">Palabras clave</p>
+              <div className="flex flex-wrap gap-1.5">
+                {tech.palabras_clave.map((kw) => <Badge key={kw} variant="secondary" className="text-xs">{kw}</Badge>)}
+              </div>
+            </div>
+          )}
+          <div className="border-t border-border pt-3 text-xs text-muted-foreground">
+            Creado: {formatDate(tech.created_at)}
+          </div>
         </div>
       )}
     />

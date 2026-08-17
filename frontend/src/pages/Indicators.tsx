@@ -5,9 +5,7 @@ import { useIndicators, useCreateIndicator, useUpdateIndicator, useDeleteIndicat
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { formatDate, formatNumber } from '@/utils/formatters';
-import { TrendingUp } from 'lucide-react';
 import type { Indicator } from '@/types';
 
 const periodLabels: Record<string, string> = {
@@ -18,7 +16,6 @@ export default function Indicators() {
   const [page, setPage] = useState(1);
   const [q, setQ] = useState('');
   const [period, setPeriod] = useState('');
-  const [selected, setSelected] = useState<Indicator | null>(null);
 
   const queryResult = useIndicators(page, 20, undefined, period || undefined, q || undefined);
   const createMutation = useCreateIndicator();
@@ -26,17 +23,14 @@ export default function Indicators() {
   const deleteMutation = useDeleteIndicator();
 
   const columns: CrudColumn<Indicator>[] = [
-    { header: 'Nombre', render: (item) => <button className="font-medium hover:underline text-left" onClick={() => setSelected(item)}>{item.name}</button> },
+    { header: 'Nombre', render: (item) => <span className="font-medium">{item.name}</span> },
     { header: 'Código', render: (item) => <code className="rounded bg-muted px-1.5 py-0.5 text-xs">{item.code}</code> },
-    { header: 'Valor', className: 'font-semibold', render: (item) => formatNumber(item.value) },
-    { header: 'Unidad', render: (item) => item.unit },
+    { header: 'Valor', className: 'font-semibold', render: (item) => <span>{formatNumber(item.value)} <span className="text-xs font-normal text-muted-foreground">{item.unit}</span></span> },
     { header: 'Periodo', render: (item) => <Badge variant="outline">{periodLabels[item.period] || item.period}</Badge> },
-    { header: 'Fuente', render: (item) => item.source },
   ];
 
   return (
-    <>
-      <CrudPage
+    <CrudPage
         title="Indicadores"
         description="Indicadores de ciencia, tecnología e innovación del sector industrial."
         permissionResource="indicators"
@@ -110,30 +104,41 @@ export default function Indicators() {
             </div>
           </div>
         )}
-      />
-
-      <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>{selected?.name}</DialogTitle></DialogHeader>
-          {selected && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm">
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">Valor:</span>
-                <span className="text-xl font-bold">{formatNumber(selected.value)}</span>
-                <span className="text-muted-foreground">{selected.unit}</span>
-              </div>
-              {selected.description && <p className="text-sm text-muted-foreground">{selected.description}</p>}
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div><span className="font-medium">Código:</span><p className="text-muted-foreground">{selected.code}</p></div>
-                <div><span className="font-medium">Periodo:</span><p className="text-muted-foreground">{periodLabels[selected.period]}</p></div>
-                <div><span className="font-medium">Fuente:</span><p className="text-muted-foreground">{selected.source}</p></div>
-                <div><span className="font-medium">Fecha:</span><p className="text-muted-foreground">{formatDate(selected.date)}</p></div>
+        renderSidebar={(item) => (
+          <div className="space-y-4">
+            <div>
+              <p className="text-base font-semibold">{item.name}</p>
+              <p className="text-xs text-muted-foreground">{item.code}</p>
+            </div>
+            <div className="border-t border-border pt-3">
+              <p className="text-xs font-medium text-muted-foreground mb-1">Valor</p>
+              <div className="flex items-baseline gap-1">
+                <span className="text-xl font-bold">{formatNumber(item.value)}</span>
+                <span className="text-sm text-muted-foreground">{item.unit}</span>
               </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </>
+            {item.description && (
+              <div className="border-t border-border pt-3">
+                <p className="text-xs font-medium text-muted-foreground mb-1">Descripción</p>
+                <p className="text-sm text-foreground/80 leading-relaxed">{item.description}</p>
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-3 border-t border-border pt-3">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1">Periodo</p>
+                <Badge variant="outline">{periodLabels[item.period]}</Badge>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1">Fecha</p>
+                <p className="text-sm">{formatDate(item.date)}</p>
+              </div>
+            </div>
+            <div className="border-t border-border pt-3">
+              <p className="text-xs font-medium text-muted-foreground mb-1">Fuente</p>
+              <p className="text-sm">{item.source}</p>
+            </div>
+          </div>
+        )}
+      />
   );
 }
