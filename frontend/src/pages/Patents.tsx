@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { usePatents, useCreatePatent, useUpdatePatent, useDeletePatent } from '@/hooks/usePatents';
 import FileUpload from '@/components/FileUpload';
+import PageHeader from '@/components/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -21,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Calendar, User, FileText, Globe, Plus, Pencil, Trash2, AlertCircle, Download } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, AlertCircle, Download, X } from 'lucide-react';
 import { formatDate, getStatusColor, capitalize } from '@/utils/formatters';
 import { usePermissions } from '@/hooks/usePermissions';
 import type { Patent } from '@/types';
@@ -55,6 +56,7 @@ const statusLabels: Record<string, string> = {
 export default function Patents() {
   const { can } = usePermissions();
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sector, setSector] = useState('');
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
@@ -74,7 +76,15 @@ export default function Patents() {
   const updateMutation = useUpdatePatent();
   const deleteMutation = useDeletePatent();
 
-  const { data, isLoading, isError } = usePatents(page, 20, sector || undefined, status || undefined, search || undefined);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
+  const { data, isLoading, isError } = usePatents(page, 20, sector || undefined, status || undefined, debouncedSearch || undefined);
 
   useEffect(() => {
     if (data?.total !== undefined) {
@@ -137,10 +147,7 @@ export default function Patents() {
   if (isError) {
     return (
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Patentes</h2>
-          <p className="text-muted-foreground">Error al cargar los datos.</p>
-        </div>
+        <PageHeader title="Patentes" highlight="Patentes" description="Error al cargar los datos." />
         <Card>
           <CardContent className="flex flex-col items-center gap-2 py-8">
             <p className="text-sm text-destructive">No se pudieron cargar las patentes. Intente de nuevo mas tarde.</p>
@@ -152,30 +159,38 @@ export default function Patents() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Patentes</h2>
-          <p className="text-muted-foreground">
-            Registro de patentes nacionales e internacionales por sector tecnológico.
-          </p>
-        </div>
-        {can('patents', 'create') && (
-          <Button className="gap-2" onClick={openCreateDialog}>
-            <Plus className="h-4 w-4" />
-            Nueva Patente
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title="Patentes"
+        highlight="Patentes"
+        description="Registro de patentes nacionales e internacionales por sector tecnológico."
+        actions={
+          can('patents', 'create') ? (
+            <Button className="gap-2" onClick={openCreateDialog}>
+              <Plus className="h-4 w-4" />
+              Nueva Patente
+            </Button>
+          ) : undefined
+        }
+      />
 
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar patentes (título, número, solicitante)..."
-            className="pl-9"
+            className="pl-9 pr-9"
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onChange={(e) => setSearch(e.target.value)}
           />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-foreground"
+              aria-label="Limpiar búsqueda"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
         <Select value={sector} onValueChange={(v) => { setSector(v); setPage(1); }}>
           <SelectTrigger className="w-[160px]"><SelectValue placeholder="Sector" /></SelectTrigger>
@@ -195,143 +210,125 @@ export default function Patents() {
         </Select>
       </div>
 
-      {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i}>
-              <CardContent className="p-6">
-                <Skeleton className="mb-2 h-5 w-3/4" />
-                <Skeleton className="mb-4 h-4 w-1/2" />
-                <Skeleton className="h-4 w-full" />
-              </CardContent>
-            </Card>
-          ))}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <div className="bg-surface rounded-lg border border-border">
+            <div className="grid gap-4 p-4 md:grid-cols-2">
+              {isLoading ? Array.from({ length: 6 }).map((_, i) => (
+                <Card key={i}><CardContent className="p-4"><Skeleton className="mb-2 h-4 w-3/4" /><Skeleton className="mb-2 h-3 w-1/2" /><Skeleton className="h-3 w-full" /></CardContent></Card>
+              )) : data?.items.map((patent) => (
+                <Card
+                  key={patent.id}
+                  className={`cursor-pointer transition-colors ${selectedPatent?.id === patent.id ? 'border-primary bg-primary/5' : 'hover:border-primary/50'}`}
+                  onClick={() => setSelectedPatent(selectedPatent?.id === patent.id ? null : patent)}
+                >
+                  <CardHeader className="p-3 pb-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <CardTitle className="text-sm font-medium leading-tight">{patent.title}</CardTitle>
+                      <Badge className={`${getStatusColor(patent.status)} shrink-0 text-[10px]`}>
+                        {statusLabels[patent.status] || capitalize(patent.status)}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-3 pt-0 space-y-1">
+                    <p className="text-xs font-mono text-muted-foreground">{patent.patent_number}</p>
+                    <p className="text-xs text-text-muted">{patent.country}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            {data?.items.length === 0 && !isLoading && (
+              <div className="p-8 text-center text-muted-foreground">No hay patentes registradas aún.</div>
+            )}
+            {data && data.total_pages > 1 && (
+              <div className="flex items-center justify-between border-t border-border px-4 py-3">
+                <p className="text-sm text-muted-foreground">{data.total} registros en total</p>
+                <div className="flex gap-2">
+                  <button onClick={() => setPage((p) => p - 1)} disabled={page <= 1} className="rounded-md border border-border px-3 py-1 text-sm disabled:opacity-50">Anterior</button>
+                  <span className="px-3 py-1 text-sm text-muted-foreground">Página {page} de {data.total_pages}</span>
+                  <button onClick={() => setPage((p) => p + 1)} disabled={page >= data.total_pages} className="rounded-md border border-border px-3 py-1 text-sm disabled:opacity-50">Siguiente</button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {data?.items.map((patent) => (
-            <Card key={patent.id} className="transition-colors hover:border-primary/50">
-              <CardHeader>
+
+        <div className="lg:col-span-1">
+          {selectedPatent && !dialogOpen && !deleteDialogOpen ? (
+            <Card className="sticky top-6">
+              <CardContent className="pt-6 space-y-4">
                 <div className="flex items-start justify-between">
-                  <CardTitle className="text-sm font-medium leading-tight">
-                    <button className="hover:underline text-left" onClick={() => setSelectedPatent(patent)}>
-                      {patent.title}
-                    </button>
-                  </CardTitle>
-                  <Badge className={getStatusColor(patent.status)}>
-                    {statusLabels[patent.status] || capitalize(patent.status)}
+                  <div>
+                    <p className="text-base font-semibold leading-tight">{selectedPatent.title}</p>
+                    <p className="text-xs font-mono text-muted-foreground mt-1">{selectedPatent.patent_number}</p>
+                  </div>
+                  <Badge className={getStatusColor(selectedPatent.status)}>
+                    {statusLabels[selectedPatent.status] || capitalize(selectedPatent.status)}
                   </Badge>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <FileText className="h-3.5 w-3.5" />
-                  <span>{patent.patent_number}</span>
+                {selectedPatent.abstract && (
+                  <div className="border-t border-border pt-3">
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Resumen</p>
+                    <p className="text-sm text-foreground/80 leading-relaxed">{selectedPatent.abstract}</p>
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-3 border-t border-border pt-3">
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Solicitante</p>
+                    <p className="text-sm">{selectedPatent.applicant}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Inventor(es)</p>
+                    <p className="text-sm">{selectedPatent.inventor}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Fecha solicitud</p>
+                    <p className="text-sm">{formatDate(selectedPatent.filing_date)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Fecha publicación</p>
+                    <p className="text-sm">{selectedPatent.publication_date ? formatDate(selectedPatent.publication_date) : '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Sector tecnológico</p>
+                    <p className="text-sm">{selectedPatent.technological_sector || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">País</p>
+                    <p className="text-sm">{selectedPatent.country}</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <User className="h-3.5 w-3.5" />
-                  <span>{patent.applicant}</span>
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Calendar className="h-3.5 w-3.5" />
-                  <span>{formatDate(patent.filing_date)}</span>
-                </div>
-                <div className="flex items-center gap-2 text-muted-foreground">
-                  <Globe className="h-3.5 w-3.5" />
-                  <span>{patent.country}</span>
-                </div>
-                <div className="flex gap-1 pt-2">
-                  {patent.file_url && (
-                    <a href={patent.file_url} download onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" size="sm" type="button">
-                        <Download className="h-4 w-4 text-info" />
-                      </Button>
+                {selectedPatent.file_url && (
+                  <div className="border-t border-border pt-3">
+                    <a href={selectedPatent.file_url} download className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
+                      <Download className="h-3.5 w-3.5" /> Descargar archivo
+                    </a>
+                  </div>
+                )}
+                <div className="border-t border-border pt-3 flex gap-1">
+                  {selectedPatent.file_url && (
+                    <a href={selectedPatent.file_url} download onClick={(e) => e.stopPropagation()}>
+                      <Button variant="ghost" size="sm" type="button"><Download className="h-4 w-4 text-info" /></Button>
                     </a>
                   )}
                   {can('patents', 'edit') && (
-                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openEditDialog(patent); }}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
+                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openEditDialog(selectedPatent); }}><Pencil className="h-4 w-4" /></Button>
                   )}
                   {can('patents', 'delete') && (
-                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setPatentToDelete(patent); setDeleteDialogOpen(true); }}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setPatentToDelete(selectedPatent); setDeleteDialogOpen(true); }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                   )}
                 </div>
               </CardContent>
             </Card>
-          ))}
-          {data?.items.length === 0 && (
-            <div className="col-span-full text-center py-8 text-muted-foreground">
-              No hay patentes registradas aún.
-            </div>
+          ) : (
+            <Card className="sticky top-6">
+              <CardContent className="py-12 text-center text-sm text-muted-foreground">
+                Haz clic en una patente para ver sus datos.
+              </CardContent>
+            </Card>
           )}
         </div>
-      )}
-
-      <Dialog open={!!selectedPatent && !dialogOpen && !deleteDialogOpen} onOpenChange={() => setSelectedPatent(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{selectedPatent?.title}</DialogTitle>
-            <DialogDescription>Número: {selectedPatent?.patent_number}</DialogDescription>
-          </DialogHeader>
-          {selectedPatent && (
-            <div className="space-y-4">
-              <div className="flex gap-2">
-                <Badge className={getStatusColor(selectedPatent.status)}>
-                  {statusLabels[selectedPatent.status] || capitalize(selectedPatent.status)}
-                </Badge>
-                <Badge variant="outline">{selectedPatent.country}</Badge>
-                {selectedPatent.technological_sector && (
-                  <Badge variant="secondary">{selectedPatent.technological_sector}</Badge>
-                )}
-              </div>
-              {selectedPatent.abstract && (
-                <div>
-                  <h4 className="mb-1 text-sm font-medium">Resumen</h4>
-                  <p className="text-sm text-muted-foreground">{selectedPatent.abstract}</p>
-                </div>
-              )}
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium">Solicitante:</span>
-                  <p className="text-muted-foreground">{selectedPatent.applicant}</p>
-                </div>
-                <div>
-                  <span className="font-medium">Inventor(es):</span>
-                  <p className="text-muted-foreground">{selectedPatent.inventor}</p>
-                </div>
-                <div>
-                  <span className="font-medium">Fecha de solicitud:</span>
-                  <p className="text-muted-foreground">{formatDate(selectedPatent.filing_date)}</p>
-                </div>
-                <div>
-                  <span className="font-medium">Fecha de publicación:</span>
-                  <p className="text-muted-foreground">{selectedPatent.publication_date ? formatDate(selectedPatent.publication_date) : '-'}</p>
-                </div>
-                <div>
-                  <span className="font-medium">Sector tecnológico:</span>
-                  <p className="text-muted-foreground">{selectedPatent.technological_sector || '-'}</p>
-                </div>
-                <div>
-                  <span className="font-medium">País:</span>
-                  <p className="text-muted-foreground">{selectedPatent.country}</p>
-                </div>
-              </div>
-              {selectedPatent.file_url && (
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="font-medium">Archivo adjunto:</span>
-                  <a href={selectedPatent.file_url} download className="flex items-center gap-1 text-primary hover:underline">
-                    <Download className="h-3.5 w-3.5" />
-                    Descargar archivo
-                  </a>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      </div>
 
       <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) { setDialogOpen(false); resetForm(); } }}>
         <DialogContent className="max-w-lg">
@@ -436,18 +433,6 @@ export default function Patents() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {data && data.total_pages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Página {page} de {data.total_pages} ({data.total} total)
-          </p>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Anterior</Button>
-            <Button variant="outline" size="sm" disabled={page >= data.total_pages} onClick={() => setPage((p) => p + 1)}>Siguiente</Button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
