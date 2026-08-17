@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import ForceGraph2D, { type ForceGraphNode } from '@/components/ForceGraph2D';
-import { buildGalaxy, buildSystem, primaryType, nodeTypeSpanish } from '@/lib/graphNav';
+import { buildGalaxy, buildSystem, primaryType, nodeTypeSpanish, nodeLabel } from '@/lib/graphNav';
 import { Search, Network, AlertCircle, Loader2, ArrowLeft, MousePointerClick, X, Filter } from 'lucide-react';
 import { SectionErrorBoundary } from '@/components/SectionErrorBoundary';
 import { getIndustrialSectors } from '@/api/industrialSectors';
@@ -59,6 +59,9 @@ export default function GraphExplorer() {
 
   const drillExpanded = useMemo(() => {
     if (!centerId || !graphData) return new Set<string>();
+    const centerNode = graphData.nodes.find((n) => n.id === centerId);
+    const isSector = centerNode?.labels.includes('IndustrialSector') ?? false;
+    if (!isSector) return new Set<string>();
     const expandedIds = new Set<string>();
     for (const e of graphData.edges) {
       if (e.source === centerId) expandedIds.add(e.target);
@@ -81,7 +84,14 @@ export default function GraphExplorer() {
 
   const currentCenterLabel = useMemo(() => {
     if (!centerId) return null;
-    return graphData?.nodes.find((n) => n.id === centerId)?.props.nombre?.toString().split('(')[0].trim() ?? 'Nodo';
+    const node = graphData?.nodes.find((n) => n.id === centerId);
+    return node ? nodeLabel(node.props) : 'Nodo';
+  }, [centerId, graphData]);
+
+  const isSectorCenter = useMemo(() => {
+    if (!centerId || !graphData) return false;
+    const node = graphData.nodes.find((n) => n.id === centerId);
+    return node?.labels.includes('IndustrialSector') ?? false;
   }, [centerId, graphData]);
 
   const goBack = () => {
@@ -145,11 +155,13 @@ export default function GraphExplorer() {
       {hasFocus && currentCenterLabel && (
         <div className="flex items-center gap-2 rounded-md border border-white/10 bg-white/[0.03] px-4 py-2 text-sm">
           <MousePointerClick className="h-4 w-4 text-muted-foreground" />
-          <span className="text-muted-foreground">Sistema de:</span>
+          <span className="text-muted-foreground">{isSectorCenter ? 'Sistema de:' : 'Conexiones de:'}</span>
           <span className="font-semibold">{currentCenterLabel}</span>
-          <Badge variant="secondary" className="ml-2 text-xs">
-            clic en un nodo para ver sus conexiones
-          </Badge>
+<Badge variant="secondary" className="ml-2 text-xs">
+              {isSectorCenter
+                ? 'clic en un nodo para ver sus conexiones'
+                : 'clic para volver al sector'}
+            </Badge>
           <Button variant="ghost" size="sm" className="ml-auto" onClick={goBack}>
             <X className="mr-1 h-3.5 w-3.5" />
             Cerrar
@@ -189,7 +201,7 @@ export default function GraphExplorer() {
             <CardHeader>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <CardTitle className="text-lg">
-                  {hasFocus ? `Conexiones de: ${currentCenterLabel ?? ''}` : 'Grafo de conocimiento'}
+                  {hasFocus ? (currentCenterLabel ?? 'Nodo') : 'Grafo de conocimiento'}
                 </CardTitle>
                 {graphLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
               </div>
@@ -210,7 +222,7 @@ export default function GraphExplorer() {
                       nodes={visible.nodes}
                       edges={visible.edges}
                       centerId={centerId}
-                      hideCenter={hasFocus}
+                      hideCenter={hasFocus && isSectorCenter}
                       onNodeClick={handleNodeClick}
                       onExpandNode={handleExpandNode}
                       showEdgeLabels

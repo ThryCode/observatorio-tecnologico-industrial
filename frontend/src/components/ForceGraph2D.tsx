@@ -865,7 +865,7 @@ export default function ForceGraph2D({
                       x={0} y={subY}
                       textAnchor="middle"
                       fill="rgba(255,255,255,0.45)"
-                      fontSize="2.8"
+                      fontSize="3.5"
                       className="pointer-events-none select-none"
                     >
                       {n.subtitle || nodeTypeSpanish(n.nodeType)}
