@@ -65,9 +65,9 @@ describe('usePatents', () => {
 
 ## Coverage
 
-- Backend: 175 tests
-- Frontend: 86 tests
-- Total: 261 tests
+- Backend: 348+ tests
+- Frontend: 90+ tests
+- Total: 438+ tests
 
 ## Related
 

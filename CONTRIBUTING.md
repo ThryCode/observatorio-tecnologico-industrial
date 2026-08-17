@@ -64,10 +64,10 @@ npm run dev
 ### 4. Ejecutar tests
 
 ```bash
-# Backend (pytest, 90+ tests)
+# Backend (pytest, 348+ tests)
 cd backend && pytest -v
 
-# Frontend (Vitest, 10+ tests)
+# Frontend (Vitest, 90+ tests)
 cd frontend && npm test
 ```
 
@@ -159,8 +159,8 @@ Tipos permitidos: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `style`, `
 
 | Suite | Comando | Cobertura esperada |
 |---|---|---|
-| Backend tests | `pytest -v` | 90+ tests, sin `--timeout` flag |
-| Frontend tests | `npm test` (Vitest) | 10+ tests |
+| Backend tests | `pytest -v` | 348+ tests, sin `--timeout` flag |
+| Frontend tests | `npm test` (Vitest) | 90+ tests |
 | Backend lint | `ruff check backend/` | Sin errores |
 | Frontend lint | `npm run lint` | Sin errores |
 

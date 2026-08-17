@@ -21,7 +21,7 @@ metadata:
 | Label | Properties | Description |
 |-------|-----------|-------------|
 | Technology | id, name, trl_level | Technologies being tracked |
-| Company | id, name, siglas, pais | Organizations and companies |
+| Organization | id, name, siglas, pais | Organizations and companies |
 | Patent | id, title, patent_number, status | Patents |
 | Regulation | id, title, category | Laws, decrees, standards |
 | Person | id, name, role | People in the ecosystem |
@@ -30,11 +30,12 @@ metadata:
 ### Relationships
 | Relationship | From -> To | Properties |
 |-------------|-----------|------------|
-| HAS_PATENT | Company -> Patent | filing_date |
+| HAS_PATENT | Organization -> Patent | filing_date |
 | RELATES_TO | Technology -> Technology | strength |
 | REGULATES | Regulation -> Technology | |
-| OPERATES_IN | Company -> Technology | |
-| WORKS_AT | Person -> Company | role, since |
+| OPERATES_IN | Organization -> Technology | |
+| WORKS_AT | Person -> Organization | role, since |
+| BELONGS_TO_SECTOR | Organization -> IndustrialSector | |
 | IS_AUTHOR_OF | Person -> Patent | contribution |
 | MEASURES | Indicator -> Technology | period |
 
@@ -44,9 +45,9 @@ metadata:
 ```cypher
 // Correct
 MATCH (t:Technology {id: $tech_id})
-MATCH (c:Company)-[:HAS_PATENT]->(p:Patent)
+MATCH (o:Organization)-[:HAS_PATENT]->(p:Patent)
 WHERE p.status = $status
-RETURN t, c, p
+RETURN t, o, p
 
 // WRONG - never concatenate strings
 MATCH (t {id: '" + tech_id + "'})
@@ -60,14 +61,14 @@ RETURN related.name, related.trl_level
 LIMIT 10
 
 // Company patent portfolio
-MATCH (c:Company {id: $id})-[:HAS_PATENT]->(p:Patent)
+MATCH (o:Organization {id: $id})-[:HAS_PATENT]->(p:Patent)
 RETURN p.title, p.status, p.filing_date
 ORDER BY p.filing_date DESC
 
 // Sector overview
-MATCH (c:Company)-[:OPERATES_IN]->(t:Technology)
+MATCH (o:Organization)-[:OPERATES_IN]->(t:Technology)
 WHERE t.sector = $sector
-RETURN c.name, count(t) as tech_count
+RETURN o.name, count(t) as tech_count
 ORDER BY tech_count DESC
 ```
 

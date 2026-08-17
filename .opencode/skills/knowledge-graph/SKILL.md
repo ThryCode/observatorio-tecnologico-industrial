@@ -33,10 +33,10 @@ metadata:
 - TRL = Technology Readiness Level
 - Relationships: RELATES_TO, REGULATES, OPERATES_IN, MEASURES
 
-#### Company (Empresa)
+#### Organization (Organizacion)
 - Properties: id, nombre, siglas, tipo, pais, provincia
 - Types: state enterprise, private, mixed, foreign
-- Relationships: HAS_PATENT, OPERATES_IN, WORKS_AT
+- Relationships: HAS_PATENT, OPERATES_IN, WORKS_AT, BELONGS_TO_SECTOR
 
 #### Patent (Patente)
 - Properties: id, title, patent_number, applicant, filing_date, status, country
@@ -57,9 +57,9 @@ metadata:
 
 ### Sector Overview
 ```cypher
-MATCH (c:Company)-[:OPERATES_IN]->(t:Technology)
+MATCH (o:Organization)-[:OPERATES_IN]->(t:Technology)
 WHERE t.sector = $sector
-RETURN c.nombre, count(t) as technologies
+RETURN o.nombre, count(t) as technologies
 ORDER BY technologies DESC
 ```
 

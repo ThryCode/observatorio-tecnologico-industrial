@@ -74,6 +74,26 @@ FastAPI backend with async SQLAlchemy, Pydantic v2, and Neo4j graph layer.
 - Invalidate on mutation: `await cache.invalidate_pattern("entity:*")`
 - Dependencies: `get_redis()` in `app/dependencies.py`
 
+## Email Notifications
+- Service: `app/services/email_service.py` — async SMTP via aiosmtplib
+- Templates: `app/templates/emails/` — Jinja2 HTML templates
+- Config: SMTP settings in `app/core/config.py` (smtp_host, smtp_port, etc.)
+- Usage: `await email_service.send_email(to, subject, html_content)`
+- Background scheduler: `app/services/notification_service.py` — summary email loop
+
+## WebSocket Alerts
+- Endpoint: `app/api/v1/dashboard.py` — WebSocket at `/api/v1/ws/alerts`
+- Broadcasts new alerts to connected clients in real-time
+- Auth: JWT token via query param `?token=...`
+- Manager: `app/services/alert_broadcast.py` — tracks connections per sector
+
+## Follow System
+- Model: `app/models/follow.py` — polymorphic (follower_type: "user" | "organization")
+- Service: `app/services/follow_service.py` — CRUD + Neo4j sync
+- Seed data: `app/core/seed_follows_data.py` — FOLLOWS_DATA list
+- Auto-sync: `seed_follows()` syncs SQLite follows to Neo4j FOLLOWS relationships on startup
+- Neo4j: FOLLOWS relationships between Organization nodes
+
 ## Logging (loguru)
 - Setup: `app/core/logging_config.py` — stdout + `logs/observatorio.log` (10MB rotation, 30 days)
 - Usage: `from loguru import logger; logger.info("message")`

@@ -277,7 +277,7 @@ Usuario público                Sistema                    Administrador
 │   ├── alembic/
 │   │   └── versions/
 │   │       └── bb25b3baf793_*.py  # Initial SQLite schema
-│   ├── tests/                   # pytest (175 tests)
+│   ├──    tests/                   # pytest (348+ tests)
 │   ├── requirements.txt
 │   └── .env
 ├── frontend/
@@ -326,11 +326,11 @@ Usuario público                Sistema                    Administrador
 ## Testing
 
 ```bash
-# Backend (175 tests)
+# Backend (348+ tests)
 cd backend
 pytest -v
 
-# Frontend (86 tests, with coverage)
+# Frontend (90+ tests, with coverage)
 cd frontend
 npx vitest run
 npx vitest run --coverage
@@ -375,7 +375,7 @@ npx eslint src/
 | Graph Nav | 9 | Vitest | graphNav.test.ts |
 | API clients | 48 | Vitest | api-clients.test.ts |
 | Hooks | 19 | Vitest | hooks.test.tsx |
-| **Total** | **261** | | |
+| **Total** | **348+** | | |
 
 ## Cómo contribuir
 

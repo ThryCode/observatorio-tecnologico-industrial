@@ -58,6 +58,28 @@ frontend/src/
 - Naming: English code, Spanish domain fields (nombre, siglas, tipo)
 - Services: instantiated per-request, not via DI
 
+## Additional Systems
+
+### Email Notifications
+- Backend: `app/services/email_service.py` — async SMTP via aiosmtplib
+- Templates: `app/templates/emails/` — Jinja2 HTML
+- Config: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_USE_TLS, EMAIL_FROM
+- Scheduler: `app/services/notification_service.py` — summary email loop
+
+### WebSocket Real-time
+- Endpoint: `/api/v1/ws/alerts` — broadcasts new alerts to connected clients
+- Auth: JWT token via query param
+
+### Follow System
+- Model: polymorphic (user→org, org→org)
+- Service: `app/services/follow_service.py`
+- Seed data: `app/core/seed_follows_data.py` — auto-syncs to Neo4j FOLLOWS on startup
+
+### Graph Layout Modes
+- ForceGraph2D supports `layoutMode: 'solar' | 'scatter'`
+- Solar: force-directed with physics (used by knowledge graph)
+- Scatter: circular arrangement, no physics (used by enterprise graph)
+
 ## Three-Tier Boundaries
 
 ### Always do

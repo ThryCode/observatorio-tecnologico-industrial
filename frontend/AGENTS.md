@@ -42,6 +42,35 @@ React 18 + TypeScript SPA with Vite, Tailwind CSS, shadcn/ui, and TanStack Query
 - **Code splitting**: All route pages use `React.lazy()` + `<Suspense>` in `App.tsx`
 - Vendor chunks: manualChunks in `vite.config.ts` (vendor/charts/query/forms)
 
+## Dark Mode / Theme System
+- Context: `src/contexts/ThemeContext.tsx` — manages dark/light mode
+- Persistence: localStorage key `theme`
+- CSS variables: defined in `index.css` for both modes
+- Toggle: Header component theme button
+
+## i18n (Internationalization)
+- Context: `src/contexts/LanguageContext.tsx` — ES/EN toggle
+- Translations: `src/i18n/translations.ts` — flat key-value pairs
+- Usage: `const { t } = useLanguage(); t('sidebar.dashboard')`
+- Persistence: localStorage key `language`
+
+## Toast Notifications
+- Library: sonner (`import { toast } from "sonner"`)
+- Usage: `toast.success("Message")`, `toast.error("Error")`
+- Toaster component mounted in `App.tsx`
+
+## Graph Layout Modes
+- Component: `src/components/ForceGraph2D.tsx`
+- Props: `layoutMode?: 'solar' | 'scatter'`
+- Solar: force-directed with physics simulation
+- Scatter: circular arrangement, no physics
+- Used by: GraphExplorer (solar), EnterpriseGraph (scatter)
+
+## Error Boundaries
+- Component: `src/components/SectionErrorBoundary.tsx`
+- Wraps each page section for isolated error recovery
+- Shows fallback UI with retry button
+
 ## Forms
 - React Hook Form for form state
 - Zod schemas for validation

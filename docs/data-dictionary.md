@@ -164,6 +164,96 @@
 | rejection_reason | string | Razon de rechazo |
 | organization_id | UUID | Organizacion (FK) |
 
+### AuditLog (Registro de Auditoria)
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| id | UUID | Identificador unico |
+| user_id | UUID | Usuario que realizo la accion (FK -> users.id) |
+| action | string(20) | Accion realizada (CREATE, UPDATE, DELETE) |
+| entity_type | string(50) | Tipo de entidad afectada |
+| entity_id | string(36) | UUID de la entidad afectada |
+| changes | json | Payload o diff de los cambios realizados |
+| ip_address | string(45) | Direccion IPv4 o IPv6 del solicitante |
+| created_at | datetime | Fecha y hora del evento |
+
+### CompetitivenessIndex (Indice de Competitividad)
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| id | UUID | Identificador unico |
+| sector | string(200) | Nombre del sector |
+| sector_codigo | string | Codigo del sector industrial (FK -> industrial_sectores.codigo) |
+| indicador | string(200) | Nombre del indicador |
+| valor | numeric(10,2) | Valor numerico del indice |
+| pais | string(100) | Pais |
+| periodo | string(20) | Periodo temporal |
+| fuente | string(300) | Fuente de datos |
+| created_at | datetime | Fecha de creacion |
+| updated_at | datetime | Fecha de actualizacion |
+
+### Follow (Seguimiento)
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| id | UUID | Identificador unico |
+| follower_id | UUID | ID del seguidor (puede ser User u Organization) |
+| follower_type | string(20) | Discriminador: "user" o "organization" |
+| organization_id | UUID | Organizacion seguida (FK -> organizations.id, CASCADE) |
+| created_at | datetime | Fecha de creacion |
+
+**Constraint unico:** (follower_id, follower_type, organization_id)
+
+### PatentMapEntry (Celda de Mapa de Patentes)
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| id | UUID | Identificador unico |
+| tecnologia | string(200) | Area tecnologica |
+| pais | string(100) | Pais |
+| sector_codigo | string | Codigo del sector industrial (FK -> industrial_sectores.codigo) |
+| total_patentes | integer | Total de patentes en la celda |
+| periodo | string(20) | Periodo temporal |
+| tendencia | string(20) | Direccion de tendencia: creciente, estable, decreciente |
+| created_at | datetime | Fecha de creacion |
+| updated_at | datetime | Fecha de actualizacion |
+
+### ProfessionalProfile (Perfil Profesional)
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| id | UUID | Identificador unico |
+| user_id | UUID | Usuario propietario (FK -> users.id, CASCADE, UNIQUE) |
+| especialidad | string(100) | Area de especialidad |
+| grado_cientifico | string(50) | Grado cientifico (Dr, MSc, etc.) |
+| cv_url | string(255) | URL del curriculum vitae |
+| biografia | text | Biografia (longitud ilimitada) |
+| intereses | json | Lista de temas de interes (array de strings) |
+| linkedin_url | string(255) | URL de LinkedIn |
+| twitter_url | string(255) | URL de Twitter |
+| researchgate_url | string(255) | URL de ResearchGate |
+| orcid | string(50) | Identificador ORCID |
+| created_at | datetime | Fecha de creacion |
+| updated_at | datetime | Fecha de actualizacion |
+
+### ResearchPublication (Publicacion de Investigacion)
+
+| Campo | Tipo | Descripcion |
+|-------|------|-------------|
+| id | UUID | Identificador unico |
+| titulo | string(300) | Titulo de la publicacion |
+| autores | text | Autores (texto plano) |
+| resumen | text | Resumen o abstract |
+| doi | string(100) | Identificador DOI |
+| journal | string(200) | Nombre de la revista |
+| fecha_publicacion | datetime | Fecha de publicacion |
+| palabras_clave | json | Palabras clave (array de strings) |
+| sector_codigo | string | Codigo del sector industrial (FK -> industrial_sectores.codigo) |
+| url | string(500) | URL de la publicacion |
+| created_by | UUID | Usuario creador (FK -> users.id) |
+| created_at | datetime | Fecha de creacion |
+| updated_at | datetime | Fecha de actualizacion |
+
 ## Roles del Sistema
 
 | Rol | Descripcion | Permisos |
@@ -198,8 +288,8 @@
 | `MEASURES` | Indicator | Technology | Indicador que mide |
 | `BELONGS_TO_SECTOR` | Organization | IndustrialSector | Sector de la organizacion |
 | `FOLLOWS` | Organization | Organization | Seguimiento entre organizaciones |
-| `WORKS_AT` | User | Organization | Trabaja en |
-| `IS_AUTHOR_OF` | User | Regulation | Autor de normativa |
+| `WORKS_AT` | Person/User | Organization | Trabaja en |
+| `IS_AUTHOR_OF` | Person/User | Patent/Regulation | Autor de patente o normativa |
 
 ## Endpoints API
 
@@ -247,6 +337,30 @@
 | GET | `/api/v1/dashboard/summary` | KPIs |
 | GET | `/api/v1/dashboard/timeline` | Linea de tiempo |
 | GET | `/api/v1/dashboard/sectors` | Sectores con conteo |
+| WS | `/api/v1/ws/alerts` | WebSocket alertas real-time |
+
+### Profesionales
+
+| Metodo | Ruta | Descripcion |
+|--------|------|-------------|
+| GET | `/api/v1/professionals` | Listar profesionales |
+| GET | `/api/v1/professionals/specialties` | Listar especialidades |
+| GET | `/api/v1/professionals/me` | Perfil propio |
+| PUT | `/api/v1/professionals/me` | Actualizar perfil propio |
+
+### Seguimiento (Follows)
+
+| Metodo | Ruta | Descripcion |
+|--------|------|-------------|
+| POST | `/api/v1/follows/organizations/{id}` | Seguir organizacion |
+| DELETE | `/api/v1/follows/organizations/{id}` | Dejar de seguir |
+| GET | `/api/v1/follows/status/{org_id}` | Estado de seguimiento |
+
+### Mapas de Patentes
+
+| Metodo | Ruta | Descripcion |
+|--------|------|-------------|
+| GET | `/api/v1/patent-maps` | Mapas de patentes |
 
 ## Glosario
 

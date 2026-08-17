@@ -61,7 +61,7 @@ def downgrade():
 alembic upgrade head
 
 # Verify
-psql -U observatorio -d observatorio_db -c "\d patents"
+python -c "from sqlalchemy import inspect; from app.core.db import engine; print(inspect(engine).get_columns('patents'))"
 
 # Rollback
 alembic downgrade -1
