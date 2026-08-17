@@ -1,12 +1,13 @@
-import { useState, useDeferredValue, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import PageHeader from '@/components/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Plus, Pencil, Trash2, ExternalLink, AlertCircle } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, AlertCircle, X } from 'lucide-react';
 import { usePermissions } from '@/hooks/usePermissions';
 import type { Entity } from '@/hooks/usePermissions';
 import type { PaginatedResponse } from '@/types';
@@ -34,6 +35,7 @@ interface CrudPageProps<T extends { id: string }> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   renderForm: (props: { data: Record<string, any>; onChange: (patch: Record<string, any>) => void; isEditing: boolean }) => React.ReactNode;
   renderDetail?: (item: T) => React.ReactNode;
+  renderSidebar?: (item: T) => React.ReactNode;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   defaultForm: Record<string, any>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -66,7 +68,7 @@ export default function CrudPage<T extends { id: string }>({
   searchPlaceholder = 'Buscar...', filterBar,
   queryResult: { data, isLoading, isError },
   createMutation, updateMutation, deleteMutation,
-  renderForm, renderDetail, defaultForm,
+  renderForm, renderDetail, renderSidebar, defaultForm,
   formToPayload, transformEditItem, validateForm, searchFilter, onSearch,
   page, onPageChange,
   canEdit: canEditFn, canDelete: canDeleteFn,
@@ -74,20 +76,16 @@ export default function CrudPage<T extends { id: string }>({
 }: CrudPageProps<T>) {
   const { can } = usePermissions();
   const [search, setSearch] = useState('');
-  const deferredSearch = useDeferredValue(search);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   useEffect(() => {
-    if (onSearch) {
-      onSearch(deferredSearch);
-    }
-  }, [deferredSearch, onSearch]);
-
-  const handleSearchChange = (value: string) => {
-    setSearch(value);
-    if (value !== search) {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(search);
       onPageChange(1);
-    }
-  };
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [search, onPageChange]);
+
   const [selected, setSelected] = useState<T | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -146,19 +144,42 @@ export default function CrudPage<T extends { id: string }>({
     }
   };
 
-  const filteredItems = !onSearch && searchFilter && deferredSearch ? (data?.items ?? []).filter((i) => searchFilter(i, deferredSearch)) : data?.items ?? [];
+  const filteredItems = !onSearch && searchFilter && debouncedSearch ? (data?.items ?? []).filter((i) => searchFilter(i, debouncedSearch)) : data?.items ?? [];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div><h2 className="text-2xl font-bold tracking-tight">{title}</h2><p className="text-muted-foreground">{description}</p></div>
-        {can(permissionResource, 'create') && <Button className="gap-2" onClick={openCreateDialog}><Plus className="h-4 w-4" />Nuevo</Button>}
-      </div>
+      <PageHeader
+        title={title}
+        highlight={title.split(' ')[0]}
+        description={description}
+        actions={
+          can(permissionResource, 'create') ? (
+            <Button className="gap-2" onClick={openCreateDialog}>
+              <Plus className="h-4 w-4" />
+              Nuevo
+            </Button>
+          ) : undefined
+        }
+      />
 
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input placeholder={searchPlaceholder} className="pl-9" value={search} onChange={(e) => handleSearchChange(e.target.value)} />
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={searchPlaceholder}
+            className="pl-9 pr-9"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-foreground"
+              aria-label="Limpiar búsqueda"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
         {filterBar}
       </div>
@@ -166,39 +187,73 @@ export default function CrudPage<T extends { id: string }>({
       {isError ? (
         <Card><CardContent className="flex flex-col items-center gap-2 py-8"><p className="text-sm text-destructive">No se pudieron cargar los datos. Intente de nuevo más tarde.</p></CardContent></Card>
       ) : (
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {columns.map((c) => <TableHead key={c.header} className={c.className}>{c.header}</TableHead>)}
-                <TableHead className="w-[100px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={i}>{Array.from({ length: columns.length + 1 }).map((_, j) => <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>)}</TableRow>
-              )) : filteredItems.length > 0 ? filteredItems.map((item) => (
-                <TableRow key={item.id}>
-                  {columns.map((c) => <TableCell key={c.header}>{c.render(item)}</TableCell>)}
-                  <TableCell>
-                    <div className="flex gap-1">
-                      {can(permissionResource, 'edit') && (!canEditFn || canEditFn(item)) && <Button variant="ghost" size="sm" onClick={() => openEditDialog(item)} aria-label="Editar"><Pencil className="h-4 w-4" /></Button>}
-                      {can(permissionResource, 'delete') && (!canDeleteFn || canDeleteFn(item)) && <Button variant="ghost" size="sm" onClick={() => { setItemToDelete(item); setDeleteDialogOpen(true); }} aria-label="Eliminar"><Trash2 className="h-4 w-4 text-destructive" /></Button>}
-                      {renderDetail && <Button variant="ghost" size="sm" onClick={() => setSelected(item)} aria-label="Ver detalle"><ExternalLink className="h-4 w-4" /></Button>}
-                    </div>
-                  </TableCell>
+      <div className={renderSidebar ? 'grid gap-6 lg:grid-cols-3' : ''}>
+        <div className={renderSidebar ? 'lg:col-span-2' : ''}>
+          <div className="bg-surface rounded-lg border border-border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {columns.map((c) => <TableHead key={c.header} className={c.className}>{c.header}</TableHead>)}
+                  <TableHead className="w-[80px]"></TableHead>
                 </TableRow>
-              )) : (
-                <TableRow><TableCell colSpan={columns.length + 1} className="text-center py-8 text-muted-foreground">{emptyMessage}</TableCell></TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>{Array.from({ length: columns.length + 1 }).map((_, j) => <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>)}</TableRow>
+                )) : filteredItems.length > 0 ? filteredItems.map((item) => (
+                  <TableRow
+                    key={item.id}
+                    onClick={() => renderSidebar && setSelected(selected?.id === item.id ? null : item)}
+                    className={renderSidebar ? `cursor-pointer transition-colors ${selected?.id === item.id ? 'bg-primary/5' : 'hover:bg-muted/50'}` : undefined}
+                  >
+                    {columns.map((c) => <TableCell key={c.header}>{c.render(item)}</TableCell>)}
+                    <TableCell>
+                      <div className="flex gap-1">
+                        {can(permissionResource, 'edit') && (!canEditFn || canEditFn(item)) && <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openEditDialog(item); }} aria-label="Editar"><Pencil className="h-4 w-4" /></Button>}
+                        {can(permissionResource, 'delete') && (!canDeleteFn || canDeleteFn(item)) && <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setItemToDelete(item); setDeleteDialogOpen(true); }} aria-label="Eliminar"><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )) : (
+                  <TableRow><TableCell colSpan={columns.length + 1} className="text-center py-8 text-muted-foreground">{emptyMessage}</TableCell></TableRow>
+                )}
+              </TableBody>
+            </Table>
+
+            {data && data.total_pages > 1 && (
+              <div className="flex items-center justify-between border-t border-border px-4 py-3">
+                <p className="text-sm text-muted-foreground">{data.total} registros en total</p>
+                <div className="flex gap-2">
+                  <button onClick={() => onPageChange(page - 1)} disabled={page <= 1} className="rounded-md border border-border px-3 py-1 text-sm disabled:opacity-50">Anterior</button>
+                  <span className="px-3 py-1 text-sm text-muted-foreground">Página {page} de {data.total_pages}</span>
+                  <button onClick={() => onPageChange(page + 1)} disabled={page >= data.total_pages} className="rounded-md border border-border px-3 py-1 text-sm disabled:opacity-50">Siguiente</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {renderSidebar && (
+          <div className="lg:col-span-1">
+            {selected && !dialogOpen && !deleteDialogOpen ? (
+              <Card className="sticky top-6">
+                <CardContent className="pt-6">
+                  {renderSidebar(selected)}
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="sticky top-6">
+                <CardContent className="py-12 text-center text-sm text-muted-foreground">
+                  Haz clic en un registro para ver sus datos.
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+      </div>
       )}
 
-      {renderDetail && selected && !dialogOpen && !deleteDialogOpen && (
+      {!renderSidebar && renderDetail && selected && !dialogOpen && !deleteDialogOpen && (
         <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
           <DialogContent className="max-w-md">
             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -232,7 +287,7 @@ export default function CrudPage<T extends { id: string }>({
         </DialogContent>
       </Dialog>
 
-      {data && data.total_pages > 1 && (
+      {!renderSidebar && data && data.total_pages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">Página {page} de {data.total_pages} ({data.total} total)</p>
           <div className="flex gap-2">
