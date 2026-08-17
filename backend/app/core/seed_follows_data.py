@@ -10,4 +10,5 @@ FOLLOWS_DATA: list[tuple[str, str]] = [
     ("QCI", "METCAM"),
     ("CIEA", "ENW"),
     ("ELEVC", "ENW"),
+    ("BNC", "CBI"),
 ]
