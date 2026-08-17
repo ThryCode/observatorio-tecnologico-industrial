@@ -38,12 +38,6 @@ export default function SectorPills({ sectors, active, onChange, className }: Se
             )}
           >
             {sector.label}
-            <span className={cn(
-              'px-1.5 py-0.5 text-[10px] font-bold rounded-full',
-              isActive ? 'bg-white/20 text-white' : 'bg-black/10 dark:bg-white/10 text-text-muted',
-            )}>
-              {sector.count.toLocaleString('es-ES')}
-            </span>
           </button>
         );
       })}
