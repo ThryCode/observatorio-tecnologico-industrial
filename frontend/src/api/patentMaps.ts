@@ -1,6 +1,6 @@
 import client from './client';
 
-interface PatentMapApiItem {
+export interface PatentMapItem {
   id: string;
   tecnologia: string;
   pais: string;
@@ -19,9 +19,6 @@ export async function getPatentMapSummary(pais?: string, sectorCodigo?: string) 
   const params: Record<string, string> = {};
   if (pais) params.pais = pais;
   if (sectorCodigo) params.sector_codigo = sectorCodigo;
-  const res = await client.get<PatentMapApiItem[]>('/patent-maps/summary', { params });
-  return res.data.map(item => ({
-    tecnologia: item.tecnologia,
-    patentes: item.total_patentes,
-  }));
+  const res = await client.get<PatentMapItem[]>('/patent-maps/summary', { params });
+  return res.data;
 }
