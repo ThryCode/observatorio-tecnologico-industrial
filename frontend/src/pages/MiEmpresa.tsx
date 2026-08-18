@@ -89,7 +89,7 @@ export default function MiEmpresa() {
         contacto: org.contacto || '',
       });
     }
-  }, [org, editForm.reset]);
+  }, [org, editForm]);
 
   const createMutation = useMutation({
     mutationFn: async (data: {

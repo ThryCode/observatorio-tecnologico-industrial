@@ -141,6 +141,7 @@ export default function Register() {
 
   const onSubmit = (data: RegisterForm) => {
     setServerError(null);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { confirmPassword, especialidad_custom, ...payload } = data;
     const finalEspecialidad = payload.especialidad === 'Otro' && especialidad_custom?.trim()
       ? especialidad_custom.trim()

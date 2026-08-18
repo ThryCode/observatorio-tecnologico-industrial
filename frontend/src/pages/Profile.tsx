@@ -45,7 +45,7 @@ export default function Profile() {
         job_title: user.job_title || '',
       });
     }
-  }, [user, userForm.reset]);
+  }, [user, userForm]);
 
   useEffect(() => {
     if (profProfile) {
@@ -60,7 +60,7 @@ export default function Profile() {
         orcid: profProfile.orcid || '',
       });
     }
-  }, [profProfile, profForm.reset]);
+  }, [profProfile, profForm]);
 
   const userMutation = useMutation({
     mutationFn: async (data: { full_name: string; phone: string; job_title: string }) => {
