@@ -108,3 +108,48 @@ class EnterpriseGraphEdge(BaseModel):
 class EnterpriseGraphResponse(BaseModel):
     nodes: list[EnterpriseGraphNode]
     edges: list[EnterpriseGraphEdge]
+
+
+class PageRankItem(BaseModel):
+    id: str
+    label: str
+    score: float
+    labels: list[str] = []
+    props: dict[str, Any] = {}
+
+
+class PageRankResponse(BaseModel):
+    items: list[PageRankItem]
+    total: int
+
+
+class CommunityNode(BaseModel):
+    id: str
+    label: str
+    props: dict[str, Any] = {}
+
+
+class CommunityItem(BaseModel):
+    community_id: int
+    nodes: list[CommunityNode]
+    size: int
+
+
+class CommunityResponse(BaseModel):
+    items: list[CommunityItem]
+    total: int
+
+
+class SimilarNode(BaseModel):
+    id: str
+    label: str
+    similarity: float
+    relationship: str
+    strength: int
+    labels: list[str] = []
+    props: dict[str, Any] = {}
+
+
+class SimilarResponse(BaseModel):
+    items: list[SimilarNode]
+    total: int

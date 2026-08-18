@@ -269,6 +269,51 @@ export interface RecommendationsResponse {
   total: number;
 }
 
+export interface PageRankItem {
+  id: string;
+  label: string;
+  score: number;
+  labels: string[];
+  props: Record<string, unknown>;
+}
+
+export interface PageRankResponse {
+  items: PageRankItem[];
+  total: number;
+}
+
+export interface CommunityNode {
+  id: string;
+  label: string;
+  props: Record<string, unknown>;
+}
+
+export interface CommunityItem {
+  community_id: number;
+  nodes: CommunityNode[];
+  size: number;
+}
+
+export interface CommunityResponse {
+  items: CommunityItem[];
+  total: number;
+}
+
+export interface SimilarNode {
+  id: string;
+  label: string;
+  similarity: number;
+  relationship: string;
+  strength: number;
+  labels: string[];
+  props: Record<string, unknown>;
+}
+
+export interface SimilarResponse {
+  items: SimilarNode[];
+  total: number;
+}
+
 export interface ProfessionalListItem {
   id: string;
   full_name: string;

@@ -67,6 +67,9 @@ export const queryKeys = {
   graphExplore: (nodeId: string, depth = 2) => ['graph', 'explore', nodeId, depth] as const,
   graphEnterprise: () => ['graph', 'enterprise'] as const,
   graphRecommendations: (orgId: string | null, limit = 20) => ['graph', 'recommendations', orgId, limit] as const,
+  graphCentrality: (limit = 20, label?: string) => ['graph', 'centrality', limit, label] as const,
+  graphCommunities: (limit = 50, label?: string) => ['graph', 'communities', limit, label] as const,
+  graphSimilar: (nodeId: string | null, limit = 10) => ['graph', 'similar', nodeId, limit] as const,
   myOrganization: () => ['my-organization'] as const,
   orgFollowStats: {
     all: ['org-follow-stats'] as const,

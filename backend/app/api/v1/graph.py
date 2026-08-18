@@ -15,6 +15,7 @@ from app.models.organization import Organization
 from app.models.patent import PatentStatus
 from app.models.user import User
 from app.schemas.graph import (
+    CommunityResponse,
     EnterpriseGraphEdge,
     EnterpriseGraphNode,
     EnterpriseGraphPatent,
@@ -23,8 +24,10 @@ from app.schemas.graph import (
     GraphQueryResponse,
     GraphSearchResponse,
     GraphStatsResponse,
+    PageRankResponse,
     RecommendationsResponse,
     ShortestPathResponse,
+    SimilarResponse,
     SyncResponse,
 )
 from app.services.cache import cache_key, get_cached, set_cached
@@ -253,3 +256,92 @@ async def _enterprise_graph_from_neo4j(neo4j: AsyncDriver) -> EnterpriseGraphRes
     ]
 
     return EnterpriseGraphResponse(nodes=nodes, edges=edges)
+
+
+@router.get("/centrality", response_model=PageRankResponse)
+async def graph_centrality(
+    limit: int = Query(20, ge=1, le=100),
+    label: str | None = Query(None),
+    neo4j: AsyncDriver | None = Depends(get_neo4j),
+    _: User = Depends(get_current_user),
+):
+    if not neo4j:
+        raise AppException(503, "Neo4j is not available")
+    from app.graph.repository import GraphRepository
+
+    repo = GraphRepository(neo4j)
+    raw = await repo.pagerank(label, limit)
+    items = [
+        {
+            "id": r["id"],
+            "label": r["properties"].get("nombre", r["id"]),
+            "score": r["score"],
+            "labels": r["labels"],
+            "props": r["properties"],
+        }
+        for r in raw
+    ]
+    return PageRankResponse(items=items, total=len(items))
+
+
+@router.get("/communities", response_model=CommunityResponse)
+async def graph_communities(
+    limit: int = Query(50, ge=1, le=200),
+    label: str | None = Query(None),
+    neo4j: AsyncDriver | None = Depends(get_neo4j),
+    _: User = Depends(get_current_user),
+):
+    if not neo4j:
+        raise AppException(503, "Neo4j is not available")
+    from app.graph.repository import GraphRepository
+
+    repo = GraphRepository(neo4j)
+    raw = await repo.community_detection(label, limit)
+    grouped: dict[int, list] = {}
+    for r in raw:
+        cid = r.get("community", 0)
+        grouped.setdefault(cid, []).append(r)
+    items = [
+        {
+            "community_id": cid,
+            "nodes": [
+                {
+                    "id": n["id"],
+                    "label": n["properties"].get("nombre", n["id"]),
+                    "props": n["properties"],
+                }
+                for n in nodes
+            ],
+            "size": len(nodes),
+        }
+        for cid, nodes in sorted(grouped.items(), key=lambda x: -len(x[1]))
+    ]
+    return CommunityResponse(items=items, total=len(items))
+
+
+@router.get("/similar/{node_id}", response_model=SimilarResponse)
+async def graph_similar(
+    node_id: str,
+    limit: int = Query(10, ge=1, le=50),
+    neo4j: AsyncDriver | None = Depends(get_neo4j),
+    _: User = Depends(get_current_user),
+):
+    if not neo4j:
+        raise AppException(503, "Neo4j is not available")
+    from app.graph.repository import GraphRepository
+
+    repo = GraphRepository(neo4j)
+    raw = await repo.knn(node_id, limit)
+    items = [
+        {
+            "id": r["id"],
+            "label": r["properties"].get("nombre", r["id"]),
+            "similarity": min(r["strength"] / 10.0, 1.0),
+            "relationship": r["relationship"],
+            "strength": r["strength"],
+            "labels": r["labels"],
+            "props": r["properties"],
+        }
+        for r in raw
+    ]
+    return SimilarResponse(items=items, total=len(items))
