@@ -14,6 +14,7 @@ import { FileText, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ResearchPublication } from '@/types';
 import AuthorAutocomplete from '@/components/AuthorAutocomplete';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function PublicationsPage() {
   const [page, setPage] = useState(1);
@@ -21,6 +22,7 @@ export default function PublicationsPage() {
   const [sector, setSector] = useState('all');
   const [mine, setMine] = useState(false);
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const { data: sectorsData } = useQuery({
     queryKey: queryKeys.industrialSectors.list(1, 100),
@@ -52,8 +54,8 @@ export default function PublicationsPage() {
 
   return (
     <CrudPage
-      title="Publicaciones Científicas"
-      description="Artículos de investigación, papers y reportes técnicos del ecosistema industrial."
+      title={t('page.publications.title')}
+      description={t('page.publications.description')}
       permissionResource="research-publications"
       columns={columns}
       queryResult={queryResult}
@@ -62,22 +64,22 @@ export default function PublicationsPage() {
       deleteMutation={deleteMutation}
       page={page}
       onPageChange={setPage}
-      searchPlaceholder="Buscar publicaciones..."
+      searchPlaceholder={t('page.publications.buscarPlaceholder')}
       onSearch={setQ}
       canEdit={canEdit}
       canDelete={canDelete}
       filterBar={
         <div className="flex items-center gap-2">
           <Select value={sector} onValueChange={(v) => { setSector(v); setPage(1); }}>
-            <SelectTrigger className="w-[200px]"><SelectValue placeholder="Filtrar por sector" /></SelectTrigger>
+            <SelectTrigger className="w-[200px]"><SelectValue placeholder={t('common.filtrarPorSector')} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos los sectores</SelectItem>
+              <SelectItem value="all">{t('common.todosLosSectores')}</SelectItem>
               {sectorsData?.items?.map((s) => <SelectItem key={s.codigo} value={s.codigo}>{s.nombre}</SelectItem>)}
             </SelectContent>
           </Select>
           <Button variant={mine ? 'default' : 'outline'} size="sm" onClick={() => { setMine(!mine); setPage(1); }} className="gap-1">
             <User className="h-4 w-4" />
-            Mis publicaciones
+            {t('page.publications.misPublicaciones')}
           </Button>
         </div>
       }
@@ -96,23 +98,23 @@ export default function PublicationsPage() {
       validateForm={(form) => !form.titulo ? 'El título es obligatorio' : !form.autores ? 'Los autores son obligatorios' : !form.fecha_publicacion ? 'La fecha de publicación es obligatoria' : null}
       renderForm={({ data, onChange }) => (
         <div className="space-y-4">
-          <div><label htmlFor="publication-titulo" className="text-sm font-medium">Título *</label><Input id="publication-titulo" value={data.titulo} onChange={(e) => onChange({ titulo: e.target.value })} placeholder="Título del artículo" /></div>
-          <div><label htmlFor="publication-autores" className="text-sm font-medium">Autores *</label><AuthorAutocomplete id="publication-autores" value={data.autores} onChange={(v) => onChange({ autores: v })} placeholder="Buscar o escribir autores..." /></div>
-          <div><label htmlFor="publication-resumen" className="text-sm font-medium">Resumen</label><textarea id="publication-resumen" className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" value={data.resumen} onChange={(e) => onChange({ resumen: e.target.value })} placeholder="Resumen del artículo" /></div>
-          <div><label htmlFor="publication-doi" className="text-sm font-medium">DOI</label><Input id="publication-doi" value={data.doi} onChange={(e) => onChange({ doi: e.target.value })} placeholder="10.1234/ejemplo.2026.001" /></div>
-          <div><label htmlFor="publication-journal" className="text-sm font-medium">Journal / Revista</label><Input id="publication-journal" value={data.journal} onChange={(e) => onChange({ journal: e.target.value })} placeholder="Nombre de la revista" /></div>
-          <div><label htmlFor="publication-fecha_publicacion" className="text-sm font-medium">Fecha de publicación</label><Input id="publication-fecha_publicacion" type="date" value={data.fecha_publicacion} onChange={(e) => onChange({ fecha_publicacion: e.target.value })} /></div>
+          <div><label htmlFor="publication-titulo" className="text-sm font-medium">{t('page.publications.titulo')}</label><Input id="publication-titulo" value={data.titulo} onChange={(e) => onChange({ titulo: e.target.value })} placeholder="Título del artículo" /></div>
+          <div><label htmlFor="publication-autores" className="text-sm font-medium">{t('page.publications.autores')}</label><AuthorAutocomplete id="publication-autores" value={data.autores} onChange={(v) => onChange({ autores: v })} placeholder="Buscar o escribir autores..." /></div>
+          <div><label htmlFor="publication-resumen" className="text-sm font-medium">{t('page.publications.resumen')}</label><textarea id="publication-resumen" className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" value={data.resumen} onChange={(e) => onChange({ resumen: e.target.value })} placeholder="Resumen del artículo" /></div>
+          <div><label htmlFor="publication-doi" className="text-sm font-medium">{t('page.publications.doi')}</label><Input id="publication-doi" value={data.doi} onChange={(e) => onChange({ doi: e.target.value })} placeholder="10.1234/ejemplo.2026.001" /></div>
+          <div><label htmlFor="publication-journal" className="text-sm font-medium">{t('page.publications.journal')}</label><Input id="publication-journal" value={data.journal} onChange={(e) => onChange({ journal: e.target.value })} placeholder="Nombre de la revista" /></div>
+          <div><label htmlFor="publication-fecha_publicacion" className="text-sm font-medium">{t('page.publications.fechaPublicacion')}</label><Input id="publication-fecha_publicacion" type="date" value={data.fecha_publicacion} onChange={(e) => onChange({ fecha_publicacion: e.target.value })} /></div>
           <div>
-            <label className="text-sm font-medium">Sector</label>
+            <label className="text-sm font-medium">{t('common.sector')}</label>
             <Select value={data.sector_codigo} onValueChange={(v) => onChange({ sector_codigo: v })}>
-              <SelectTrigger><SelectValue placeholder="Seleccionar sector" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t('page.patents.seleccionarSector')} /></SelectTrigger>
               <SelectContent>
                 {sectorsData?.items?.map((s) => <SelectItem key={s.codigo} value={s.codigo}>{s.nombre}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
-          <div><label htmlFor="publication-palabras_clave" className="text-sm font-medium">Palabras clave (separadas por coma)</label><Input id="publication-palabras_clave" value={data.palabras_clave} onChange={(e) => onChange({ palabras_clave: e.target.value })} placeholder="ej: ia, manufactura, energía" /></div>
-          <div><label htmlFor="publication-url" className="text-sm font-medium">URL</label><Input id="publication-url" value={data.url} onChange={(e) => onChange({ url: e.target.value })} placeholder="https://..." /></div>
+          <div><label htmlFor="publication-palabras_clave" className="text-sm font-medium">{t('page.publications.palabrasClave')}</label><Input id="publication-palabras_clave" value={data.palabras_clave} onChange={(e) => onChange({ palabras_clave: e.target.value })} placeholder="ej: ia, manufactura, energía" /></div>
+          <div><label htmlFor="publication-url" className="text-sm font-medium">{t('page.publications.url')}</label><Input id="publication-url" value={data.url} onChange={(e) => onChange({ url: e.target.value })} placeholder="https://..." /></div>
         </div>
       )}
       renderSidebar={(pub) => (
@@ -126,21 +128,21 @@ export default function PublicationsPage() {
           </div>
           {pub.resumen && (
             <div className="border-t border-border pt-3">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Resumen</p>
+              <p className="text-xs font-medium text-muted-foreground mb-1">{t('page.publications.resumen')}</p>
               <p className="text-sm text-foreground/80 leading-relaxed">{pub.resumen}</p>
             </div>
           )}
           <div className="grid grid-cols-2 gap-3 border-t border-border pt-3">
             <div>
-              <p className="text-xs font-medium text-muted-foreground mb-1">Journal</p>
+              <p className="text-xs font-medium text-muted-foreground mb-1">{t('page.publications.journal')}</p>
               <p className="text-sm">{pub.journal || '-'}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-muted-foreground mb-1">DOI</p>
+              <p className="text-xs font-medium text-muted-foreground mb-1">{t('page.publications.doi')}</p>
               <p className="text-sm font-mono">{pub.doi || '-'}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-muted-foreground mb-1">Sector</p>
+              <p className="text-xs font-medium text-muted-foreground mb-1">{t('common.sector')}</p>
               <p className="text-sm">{sectorMap.get(pub.sector_codigo ?? '') || '-'}</p>
             </div>
             <div>
@@ -150,7 +152,7 @@ export default function PublicationsPage() {
           </div>
           {pub.palabras_clave && pub.palabras_clave.length > 0 && (
             <div className="border-t border-border pt-3">
-              <p className="text-xs font-medium text-muted-foreground mb-2">Palabras clave</p>
+              <p className="text-xs font-medium text-muted-foreground mb-2">{t('page.publications.palabrasClave')}</p>
               <div className="flex flex-wrap gap-1.5">
                 {pub.palabras_clave.map((kw) => <Badge key={kw} variant="secondary" className="text-xs">{kw}</Badge>)}
               </div>

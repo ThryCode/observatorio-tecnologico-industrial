@@ -7,15 +7,17 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatDate, formatNumber } from '@/utils/formatters';
 import type { Indicator } from '@/types';
-
-const periodLabels: Record<string, string> = {
-  monthly: 'Mensual', quarterly: 'Trimestral', yearly: 'Anual',
-};
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function Indicators() {
   const [page, setPage] = useState(1);
   const [q, setQ] = useState('');
   const [period, setPeriod] = useState('');
+  const { t } = useLanguage();
+
+  const periodLabels: Record<string, string> = {
+    monthly: t('page.indicators.mensual'), quarterly: t('page.indicators.trimestral'), yearly: t('page.indicators.anual'),
+  };
 
   const queryResult = useIndicators(page, 20, undefined, period || undefined, q || undefined);
   const createMutation = useCreateIndicator();
@@ -31,8 +33,8 @@ export default function Indicators() {
 
   return (
     <CrudPage
-        title="Indicadores"
-        description="Indicadores de ciencia, tecnología e innovación del sector industrial."
+        title={t('page.indicators.title')}
+        description={t('page.indicators.description')}
         permissionResource="indicators"
         columns={columns}
         queryResult={queryResult}
@@ -41,16 +43,16 @@ export default function Indicators() {
         deleteMutation={deleteMutation}
         page={page}
         onPageChange={setPage}
-        searchPlaceholder="Buscar indicadores..."
+        searchPlaceholder={t('page.indicators.buscarPlaceholder')}
         onSearch={setQ}
         filterBar={
           <Select value={period} onValueChange={(v) => { setPeriod(v === 'all' ? '' : v); setPage(1); }}>
-            <SelectTrigger className="w-[160px]"><SelectValue placeholder="Periodo" /></SelectTrigger>
+            <SelectTrigger className="w-[160px]"><SelectValue placeholder={t('page.indicators.periodo')} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="monthly">Mensual</SelectItem>
-              <SelectItem value="quarterly">Trimestral</SelectItem>
-              <SelectItem value="yearly">Anual</SelectItem>
+              <SelectItem value="all">{t('page.indicators.todos')}</SelectItem>
+              <SelectItem value="monthly">{t('page.indicators.mensual')}</SelectItem>
+              <SelectItem value="quarterly">{t('page.indicators.trimestral')}</SelectItem>
+              <SelectItem value="yearly">{t('page.indicators.anual')}</SelectItem>
             </SelectContent>
           </Select>
         }
@@ -64,7 +66,7 @@ export default function Indicators() {
         renderForm={({ data, onChange }) => (
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label htmlFor="indicator-nombre" className="text-sm font-medium">Nombre *</label>
+              <label htmlFor="indicator-nombre" className="text-sm font-medium">{t('page.organizations.nombre')}</label>
               <Input id="indicator-nombre" value={data.name} onChange={(e) => onChange({ name: e.target.value })} placeholder="Nombre del indicador" />
             </div>
             <div>
@@ -84,13 +86,13 @@ export default function Indicators() {
               <Input id="indicator-fuente" value={data.source} onChange={(e) => onChange({ source: e.target.value })} placeholder="ONEI" />
             </div>
             <div>
-              <label className="text-sm font-medium">Periodo</label>
+              <label className="text-sm font-medium">{t('page.indicators.periodo')}</label>
               <Select value={data.period} onValueChange={(v) => onChange({ period: v })}>
                 <SelectTrigger><SelectValue placeholder="Seleccionar periodo" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="monthly">Mensual</SelectItem>
-                  <SelectItem value="quarterly">Trimestral</SelectItem>
-                  <SelectItem value="yearly">Anual</SelectItem>
+                  <SelectItem value="monthly">{t('page.indicators.mensual')}</SelectItem>
+                  <SelectItem value="quarterly">{t('page.indicators.trimestral')}</SelectItem>
+                  <SelectItem value="yearly">{t('page.indicators.anual')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -99,7 +101,7 @@ export default function Indicators() {
               <Input id="indicator-fecha" type="date" value={data.date} onChange={(e) => onChange({ date: e.target.value })} />
             </div>
             <div className="col-span-2">
-              <label htmlFor="indicator-descripcion" className="text-sm font-medium">Descripción</label>
+              <label htmlFor="indicator-descripcion" className="text-sm font-medium">{t('page.publications.resumen')}</label>
               <textarea id="indicator-descripcion" className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" value={data.description} onChange={(e) => onChange({ description: e.target.value })} placeholder="Descripción del indicador" />
             </div>
           </div>
@@ -119,13 +121,13 @@ export default function Indicators() {
             </div>
             {item.description && (
               <div className="border-t border-border pt-3">
-                <p className="text-xs font-medium text-muted-foreground mb-1">Descripción</p>
+                <p className="text-xs font-medium text-muted-foreground mb-1">{t('page.publications.resumen')}</p>
                 <p className="text-sm text-foreground/80 leading-relaxed">{item.description}</p>
               </div>
             )}
             <div className="grid grid-cols-2 gap-3 border-t border-border pt-3">
               <div>
-                <p className="text-xs font-medium text-muted-foreground mb-1">Periodo</p>
+                <p className="text-xs font-medium text-muted-foreground mb-1">{t('page.indicators.periodo')}</p>
                 <Badge variant="outline">{periodLabels[item.period]}</Badge>
               </div>
               <div>

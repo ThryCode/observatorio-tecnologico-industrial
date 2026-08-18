@@ -25,36 +25,12 @@ import {
 import { Search, Plus, Pencil, Trash2, AlertCircle, Download, X } from 'lucide-react';
 import { formatDate, getStatusColor, capitalize } from '@/utils/formatters';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { Patent } from '@/types';
-
-const sectorOptions = [
-  { value: '', label: 'Todos los sectores' },
-  { value: 'SID', label: 'Siderurgia' },
-  { value: 'MET', label: 'Metalurgia' },
-  { value: 'ELE', label: 'Electrónica' },
-  { value: 'QUI', label: 'Química' },
-  { value: 'AUT', label: 'Automación' },
-];
-
-const statusOptions = [
-  { value: '', label: 'Todos los estados' },
-  { value: 'filed', label: 'Solicitada' },
-  { value: 'examination', label: 'En examen' },
-  { value: 'granted', label: 'Concedida' },
-  { value: 'expired', label: 'Expirada' },
-  { value: 'rejected', label: 'Rechazada' },
-];
-
-const statusLabels: Record<string, string> = {
-  filed: 'Solicitada',
-  examination: 'En examen',
-  granted: 'Concedida',
-  expired: 'Expirada',
-  rejected: 'Rechazada',
-};
 
 export default function Patents() {
   const { can } = usePermissions();
+  const { t } = useLanguage();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sector, setSector] = useState('');
@@ -71,6 +47,32 @@ export default function Patents() {
     publication_date: '', status: '', abstract: '', technological_sector: '', country: '',
     file_url: '',
   });
+
+  const sectorOptions = [
+    { value: '', label: t('common.todosLosSectores') },
+    { value: 'SID', label: 'Siderurgia' },
+    { value: 'MET', label: 'Metalurgia' },
+    { value: 'ELE', label: 'Electrónica' },
+    { value: 'QUI', label: 'Química' },
+    { value: 'AUT', label: 'Automación' },
+  ];
+
+  const statusOptions = [
+    { value: '', label: t('page.patents.todosEstados') },
+    { value: 'filed', label: t('page.patents.solicitada') },
+    { value: 'examination', label: t('page.patents.enExamen') },
+    { value: 'granted', label: t('page.patents.concedida') },
+    { value: 'expired', label: t('page.patents.expirada') },
+    { value: 'rejected', label: t('page.patents.rechazada') },
+  ];
+
+  const statusLabels: Record<string, string> = {
+    filed: t('page.patents.solicitada'),
+    examination: t('page.patents.enExamen'),
+    granted: t('page.patents.concedida'),
+    expired: t('page.patents.expirada'),
+    rejected: t('page.patents.rechazada'),
+  };
 
   const createMutation = useCreatePatent();
   const updateMutation = useUpdatePatent();
@@ -132,7 +134,7 @@ export default function Patents() {
       setDialogOpen(false);
       resetForm();
     } catch {
-      setSaveError('Error al guardar la patente. Verifica los datos.');
+      setSaveError(t('page.patents.errorGuardar'));
     }
   };
 
@@ -147,10 +149,10 @@ export default function Patents() {
   if (isError) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Patentes" highlight="Patentes" description="Error al cargar los datos." />
+        <PageHeader title={t('page.patents.title')} highlight={t('page.patents.title')} description={t('common.errorCargarDatos')} />
         <Card>
           <CardContent className="flex flex-col items-center gap-2 py-8">
-            <p className="text-sm text-destructive">No se pudieron cargar las patentes. Intente de nuevo mas tarde.</p>
+            <p className="text-sm text-destructive">{t('page.patents.noCargadas')}</p>
           </CardContent>
         </Card>
       </div>
@@ -160,14 +162,14 @@ export default function Patents() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Patentes"
-        highlight="Patentes"
-        description="Registro de patentes nacionales e internacionales por sector tecnológico."
+        title={t('page.patents.title')}
+        highlight={t('page.patents.title')}
+        description={t('page.patents.description')}
         actions={
           can('patents', 'create') ? (
             <Button className="gap-2" onClick={openCreateDialog}>
               <Plus className="h-4 w-4" />
-              Nueva Patente
+              {t('page.patents.nuevaPatente')}
             </Button>
           ) : undefined
         }
@@ -177,7 +179,7 @@ export default function Patents() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar patentes (título, número, solicitante)..."
+            placeholder={t('page.patents.buscarPlaceholder')}
             className="pl-9 pr-9"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -193,7 +195,7 @@ export default function Patents() {
           )}
         </div>
         <Select value={sector} onValueChange={(v) => { setSector(v); setPage(1); }}>
-          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Sector" /></SelectTrigger>
+          <SelectTrigger className="w-[160px]"><SelectValue placeholder={t('common.sector')} /></SelectTrigger>
           <SelectContent>
             {sectorOptions.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -201,7 +203,7 @@ export default function Patents() {
           </SelectContent>
         </Select>
         <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1); }}>
-          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Estado" /></SelectTrigger>
+          <SelectTrigger className="w-[160px]"><SelectValue placeholder={t('page.patents.estado')} /></SelectTrigger>
           <SelectContent>
             {statusOptions.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -238,15 +240,15 @@ export default function Patents() {
               ))}
             </div>
             {data?.items.length === 0 && !isLoading && (
-              <div className="p-8 text-center text-muted-foreground">No hay patentes registradas aún.</div>
+              <div className="p-8 text-center text-muted-foreground">{t('page.patents.noDatos')}</div>
             )}
             {data && data.total_pages > 1 && (
               <div className="flex items-center justify-between border-t border-border px-4 py-3">
-                <p className="text-sm text-muted-foreground">{data.total} registros en total</p>
+                <p className="text-sm text-muted-foreground">{data.total} {t('common.total')}</p>
                 <div className="flex gap-2">
-                  <button onClick={() => setPage((p) => p - 1)} disabled={page <= 1} className="rounded-md border border-border px-3 py-1 text-sm disabled:opacity-50">Anterior</button>
-                  <span className="px-3 py-1 text-sm text-muted-foreground">Página {page} de {data.total_pages}</span>
-                  <button onClick={() => setPage((p) => p + 1)} disabled={page >= data.total_pages} className="rounded-md border border-border px-3 py-1 text-sm disabled:opacity-50">Siguiente</button>
+                  <button onClick={() => setPage((p) => p - 1)} disabled={page <= 1} className="rounded-md border border-border px-3 py-1 text-sm disabled:opacity-50">{t('common.anterior')}</button>
+                  <span className="px-3 py-1 text-sm text-muted-foreground">{t('common.pagina')} {page} {t('common.de')} {data.total_pages}</span>
+                  <button onClick={() => setPage((p) => p + 1)} disabled={page >= data.total_pages} className="rounded-md border border-border px-3 py-1 text-sm disabled:opacity-50">{t('common.siguiente')}</button>
                 </div>
               </div>
             )}
@@ -268,40 +270,40 @@ export default function Patents() {
                 </div>
                 {selectedPatent.abstract && (
                   <div className="border-t border-border pt-3">
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Resumen</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">{t('page.patents.resumen')}</p>
                     <p className="text-sm text-foreground/80 leading-relaxed">{selectedPatent.abstract}</p>
                   </div>
                 )}
                 <div className="grid grid-cols-2 gap-3 border-t border-border pt-3">
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Solicitante</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">{t('page.patents.solicitante')}</p>
                     <p className="text-sm">{selectedPatent.applicant}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Inventor(es)</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">{t('page.patents.inventor')}</p>
                     <p className="text-sm">{selectedPatent.inventor}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Fecha solicitud</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">{t('page.patents.fechaSolicitud')}</p>
                     <p className="text-sm">{formatDate(selectedPatent.filing_date)}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Fecha publicación</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">{t('page.patents.fechaPublicacion')}</p>
                     <p className="text-sm">{selectedPatent.publication_date ? formatDate(selectedPatent.publication_date) : '-'}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Sector tecnológico</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">{t('page.patents.sectorTecnologico')}</p>
                     <p className="text-sm">{selectedPatent.technological_sector || '-'}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-1">País</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">{t('page.patents.pais')}</p>
                     <p className="text-sm">{selectedPatent.country}</p>
                   </div>
                 </div>
                 {selectedPatent.file_url && (
                   <div className="border-t border-border pt-3">
                     <a href={selectedPatent.file_url} download className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
-                      <Download className="h-3.5 w-3.5" /> Descargar archivo
+                      <Download className="h-3.5 w-3.5" /> {t('page.patents.descargarArchivo')}
                     </a>
                   </div>
                 )}
@@ -323,7 +325,7 @@ export default function Patents() {
           ) : (
             <Card className="sticky top-6">
               <CardContent className="py-12 text-center text-sm text-muted-foreground">
-                Haz clic en una patente para ver sus datos.
+                {t('common.verDetalle')}.
               </CardContent>
             </Card>
           )}
@@ -333,19 +335,19 @@ export default function Patents() {
       <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) { setDialogOpen(false); resetForm(); } }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingPatent ? 'Editar Patente' : 'Nueva Patente'}</DialogTitle>
+            <DialogTitle>{editingPatent ? t('common.editar') + ' ' + t('page.patents.patente') : t('page.patents.nuevaPatente')}</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label htmlFor="patent-titulo" className="text-sm font-medium">Título *</label>
+              <label htmlFor="patent-titulo" className="text-sm font-medium">{t('page.patents.titulo')} *</label>
               <Input id="patent-titulo" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} placeholder="Título de la patente" />
             </div>
             <div>
-              <label htmlFor="patent-numero" className="text-sm font-medium">Número de patente *</label>
+              <label htmlFor="patent-numero" className="text-sm font-medium">{t('page.patents.numeroPatente')} *</label>
               <Input id="patent-numero" value={formData.patent_number} onChange={(e) => setFormData({ ...formData, patent_number: e.target.value })} placeholder="CU2024/0001" />
             </div>
             <div>
-              <label className="text-sm font-medium">Estado</label>
+              <label className="text-sm font-medium">{t('page.patents.estado')}</label>
               <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
                 <SelectTrigger><SelectValue placeholder="Seleccionar estado" /></SelectTrigger>
                 <SelectContent>
@@ -356,23 +358,23 @@ export default function Patents() {
               </Select>
             </div>
             <div>
-              <label htmlFor="patent-solicitante" className="text-sm font-medium">Solicitante *</label>
+              <label htmlFor="patent-solicitante" className="text-sm font-medium">{t('page.patents.solicitante')} *</label>
               <Input id="patent-solicitante" value={formData.applicant} onChange={(e) => setFormData({ ...formData, applicant: e.target.value })} placeholder="Solicitante" />
             </div>
             <div>
-              <label htmlFor="patent-inventor" className="text-sm font-medium">Inventor(es)</label>
+              <label htmlFor="patent-inventor" className="text-sm font-medium">{t('page.patents.inventor')}</label>
               <Input id="patent-inventor" value={formData.inventor} onChange={(e) => setFormData({ ...formData, inventor: e.target.value })} placeholder="Inventor(es)" />
             </div>
             <div>
-              <label htmlFor="patent-fecha_solicitud" className="text-sm font-medium">Fecha de solicitud</label>
+              <label htmlFor="patent-fecha_solicitud" className="text-sm font-medium">{t('page.patents.fechaSolicitud')}</label>
               <Input id="patent-fecha_solicitud" type="date" value={formData.filing_date} onChange={(e) => setFormData({ ...formData, filing_date: e.target.value })} />
             </div>
             <div>
-              <label htmlFor="patent-fecha_publicacion" className="text-sm font-medium">Fecha de publicación</label>
+              <label htmlFor="patent-fecha_publicacion" className="text-sm font-medium">{t('page.patents.fechaPublicacion')}</label>
               <Input id="patent-fecha_publicacion" type="date" value={formData.publication_date} onChange={(e) => setFormData({ ...formData, publication_date: e.target.value })} />
             </div>
             <div>
-              <label className="text-sm font-medium">Sector tecnológico</label>
+              <label className="text-sm font-medium">{t('page.patents.sectorTecnologico')}</label>
               <Select value={formData.technological_sector} onValueChange={(v) => setFormData({ ...formData, technological_sector: v })}>
                 <SelectTrigger><SelectValue placeholder="Seleccionar sector" /></SelectTrigger>
                 <SelectContent>
@@ -383,11 +385,11 @@ export default function Patents() {
               </Select>
             </div>
             <div>
-              <label htmlFor="patent-pais" className="text-sm font-medium">País</label>
+              <label htmlFor="patent-pais" className="text-sm font-medium">{t('page.patents.pais')}</label>
               <Input id="patent-pais" value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value })} placeholder="Cuba" />
             </div>
             <div className="col-span-2">
-              <label htmlFor="patent-resumen" className="text-sm font-medium">Resumen</label>
+              <label htmlFor="patent-resumen" className="text-sm font-medium">{t('page.patents.resumen')}</label>
               <textarea
                 id="patent-resumen"
                 className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -397,7 +399,7 @@ export default function Patents() {
               />
             </div>
             <div className="col-span-2">
-              <label htmlFor="patent-file_url" className="text-sm font-medium">Archivo adjunto</label>
+              <label htmlFor="patent-file_url" className="text-sm font-medium">{t('page.patents.archivoAdjunto')}</label>
               <FileUpload
                 id="patent-file_url"
                 onUpload={(url) => setFormData({ ...formData, file_url: url })}
@@ -413,9 +415,9 @@ export default function Patents() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>Cancelar</Button>
+            <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>{t('common.cancelar')}</Button>
             <Button onClick={handleSave} disabled={!formData.title || !formData.patent_number || !formData.applicant || createMutation.isPending || updateMutation.isPending}>
-              {editingPatent ? 'Actualizar' : 'Crear'}
+              {editingPatent ? t('common.editar') : t('common.crear')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -424,12 +426,12 @@ export default function Patents() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Confirmar eliminación</DialogTitle>
-            <DialogDescription>¿Está seguro de eliminar la patente &quot;{patentToDelete?.title}&quot;? Esta acción no se puede deshacer.</DialogDescription>
+            <DialogTitle>{t('common.confirmarEliminar')}</DialogTitle>
+            <DialogDescription>{t('common.seguroEliminar')} &quot;{patentToDelete?.title}&quot;? {t('common.accionNoSePuedeDeshacer')}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancelar</Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>Eliminar</Button>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>{t('common.cancelar')}</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>{t('common.eliminar')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

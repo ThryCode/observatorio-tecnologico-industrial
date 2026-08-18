@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import client from '@/api/client';
 import { getIndustrialSectors } from '@/api/industrialSectors';
@@ -20,11 +21,11 @@ import {
 import { Building2, Globe, MapPin, Save, Plus, Edit3, Calendar, Phone } from 'lucide-react';
 import type { Organization } from '@/types';
 import { queryKeys } from '@/lib/queryKeys';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function MiEmpresa() {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
-  const [serverError, setServerError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
   const { data: org, isLoading, isError, error, refetch } = useQuery({
@@ -107,17 +108,15 @@ export default function MiEmpresa() {
       return res.data;
     },
     onSuccess: () => {
-      setSuccess(true);
-      setServerError(null);
+      toast.success(t('page.miEmpresa.creadaCorrectamente'));
       setIsCreating(false);
       queryClient.invalidateQueries({ queryKey: queryKeys.myOrganization() });
     },
     onError: (error) => {
-      setSuccess(false);
       if (error instanceof AxiosError && error.response?.data?.detail) {
-        setServerError(error.response.data.detail);
+        toast.error(error.response.data.detail);
       } else {
-        setServerError('Error al crear la empresa.');
+        toast.error(t('page.miEmpresa.errorCrear'));
       }
     },
   });
@@ -128,16 +127,14 @@ export default function MiEmpresa() {
       return res.data;
     },
     onSuccess: () => {
-      setSuccess(true);
-      setServerError(null);
+      toast.success(t('page.miEmpresa.datosActualizados'));
       queryClient.invalidateQueries({ queryKey: queryKeys.myOrganization() });
     },
     onError: (error) => {
-      setSuccess(false);
       if (error instanceof AxiosError && error.response?.data?.detail) {
-        setServerError(error.response.data.detail);
+        toast.error(error.response.data.detail);
       } else {
-        setServerError('Error al actualizar la empresa.');
+        toast.error(t('page.miEmpresa.errorActualizar'));
       }
     },
   });
@@ -147,14 +144,10 @@ export default function MiEmpresa() {
     sector_codigo: string; pais: string; provincia: string; sitio_web: string;
     fecha_creacion: string; contacto: string;
   }) => {
-    setSuccess(false);
-    setServerError(null);
     createMutation.mutate(data);
   };
 
   const onEditSubmit = (data: { sitio_web: string; pais: string; provincia: string; sector_codigo: string; fecha_creacion: string; contacto: string }) => {
-    setSuccess(false);
-    setServerError(null);
     const payload: Record<string, string | undefined> = {};
     if (data.sitio_web) payload.sitio_web = data.sitio_web;
     if (data.pais) payload.pais = data.pais;
@@ -208,7 +201,7 @@ export default function MiEmpresa() {
         </div>
         {!hasOrg && !isCreating && (
           <Button onClick={() => setIsCreating(true)}>
-            <Plus className="h-4 w-4 mr-2" /> Crear empresa
+            <Plus className="h-4 w-4 mr-2" /> {t('page.miEmpresa.crearEmpresa')}
           </Button>
         )}
       </div>
@@ -220,7 +213,7 @@ export default function MiEmpresa() {
             <p className="text-lg font-medium mb-1">Aún no tienes una empresa registrada</p>
             <p className="text-sm mb-6">Crea tu entidad para empezar a gestionar su información.</p>
             <Button onClick={() => setIsCreating(true)}>
-              <Plus className="h-4 w-4 mr-2" /> Crear empresa
+              <Plus className="h-4 w-4 mr-2" /> {t('page.miEmpresa.crearEmpresa')}
             </Button>
           </CardContent>
         </Card>
@@ -234,7 +227,7 @@ export default function MiEmpresa() {
           <CardContent>
             <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="nombre">Nombre de la empresa *</Label>
+                <Label htmlFor="nombre">{t('page.miEmpresa.nombre')}</Label>
                 <div className="flex items-center gap-2">
                   <Building2 className="h-4 w-4 text-muted-foreground" />
                   <Input id="nombre" placeholder="Nombre de la entidad" aria-invalid={!!createForm.formState.errors.nombre} {...createForm.register('nombre', { required: true })} />
@@ -246,14 +239,14 @@ export default function MiEmpresa() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="siglas">Siglas *</Label>
+                  <Label htmlFor="siglas">{t('page.miEmpresa.siglas')}</Label>
                   <Input id="siglas" placeholder="CAI" aria-invalid={!!createForm.formState.errors.siglas} {...createForm.register('siglas', { required: true })} />
                   {createForm.formState.errors.siglas && (
                     <p className="text-xs text-danger mt-1">{createForm.formState.errors.siglas.message || 'Este campo es requerido'}</p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="tipo">Tipo</Label>
+                  <Label htmlFor="tipo">{t('page.miEmpresa.tipo')}</Label>
                   <Select
                     value={createForm.watch('tipo')}
                     onValueChange={(v) => createForm.setValue('tipo', v)}
@@ -273,13 +266,13 @@ export default function MiEmpresa() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="sector_codigo">Sector industrial</Label>
+                <Label htmlFor="sector_codigo">{t('page.miEmpresa.sector')}</Label>
                 <Select
                   value={createForm.watch('sector_codigo')}
                   onValueChange={(v) => createForm.setValue('sector_codigo', v)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Seleccione un sector..." />
+                    <SelectValue placeholder={t('page.miEmpresa.seleccionarSector')} />
                   </SelectTrigger>
                   <SelectContent>
                     {sectorsData?.items?.map((s) => (
@@ -293,46 +286,43 @@ export default function MiEmpresa() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="pais">País</Label>
+                  <Label htmlFor="pais">{t('page.miEmpresa.pais')}</Label>
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
                     <Input id="pais" placeholder="Cuba" {...createForm.register('pais')} />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="provincia">Provincia</Label>
+                  <Label htmlFor="provincia">{t('page.miEmpresa.provincia')}</Label>
                   <Input id="provincia" placeholder="La Habana" {...createForm.register('provincia')} />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="sitio_web">Sitio web</Label>
+                <Label htmlFor="sitio_web">{t('page.miEmpresa.sitioWeb')}</Label>
                 <div className="flex items-center gap-2">
                   <Globe className="h-4 w-4 text-muted-foreground" />
                   <Input id="sitio_web" placeholder="https://ejemplo.cu" {...createForm.register('sitio_web')} />
                 </div>
               </div>
 
-              <p className="text-sm font-medium pt-2">Datos adicionales</p>
+              <p className="text-sm font-medium pt-2">{t('page.miEmpresa.datosAdicionales')}</p>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fecha_creacion">Fecha de creación</Label>
+                  <Label htmlFor="fecha_creacion">{t('page.miEmpresa.fechaCreacion')}</Label>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <Input id="fecha_creacion" type="date" {...createForm.register('fecha_creacion')} />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="contacto">Número de contacto</Label>
+                  <Label htmlFor="contacto">{t('page.miEmpresa.contacto')}</Label>
                   <div className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-muted-foreground" />
                     <Input id="contacto" placeholder="+53 5 1234567" {...createForm.register('contacto')} />
                   </div>
                 </div>
               </div>
-
-              {serverError && <p className="text-sm text-danger">{serverError}</p>}
-              {success && <p className="text-sm text-success">Empresa creada correctamente.</p>}
 
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={() => setIsCreating(false)} className="flex-1">
@@ -359,12 +349,12 @@ export default function MiEmpresa() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2 text-sm mb-4">
-                <p><span className="font-medium">Tipo:</span> {org.tipo}</p>
-                <p><span className="font-medium">Sector:</span> {sectorsData?.items?.find(s => s.codigo === org.sector_codigo)?.nombre || org.sector_codigo || '-'}</p>
-                <p><span className="font-medium">Ubicación:</span> {[org.provincia, org.pais].filter(Boolean).join(', ') || '-'}</p>
-                <p><span className="font-medium">Sitio web:</span> {org.sitio_web || '-'}</p>
-                {org.fecha_creacion && <p><span className="font-medium">Fecha de creación:</span> {org.fecha_creacion}</p>}
-                {org.contacto && <p><span className="font-medium">Contacto:</span> {org.contacto}</p>}
+                <p><span className="font-medium">{t('page.miEmpresa.tipoLabel')}:</span> {org.tipo}</p>
+                <p><span className="font-medium">{t('page.miEmpresa.sector')}:</span> {sectorsData?.items?.find(s => s.codigo === org.sector_codigo)?.nombre || org.sector_codigo || '-'}</p>
+                <p><span className="font-medium">{t('page.miEmpresa.ubicacion')}:</span> {[org.provincia, org.pais].filter(Boolean).join(', ') || '-'}</p>
+                <p><span className="font-medium">{t('page.miEmpresa.sitioWebLabel')}:</span> {org.sitio_web || '-'}</p>
+                {org.fecha_creacion && <p><span className="font-medium">{t('page.miEmpresa.fechaCreacionLabel')}:</span> {org.fecha_creacion}</p>}
+                {org.contacto && <p><span className="font-medium">{t('page.miEmpresa.contactoLabel')}:</span> {org.contacto}</p>}
               </div>
             </CardContent>
           </Card>
@@ -373,13 +363,13 @@ export default function MiEmpresa() {
             <CardHeader>
               <div className="flex items-center gap-3">
                 <Edit3 className="h-5 w-5 text-muted-foreground" />
-                <CardTitle className="text-lg">Editar datos</CardTitle>
+                <CardTitle className="text-lg">{t('page.miEmpresa.editarDatos')}</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
               <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="sitio_web_edit">Sitio web</Label>
+                  <Label htmlFor="sitio_web_edit">{t('page.miEmpresa.sitioWeb')}</Label>
                   <div className="flex items-center gap-2">
                     <Globe className="h-4 w-4 text-muted-foreground" />
                     <Input id="sitio_web_edit" placeholder="https://ejemplo.cu" {...editForm.register('sitio_web')} />
@@ -388,26 +378,26 @@ export default function MiEmpresa() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="pais_edit">País</Label>
+                    <Label htmlFor="pais_edit">{t('page.miEmpresa.pais')}</Label>
                     <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-muted-foreground" />
                       <Input id="pais_edit" placeholder="Cuba" {...editForm.register('pais')} />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="provincia_edit">Provincia</Label>
+                    <Label htmlFor="provincia_edit">{t('page.miEmpresa.provincia')}</Label>
                     <Input id="provincia_edit" placeholder="La Habana" {...editForm.register('provincia')} />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="sector_codigo_edit">Sector industrial</Label>
+                  <Label htmlFor="sector_codigo_edit">{t('page.miEmpresa.sector')}</Label>
                   <Select
                     value={editForm.watch('sector_codigo')}
                     onValueChange={(v) => editForm.setValue('sector_codigo', v)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleccione un sector..." />
+                      <SelectValue placeholder={t('page.miEmpresa.seleccionarSector')} />
                     </SelectTrigger>
                     <SelectContent>
                       {sectorsData?.items?.map((s) => (
@@ -419,17 +409,17 @@ export default function MiEmpresa() {
                   </Select>
                 </div>
 
-                <p className="text-sm font-medium pt-2">Datos adicionales</p>
+                <p className="text-sm font-medium pt-2">{t('page.miEmpresa.datosAdicionales')}</p>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="fecha_creacion_edit">Fecha de creación</Label>
+                    <Label htmlFor="fecha_creacion_edit">{t('page.miEmpresa.fechaCreacion')}</Label>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <Input id="fecha_creacion_edit" type="date" {...editForm.register('fecha_creacion')} />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="contacto_edit">Número de contacto</Label>
+                    <Label htmlFor="contacto_edit">{t('page.miEmpresa.contacto')}</Label>
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4 text-muted-foreground" />
                       <Input id="contacto_edit" placeholder="+53 5 1234567" {...editForm.register('contacto')} />
@@ -437,12 +427,9 @@ export default function MiEmpresa() {
                   </div>
                 </div>
 
-                {serverError && <p className="text-sm text-danger">{serverError}</p>}
-                {success && <p className="text-sm text-success">Datos actualizados correctamente.</p>}
-
                 <Button type="submit" className="w-full" disabled={updateMutation.isPending}>
                   <Save className="h-4 w-4 mr-2" />
-                  {updateMutation.isPending ? 'Guardando...' : 'Guardar cambios'}
+                  {updateMutation.isPending ? t('common.guardando') : t('settings.profile.save')}
                 </Button>
               </form>
             </CardContent>

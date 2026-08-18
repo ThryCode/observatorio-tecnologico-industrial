@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { formatDate } from '@/utils/formatters';
 import type { Technology } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const trlOptions = [
   { value: 1, label: 'TRL 1 - Principios básicos' },
@@ -28,6 +29,7 @@ export default function Technologies() {
   const [page, setPage] = useState(1);
   const [q, setQ] = useState('');
   const [sector, setSector] = useState('all');
+  const { t } = useLanguage();
 
   const { data: sectorsData } = useQuery({
     queryKey: queryKeys.industrialSectors.list(1, 100),
@@ -48,8 +50,8 @@ export default function Technologies() {
 
   return (
     <CrudPage
-      title="Tecnologías"
-      description="Catálogo de tecnologías del ecosistema industrial."
+      title={t('page.technologies.title')}
+      description={t('page.technologies.description')}
       permissionResource="technologies"
       columns={columns}
       queryResult={queryResult}
@@ -62,9 +64,9 @@ export default function Technologies() {
       onSearch={setQ}
       filterBar={
         <Select value={sector} onValueChange={(v) => { setSector(v); setPage(1); }}>
-          <SelectTrigger className="w-[200px]"><SelectValue placeholder="Filtrar por sector" /></SelectTrigger>
+          <SelectTrigger className="w-[200px]"><SelectValue placeholder={t('common.filtrarPorSector')} /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos los sectores</SelectItem>
+            <SelectItem value="all">{t('common.todosLosSectores')}</SelectItem>
             {sectorsData?.items?.map((s) => <SelectItem key={s.codigo} value={s.codigo}>{s.nombre}</SelectItem>)}
           </SelectContent>
         </Select>
@@ -86,17 +88,17 @@ export default function Technologies() {
       renderForm={({ data, onChange }) => (
         <div className="space-y-4">
           <div>
-            <label htmlFor="technology-nombre" className="text-sm font-medium">Nombre *</label>
+            <label htmlFor="technology-nombre" className="text-sm font-medium">{t('page.organizations.nombre')}</label>
             <Input id="technology-nombre" value={data.nombre} onChange={(e) => onChange({ nombre: e.target.value })} placeholder="Nombre de la tecnología" />
           </div>
           <div>
-            <label htmlFor="technology-descripcion" className="text-sm font-medium">Descripción</label>
+            <label htmlFor="technology-descripcion" className="text-sm font-medium">{t('page.publications.resumen')}</label>
             <Textarea id="technology-descripcion" value={data.descripcion} onChange={(e) => onChange({ descripcion: e.target.value })} placeholder="Descripción de la tecnología" />
           </div>
           <div>
             <label className="text-sm font-medium">Sector</label>
             <Select value={data.sector_codigo} onValueChange={(v) => onChange({ sector_codigo: v })}>
-              <SelectTrigger><SelectValue placeholder="Seleccionar sector" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t('page.patents.seleccionarSector')} /></SelectTrigger>
               <SelectContent>
                 {sectorsData?.items?.map((s) => <SelectItem key={s.codigo} value={s.codigo}>{s.nombre}</SelectItem>)}
               </SelectContent>
@@ -112,7 +114,7 @@ export default function Technologies() {
             </Select>
           </div>
           <div>
-            <label htmlFor="technology-palabras_clave" className="text-sm font-medium">Palabras clave (separadas por coma)</label>
+            <label htmlFor="technology-palabras_clave" className="text-sm font-medium">{t('page.publications.palabrasClave')}</label>
             <Input id="technology-palabras_clave" value={data.palabras_clave} onChange={(e) => onChange({ palabras_clave: e.target.value })} placeholder="ej: ia, manufactura, sensores" />
           </div>
         </div>
@@ -128,20 +130,20 @@ export default function Technologies() {
           </div>
           {tech.descripcion && (
             <div className="border-t border-border pt-3">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Descripción</p>
+              <p className="text-xs font-medium text-muted-foreground mb-1">{t('page.publications.resumen')}</p>
               <p className="text-sm text-foreground/80 leading-relaxed">{tech.descripcion}</p>
             </div>
           )}
           {tech.palabras_clave && tech.palabras_clave.length > 0 && (
             <div className="border-t border-border pt-3">
-              <p className="text-xs font-medium text-muted-foreground mb-2">Palabras clave</p>
+              <p className="text-xs font-medium text-muted-foreground mb-2">{t('page.publications.palabrasClave')}</p>
               <div className="flex flex-wrap gap-1.5">
                 {tech.palabras_clave.map((kw) => <Badge key={kw} variant="secondary" className="text-xs">{kw}</Badge>)}
               </div>
             </div>
           )}
           <div className="border-t border-border pt-3 text-xs text-muted-foreground">
-            Creado: {formatDate(tech.created_at)}
+            {t('common.creado') + ':'} {formatDate(tech.created_at)}
           </div>
         </div>
       )}

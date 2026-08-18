@@ -2,9 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { roleLabels } from '@/utils/roles';
 import { useAlerts } from '@/hooks/useAlerts';
+import type { TranslationKey } from '@/i18n/translations';
 import {
   Search,
   Bell,
@@ -14,37 +16,16 @@ import {
   Home,
 } from 'lucide-react';
 
-const routeNames: Record<string, string> = {
-  '/': 'Dashboard',
-  '/graph': 'Grafo de Conocimiento',
-  '/technologies': 'Tecnologías',
-  '/patents': 'Patentes',
-  '/indicators': 'Indicadores',
-  '/publications': 'Publicaciones',
-  '/regulations': 'Regulaciones',
-  '/alerts': 'Alertas',
-  '/bulletins': 'Boletines',
-  '/competitiveness': 'Análisis de Competitividad',
-  '/patent-maps': 'Mapas de Patentes',
-  '/organizations': 'Entidades CTI',
-  '/network': 'Red Profesional',
-  '/mi-empresa': 'Mi Empresa',
-  '/enterprise-graph': 'Grafo Empresarial',
-  '/graph-analytics': 'Analítica del Grafo',
-  '/settings': 'Configuración',
-  '/profile': 'Perfil',
-  '/admin/pending': 'Aprobaciones Pendientes',
-};
-
-function breadcrumbLabel(route: string, part: string): string {
+function breadcrumbLabel(routeNames: Record<string, string>, route: string, part: string): string {
   const mapped = routeNames[route];
   if (mapped) return mapped;
-  if (route === '/admin/pending') return 'Aprobaciones Pendientes';
+  if (route === '/admin/pending') return routeNames['/admin/pending'] || part;
   return part.charAt(0).toUpperCase() + part.slice(1).replace(/-/g, ' ');
 }
 
 export default function Topbar() {
   const { user, logout } = useAuth();
+  const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchOpen, setSearchOpen] = useState(false);
@@ -56,6 +37,28 @@ export default function Topbar() {
   const rawCount = upcomingAlerts?.items.length ?? 0;
   const lastSeen = parseInt(localStorage.getItem('lastAlertUpcomingCount') ?? '-1', 10);
   const notifCount = notifClicked ? 0 : (lastSeen === -1 ? rawCount : Math.max(0, rawCount - lastSeen));
+
+  const routeNames: Record<string, string> = {
+    '/': t('sidebar.dashboard'),
+    '/graph': t('sidebar.grafoConocimiento'),
+    '/technologies': t('sidebar.tecnologias'),
+    '/patents': t('sidebar.patentes'),
+    '/indicators': t('page.indicators.title'),
+    '/publications': t('sidebar.publicaciones'),
+    '/regulations': t('page.regulations.title' as TranslationKey),
+    '/alerts': t('sidebar.alertas'),
+    '/bulletins': t('sidebar.boletines'),
+    '/competitiveness': t('sidebar.analisisCompetitividad'),
+    '/patent-maps': t('sidebar.mapasPatentes'),
+    '/organizations': t('sidebar.entidadesCti'),
+    '/network': t('sidebar.redProfesional'),
+    '/mi-empresa': t('sidebar.miEmpresa'),
+    '/enterprise-graph': t('sidebar.grafoEmpresarial'),
+    '/graph-analytics': t('page.graphAnalytics.title'),
+    '/settings': t('sidebar.configuracion'),
+    '/profile': t('page.profile.title'),
+    '/admin/pending': t('page.admin.pending.title'),
+  };
 
   // Keyboard shortcut: Cmd+K / Ctrl+K to focus search
   useEffect(() => {
@@ -76,11 +79,11 @@ export default function Topbar() {
 
   // Build breadcrumbs from path
   const pathParts = location.pathname.split('/').filter(Boolean);
-  const breadcrumbs = [{ path: '/', label: 'Inicio' }];
+  const breadcrumbs = [{ path: '/', label: t('topbar.inicio') }];
   let currentPath = '';
   for (const part of pathParts) {
     currentPath += `/${part}`;
-    breadcrumbs.push({ path: currentPath, label: breadcrumbLabel(currentPath, part) });
+    breadcrumbs.push({ path: currentPath, label: breadcrumbLabel(routeNames, currentPath, part) });
   }
 
   return (
@@ -114,7 +117,7 @@ export default function Topbar() {
               <input
                 ref={searchRef}
                 type="search"
-                placeholder="Buscar patentes, entidades, tecnologías..."
+                placeholder={t('topbar.buscar')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setSearchOpen(true)}
@@ -123,7 +126,7 @@ export default function Topbar() {
                   'w-full h-10 rounded-full border border-border bg-background pl-10 pr-12 text-sm text-foreground placeholder:text-text-placeholder outline-none transition-all duration-150',
                   searchOpen && 'border-accent-red shadow-[0_0_0_3px_hsl(var(--accent-subtle))] shadow-sm',
                 )}
-                aria-label="Buscar en el observatorio"
+                aria-label={t('topbar.buscarAria')}
               />
               <kbd className="absolute right-3 hidden lg:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-text-muted bg-surface border border-border rounded-sm">
                 ⌘K
@@ -132,7 +135,7 @@ export default function Topbar() {
           </div>
 
           {/* Notifications */}
-          <button onClick={() => { setNotifClicked(true); localStorage.setItem('lastAlertUpcomingCount', String(rawCount)); navigate('/alerts'); }} className="relative w-10 h-10 rounded-full border border-border bg-surface text-text-secondary hover:bg-background hover:border-accent-red hover:text-accent-red hover:-translate-y-0.5 transition-all duration-150 flex items-center justify-center" aria-label="Alertas" title="Alertas">
+          <button onClick={() => { setNotifClicked(true); localStorage.setItem('lastAlertUpcomingCount', String(rawCount)); navigate('/alerts'); }} className="relative w-10 h-10 rounded-full border border-border bg-surface text-text-secondary hover:bg-background hover:border-accent-red hover:text-accent-red hover:-translate-y-0.5 transition-all duration-150 flex items-center justify-center" aria-label={t('topbar.alertas')} title={t('topbar.alertas')}>
             <Bell className="h-4 w-4" />
             {notifCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] rounded-full bg-accent-red text-white text-[10px] font-bold flex items-center justify-center border-2 border-surface">
@@ -142,7 +145,7 @@ export default function Topbar() {
           </button>
 
           {/* Settings */}
-          <button onClick={() => navigate('/settings')} className="w-10 h-10 rounded-full border border-border bg-surface text-text-secondary hover:bg-background hover:border-accent-red hover:text-accent-red hover:-translate-y-0.5 transition-all duration-150 flex items-center justify-center" aria-label="Configuración" title="Configuración">
+          <button onClick={() => navigate('/settings')} className="w-10 h-10 rounded-full border border-border bg-surface text-text-secondary hover:bg-background hover:border-accent-red hover:text-accent-red hover:-translate-y-0.5 transition-all duration-150 flex items-center justify-center" aria-label={t('topbar.configuracion')} title={t('topbar.configuracion')}>
             <Settings className="h-4 w-4" />
           </button>
 
@@ -158,7 +161,7 @@ export default function Topbar() {
           </div>
 
           {/* Logout */}
-          <Button variant="ghost" size="icon" onClick={logout} title="Cerrar sesión" className="text-text-muted hover:text-accent-red">
+          <Button variant="ghost" size="icon" onClick={logout} title={t('topbar.cerrarSesion')} className="text-text-muted hover:text-accent-red">
             <LogOut className="h-4 w-4" />
           </Button>
         </div>

@@ -39,6 +39,7 @@ import type { Organization } from '@/types';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { queryKeys } from '@/lib/queryKeys';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const tipoOptions = [
   { value: 'centro_investigacion', label: 'Centro de Investigación' },
@@ -51,6 +52,7 @@ const tipoOptions = [
 
 export default function Organizations() {
   const { can } = usePermissions();
+  const { t } = useLanguage();
   const [search, setSearch] = useState('');
   const [sector, setSector] = useState('all');
   const [page, setPage] = useState(1);
@@ -87,16 +89,16 @@ export default function Organizations() {
       if (followStatus?.is_following) {
         await unfollowOrganization(selectedOrg.id);
         setFollowStatus({ is_following: false, followers_count: (followStatus.followers_count || 1) - 1 });
-        toast.success('Has dejado de seguir a esta organización');
+        toast.success(t('page.organizations.dejadoSeguir'));
       } else {
         await followOrganization(selectedOrg.id);
         setFollowStatus({ is_following: true, followers_count: (followStatus?.followers_count || 0) + 1 });
-        toast.success('Ahora sigues a esta organización');
+        toast.success(t('page.organizations.ahoraSigues'));
       }
       queryClient.invalidateQueries({ queryKey: queryKeys.orgFollowStats.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.followStatus(selectedOrg.id) });
     } catch {
-      toast.error('No se pudo seguir a la organización.');
+      toast.error(t('page.organizations.noSeguir'));
     } finally {
       setFollowPending(false);
     }
@@ -124,11 +126,11 @@ export default function Organizations() {
     const data: Partial<Organization> = { ...formData, sector_codigo: formData.sector_codigo || undefined };
     try {
       await createMutation.mutateAsync(data);
-      toast.success('Organización creada correctamente');
+      toast.success(t('page.organizations.creadaCorrectamente'));
       setDialogOpen(false);
       resetForm();
     } catch (error) {
-      let message = 'No se pudo crear la organización. Intenta de nuevo.';
+      let message = t('page.organizations.noCrear');
       if (error instanceof AxiosError && error.response?.data?.detail) {
         message = error.response.data.detail;
       }
@@ -140,12 +142,12 @@ export default function Organizations() {
     if (!orgToDelete) return;
     try {
       await deleteMutation.mutateAsync(orgToDelete.id);
-      toast.success('Organización eliminada correctamente');
+      toast.success(t('page.organizations.eliminadaCorrectamente'));
       setDeleteDialogOpen(false);
       setOrgToDelete(null);
       if (selectedOrg?.id === orgToDelete.id) setSelectedOrg(null);
     } catch {
-      toast.error('No se pudo eliminar la organización.');
+      toast.error(t('page.organizations.noEliminar'));
     }
   };
 
@@ -153,12 +155,12 @@ export default function Organizations() {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Organizaciones</h2>
-          <p className="text-muted-foreground">Error al cargar los datos.</p>
+          <h2 className="text-2xl font-bold tracking-tight">{t('page.organizations.title')}</h2>
+          <p className="text-muted-foreground">{t('common.errorCargarDatos')}</p>
         </div>
         <Card>
           <CardContent className="flex flex-col items-center gap-2 py-8">
-            <p className="text-sm text-destructive">No se pudieron cargar las organizaciones. Intente de nuevo mas tarde.</p>
+            <p className="text-sm text-destructive">{t('common.errorCargarEntidades')}</p>
           </CardContent>
         </Card>
       </div>
@@ -176,15 +178,15 @@ export default function Organizations() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Organizaciones</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t('page.organizations.title')}</h2>
           <p className="text-muted-foreground">
-            Entidades de ciencia, tecnología e innovación del ecosistema industrial.
+            {t('page.organizations.description')}
           </p>
         </div>
         {can('organizations', 'create') && (
           <Button className="gap-2" onClick={openCreateDialog}>
             <Plus className="h-4 w-4" />
-            Nueva Organización
+            {t('page.organizations.crearEntidad')}
           </Button>
         )}
       </div>
@@ -201,10 +203,10 @@ export default function Organizations() {
         </div>
         <Select value={sector} onValueChange={(v) => { setSector(v); setPage(1); }}>
           <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Filtrar por sector" />
+            <SelectValue placeholder={t('common.filtrarPorSector')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos los sectores</SelectItem>
+            <SelectItem value="all">{t('common.todosLosSectores')}</SelectItem>
             {sectorsData?.items?.map((s) => (
               <SelectItem key={s.codigo} value={s.codigo}>{s.nombre}</SelectItem>
             ))}
@@ -217,11 +219,11 @@ export default function Organizations() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Siglas</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Sector</TableHead>
-                <TableHead>Provincia</TableHead>
+                <TableHead>{t('page.organizations.nombre')}</TableHead>
+                <TableHead>{t('page.organizations.siglas')}</TableHead>
+                <TableHead>{t('page.organizations.tipo')}</TableHead>
+                <TableHead>{t('common.sector')}</TableHead>
+                <TableHead>{t('page.organizations.provincia')}</TableHead>
                 <TableHead className="w-[120px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -263,7 +265,7 @@ export default function Organizations() {
                   : (
                       <TableRow>
                         <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                          No hay organizaciones registradas aún.
+                          {t('page.organizations.noDatos')}
                         </TableCell>
                       </TableRow>
                     )}
@@ -282,37 +284,37 @@ export default function Organizations() {
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm">
                 <Building2 className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">Tipo:</span>
+                <span className="font-medium">{t('page.organizations.tipo')}:</span>
                 <span className="text-muted-foreground">{selectedOrg.tipo}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">Ubicación:</span>
+                <span className="font-medium">{t('page.miEmpresa.ubicacion')}:</span>
                 <span className="text-muted-foreground">
                   {[selectedOrg.provincia, selectedOrg.pais].filter(Boolean).join(', ') || '-'}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Globe className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">Sitio web:</span>
+                <span className="font-medium">{t('page.miEmpresa.sitioWebLabel')}:</span>
                 <span className="text-muted-foreground">{selectedOrg.sitio_web || '-'}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">Fecha de creación:</span>
+                <span className="font-medium">{t('page.miEmpresa.fechaCreacionLabel')}:</span>
                 <span className="text-muted-foreground">{selectedOrg.fecha_creacion || '-'}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Phone className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">Contacto:</span>
+                <span className="font-medium">{t('page.miEmpresa.contactoLabel')}:</span>
                 <span className="text-muted-foreground">{selectedOrg.contacto || '-'}</span>
               </div>
               <div className="text-sm">
-                <span className="font-medium">Creado:</span>{' '}
+                <span className="font-medium">{t('common.creado')}:</span>{' '}
                 <span className="text-muted-foreground">{formatDate(selectedOrg.created_at)}</span>
               </div>
               <div className="flex items-center justify-between pt-2">
-                <p className="text-xs text-muted-foreground">{followStatus?.followers_count ?? 0} seguidores</p>
+                <p className="text-xs text-muted-foreground">{followStatus?.followers_count ?? 0} {t('page.organizations.seguidores')}</p>
                 {currentUser?.organization_id !== selectedOrg.id && (
                   <Button
                     variant={followStatus?.is_following ? 'secondary' : 'default'}
@@ -320,7 +322,7 @@ export default function Organizations() {
                     onClick={handleFollow}
                     disabled={!followStatus || followPending}
                   >
-                    {followStatus?.is_following ? 'Siguiendo' : 'Seguir'}
+                    {followStatus?.is_following ? t('common.siguiendo') : t('common.seguir')}
                   </Button>
                 )}
               </div>
@@ -332,19 +334,19 @@ export default function Organizations() {
       <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) { setDialogOpen(false); resetForm(); } }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Nueva Organización</DialogTitle>
+            <DialogTitle>{t('page.organizations.crearEntidad')}</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label htmlFor="org-nombre" className="text-sm font-medium">Nombre *</label>
+              <label htmlFor="org-nombre" className="text-sm font-medium">{t('page.organizations.nombre')} *</label>
               <Input id="org-nombre" value={formData.nombre} onChange={(e) => setFormData({ ...formData, nombre: e.target.value })} placeholder="Nombre de la organización" />
             </div>
             <div>
-              <label htmlFor="org-siglas" className="text-sm font-medium">Siglas *</label>
+              <label htmlFor="org-siglas" className="text-sm font-medium">{t('page.organizations.siglas')} *</label>
               <Input id="org-siglas" value={formData.siglas} onChange={(e) => setFormData({ ...formData, siglas: e.target.value })} placeholder="Siglas" />
             </div>
             <div>
-              <label className="text-sm font-medium">Tipo</label>
+              <label className="text-sm font-medium">{t('page.organizations.tipo')}</label>
               <Select value={formData.tipo} onValueChange={(v) => setFormData({ ...formData, tipo: v })}>
                 <SelectTrigger><SelectValue placeholder="Seleccionar tipo" /></SelectTrigger>
                 <SelectContent>
@@ -355,7 +357,7 @@ export default function Organizations() {
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium">Sector</label>
+              <label className="text-sm font-medium">{t('common.sector')}</label>
               <Select value={formData.sector_codigo} onValueChange={(v) => setFormData({ ...formData, sector_codigo: v })}>
                 <SelectTrigger><SelectValue placeholder="Seleccionar sector" /></SelectTrigger>
                 <SelectContent>
@@ -366,34 +368,34 @@ export default function Organizations() {
               </Select>
             </div>
             <div>
-              <label htmlFor="org-pais" className="text-sm font-medium">País</label>
+              <label htmlFor="org-pais" className="text-sm font-medium">{t('page.organizations.pais')}</label>
               <Input id="org-pais" value={formData.pais} onChange={(e) => setFormData({ ...formData, pais: e.target.value })} placeholder="País" />
             </div>
             <div>
-              <label htmlFor="org-provincia" className="text-sm font-medium">Provincia</label>
+              <label htmlFor="org-provincia" className="text-sm font-medium">{t('page.organizations.provincia')}</label>
               <Input id="org-provincia" value={formData.provincia} onChange={(e) => setFormData({ ...formData, provincia: e.target.value })} placeholder="Provincia" />
             </div>
             <div className="col-span-2">
-              <label htmlFor="org-sitio_web" className="text-sm font-medium">Sitio web</label>
+              <label htmlFor="org-sitio_web" className="text-sm font-medium">{t('page.organizations.sitioWeb')}</label>
               <Input id="org-sitio_web" value={formData.sitio_web} onChange={(e) => setFormData({ ...formData, sitio_web: e.target.value })} placeholder="https://..." />
             </div>
             <div>
-              <label htmlFor="org-email_contacto" className="text-sm font-medium">Email contacto</label>
+              <label htmlFor="org-email_contacto" className="text-sm font-medium">{t('page.organizations.emailContacto')}</label>
               <Input id="org-email_contacto" value={formData.email_contacto} onChange={(e) => setFormData({ ...formData, email_contacto: e.target.value })} placeholder="email@ejemplo.cu" />
             </div>
             <div>
-              <label htmlFor="org-contacto" className="text-sm font-medium">Contacto</label>
+              <label htmlFor="org-contacto" className="text-sm font-medium">{t('page.organizations.contacto')}</label>
               <Input id="org-contacto" value={formData.contacto} onChange={(e) => setFormData({ ...formData, contacto: e.target.value })} placeholder="Nombre contacto" />
             </div>
             <div>
-              <label htmlFor="org-fecha_creacion" className="text-sm font-medium">Fecha creación</label>
+              <label htmlFor="org-fecha_creacion" className="text-sm font-medium">{t('page.organizations.fechaCreacion')}</label>
               <Input id="org-fecha_creacion" type="date" value={formData.fecha_creacion} onChange={(e) => setFormData({ ...formData, fecha_creacion: e.target.value })} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>Cancelar</Button>
+            <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>{t('common.cancelar')}</Button>
             <Button onClick={handleSave} disabled={!formData.nombre || !formData.siglas || createMutation.isPending}>
-              Crear
+              {t('common.crear')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -402,12 +404,12 @@ export default function Organizations() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Confirmar eliminación</DialogTitle>
-            <DialogDescription>¿Está seguro de eliminar &quot;{orgToDelete?.nombre}&quot;? Esta acción no se puede deshacer.</DialogDescription>
+            <DialogTitle>{t('common.confirmarEliminar')}</DialogTitle>
+            <DialogDescription>{t('common.seguroEliminar')} &quot;{orgToDelete?.nombre}&quot;? {t('common.accionNoSePuedeDeshacer')}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>Cancelar</Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>Eliminar</Button>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>{t('common.cancelar')}</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>{t('common.eliminar')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -415,14 +417,14 @@ export default function Organizations() {
       {data && data.total_pages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Mostrando página {page} de {data.total_pages} ({data.total} total)
+            {t('common.mostrandoPagina')} {page} {t('common.de')} {data.total_pages} ({data.total} {t('common.total')})
           </p>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-              Anterior
+              {t('common.anterior')}
             </Button>
             <Button variant="outline" size="sm" disabled={page >= data.total_pages} onClick={() => setPage((p) => p + 1)}>
-              Siguiente
+              {t('common.siguiente')}
             </Button>
           </div>
         </div>

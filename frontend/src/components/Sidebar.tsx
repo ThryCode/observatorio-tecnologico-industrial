@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useAlerts } from '@/hooks/useAlerts';
 import { roleLabels } from '@/utils/roles';
 import { usePatents } from '@/hooks/usePatents';
@@ -24,26 +25,6 @@ import {
   GitBranch,
 } from 'lucide-react';
 
-const mainNav = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/graph', label: 'Grafo de Conocimiento', icon: Share2 },
-  { to: '/technologies', label: 'Tecnologías', icon: BookOpen },
-  { to: '/patents', label: 'Patentes', icon: FileText },
-  { to: '/publications', label: 'Publicaciones', icon: Newspaper },
-];
-
-const intelligenceNav = [
-  { to: '/alerts', label: 'Alertas', icon: Bell, badgeVariant: 'danger' as const },
-  { to: '/bulletins', label: 'Boletines', icon: BookOpen },
-  { to: '/competitiveness', label: 'Análisis de Competitividad', icon: BarChart3 },
-  { to: '/patent-maps', label: 'Mapas de Patentes', icon: Map },
-];
-
-const orgNav = [
-  { to: '/organizations', label: 'Entidades CTI', icon: Building2 },
-  { to: '/network', label: 'Red Profesional', icon: Users },
-];
-
 function formatPatentCount(count: number): string {
   if (count >= 1000) return (count / 1000).toFixed(count >= 10000 ? 0 : 1).replace('.0', '') + 'k';
   return String(count);
@@ -53,6 +34,7 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user } = useAuth();
+  const { t } = useLanguage();
   const location = useLocation();
   const today = new Date().toISOString().split('T')[0];
   const { data: upcomingAlerts } = useAlerts(false, 1, 1, undefined, undefined, undefined, today);
@@ -63,6 +45,26 @@ export default function Sidebar() {
   const patentCount = patentsData?.total;
   const lastSeenCount = parseInt(localStorage.getItem('lastPatentSeenCount') ?? '-1', 10);
   const newPatentCount = lastSeenCount === -1 ? (patentCount ?? 0) : Math.max(0, (patentCount ?? 0) - lastSeenCount);
+
+  const mainNav = [
+    { to: '/', label: t('sidebar.dashboard'), icon: LayoutDashboard },
+    { to: '/graph', label: t('sidebar.grafoConocimiento'), icon: Share2 },
+    { to: '/technologies', label: t('sidebar.tecnologias'), icon: BookOpen },
+    { to: '/patents', label: t('sidebar.patentes'), icon: FileText },
+    { to: '/publications', label: t('sidebar.publicaciones'), icon: Newspaper },
+  ];
+
+  const intelligenceNav = [
+    { to: '/alerts', label: t('sidebar.alertas'), icon: Bell, badgeVariant: 'danger' as const },
+    { to: '/bulletins', label: t('sidebar.boletines'), icon: BookOpen },
+    { to: '/competitiveness', label: t('sidebar.analisisCompetitividad'), icon: BarChart3 },
+    { to: '/patent-maps', label: t('sidebar.mapasPatentes'), icon: Map },
+  ];
+
+  const orgNav = [
+    { to: '/organizations', label: t('sidebar.entidadesCti'), icon: Building2 },
+    { to: '/network', label: t('sidebar.redProfesional'), icon: Users },
+  ];
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
@@ -77,14 +79,14 @@ export default function Sidebar() {
     .slice(0, 2) || 'AD';
 
   const repNav = user?.role === 'representante'
-    ? [{ to: '/mi-empresa', label: 'Mi Empresa', icon: Building2 }]
+    ? [{ to: '/mi-empresa', label: t('sidebar.miEmpresa'), icon: Building2 }]
     : [];
 
   const adminNav = user?.role === 'admin_mindus'
     ? [
-        { to: '/enterprise-graph', label: 'Grafo Empresarial', icon: GitBranch },
-        { to: '/admin/pending', label: 'Solicitudes', icon: ClipboardCheck },
-        { to: '/settings', label: 'Configuración', icon: Settings },
+        { to: '/enterprise-graph', label: t('sidebar.grafoEmpresarial'), icon: GitBranch },
+        { to: '/admin/pending', label: t('sidebar.solicitudes'), icon: ClipboardCheck },
+        { to: '/settings', label: t('sidebar.configuracion'), icon: Settings },
       ]
     : [];
 
@@ -109,14 +111,14 @@ export default function Sidebar() {
         </div>
         {!collapsed && (
           <div className="min-w-0">
-            <h1 className="text-[15px] font-bold text-white truncate">Observatorio</h1>
-            <p className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">Tecnológico Industrial</p>
+            <h1 className="text-[15px] font-bold text-white truncate">{t('sidebar.observatorio')}</h1>
+            <p className="text-[10px] uppercase tracking-wider text-white/50 font-semibold">{t('sidebar.observatorioSubtitle')}</p>
           </div>
         )}
       </div>
 
       <nav className="flex-1 overflow-y-auto sidebar-scrollbar px-3 py-4 space-y-6" role="navigation" aria-label="Navegación principal">
-        <Section label="Principal" collapsed={collapsed}>
+        <Section label={t('sidebar.principal')} collapsed={collapsed}>
           {mainNav.map((item) => (
             <NavItem
               key={item.to}
@@ -129,7 +131,7 @@ export default function Sidebar() {
           ))}
         </Section>
 
-        <Section label="Inteligencia" collapsed={collapsed}>
+        <Section label={t('sidebar.inteligencia')} collapsed={collapsed}>
           {intelligenceNav.map((item) => (
             <NavItem
               key={item.to}
@@ -142,7 +144,7 @@ export default function Sidebar() {
           ))}
         </Section>
 
-        <Section label="Organización" collapsed={collapsed}>
+        <Section label={t('sidebar.organizacion')} collapsed={collapsed}>
           {[...repNav, ...orgNav, ...adminNav].map((item) => (
             <NavItem
               key={item.to}
@@ -203,7 +205,7 @@ export default function Sidebar() {
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
         className="fixed top-3 left-3 z-50 lg:hidden w-10 h-10 rounded-full bg-sidebar-bg text-white flex items-center justify-center shadow-lg border border-white/10"
-        aria-label={mobileOpen ? 'Cerrar menú' : 'Abrir menú'}
+        aria-label={mobileOpen ? t('sidebar.cerrarMenu') : t('sidebar.abrirMenu')}
       >
         {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>
@@ -220,7 +222,7 @@ export default function Sidebar() {
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="absolute -right-3 top-20 w-6 h-6 rounded-full bg-sidebar-bg border border-white/10 text-white/50 hover:text-white flex items-center justify-center transition-all duration-150 hover:scale-110"
-            aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
+            aria-label={collapsed ? t('sidebar.expandirMenu') : t('sidebar.colapsarMenu')}
           >
           <ChevronRight className={cn('h-3 w-3 transition-transform duration-base', collapsed && 'rotate-180')} />
         </button>

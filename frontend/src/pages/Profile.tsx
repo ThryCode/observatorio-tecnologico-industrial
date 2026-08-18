@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import client from '@/api/client';
 import { useMyProfessionalProfile, useUpdateMyProfessionalProfile } from '@/hooks/useProfessionals';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,10 +18,7 @@ import { formatDate } from '@/utils/formatters';
 
 export default function Profile() {
   const { user, loginSuccess } = useAuth();
-  const [userError, setUserError] = useState<string | null>(null);
-  const [profError, setProfError] = useState<string | null>(null);
-  const [userSuccess, setUserSuccess] = useState(false);
-  const [profSuccess, setProfSuccess] = useState(false);
+  const { t } = useLanguage();
 
   const isProfessional = user?.role === 'profesional';
   const { data: profProfile, isLoading: profLoading } = useMyProfessionalProfile();
@@ -69,17 +68,15 @@ export default function Profile() {
       return res.data;
     },
     onSuccess: async () => {
-      setUserSuccess(true);
-      setUserError(null);
+      toast.success(t('page.profile.actualizadoCorrectamente'));
       const token = localStorage.getItem('token');
       if (token) await loginSuccess(token);
     },
     onError: (error) => {
-      setUserSuccess(false);
       if (error instanceof AxiosError && error.response?.data?.detail) {
-        setUserError(error.response.data.detail);
+        toast.error(error.response.data.detail);
       } else {
-        setUserError('Error al actualizar perfil.');
+        toast.error(t('page.profile.errorActualizar'));
       }
     },
   });
@@ -87,8 +84,6 @@ export default function Profile() {
   const profMutation = useUpdateMyProfessionalProfile();
 
   const onUserSubmit = (data: { full_name: string; phone: string; job_title: string }) => {
-    setUserSuccess(false);
-    setUserError(null);
     userMutation.mutate(data);
   };
 
@@ -102,8 +97,6 @@ export default function Profile() {
     researchgate_url: string;
     orcid: string;
   }) => {
-    setProfSuccess(false);
-    setProfError(null);
     const payload: Record<string, string | undefined> = {};
     if (data.especialidad) payload.especialidad = data.especialidad;
     if (data.grado_cientifico) payload.grado_cientifico = data.grado_cientifico;
@@ -115,15 +108,13 @@ export default function Profile() {
     if (data.orcid) payload.orcid = data.orcid;
     profMutation.mutate(payload, {
       onSuccess: () => {
-        setProfSuccess(true);
-        setProfError(null);
+        toast.success(t('page.profile.perfilActualizado'));
       },
       onError: (error) => {
-        setProfSuccess(false);
         if (error instanceof AxiosError && error.response?.data?.detail) {
-          setProfError(error.response.data.detail);
+          toast.error(error.response.data.detail);
         } else {
-          setProfError('Error al actualizar perfil profesional.');
+          toast.error(t('page.profile.errorPerfil'));
         }
       },
     });
@@ -134,8 +125,8 @@ export default function Profile() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Perfil</h2>
-        <p className="text-muted-foreground">Información de tu cuenta de usuario.</p>
+        <h2 className="text-2xl font-bold tracking-tight">{t('page.profile.title')}</h2>
+        <p className="text-muted-foreground">{t('page.profile.description')}</p>
       </div>
 
       <Card>
@@ -159,7 +150,7 @@ export default function Profile() {
         <CardContent>
           <form onSubmit={userForm.handleSubmit(onUserSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Correo electrónico</Label>
+              <Label htmlFor="email">{t('settings.profile.email')}</Label>
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-muted-foreground" />
                 <Input id="email" value={user.email} disabled className="bg-muted" />
@@ -167,7 +158,7 @@ export default function Profile() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="full_name">Nombre completo</Label>
+              <Label htmlFor="full_name">{t('settings.profile.fullName')}</Label>
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <Input id="full_name" {...userForm.register('full_name')} />
@@ -176,14 +167,14 @@ export default function Profile() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="phone">Teléfono</Label>
+                <Label htmlFor="phone">{t('settings.profile.phone')}</Label>
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground" />
                   <Input id="phone" placeholder="+53 5555 5555" {...userForm.register('phone')} />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="job_title">Cargo</Label>
+                <Label htmlFor="job_title">{t('settings.profile.jobTitle')}</Label>
                 <div className="flex items-center gap-2">
                   <Briefcase className="h-4 w-4 text-muted-foreground" />
                   <Input id="job_title" {...userForm.register('job_title')} />
@@ -193,15 +184,12 @@ export default function Profile() {
 
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Calendar className="h-4 w-4" />
-              Miembro desde {formatDate(user.created_at)}
+              {t('page.profile.miembroDesde')} {formatDate(user.created_at)}
             </div>
-
-            {userError && <p className="text-sm text-danger">{userError}</p>}
-            {userSuccess && <p className="text-sm text-success">Perfil actualizado correctamente.</p>}
 
             <Button type="submit" className="w-full" disabled={userMutation.isPending}>
               <Save className="h-4 w-4 mr-2" />
-              {userMutation.isPending ? 'Guardando...' : 'Guardar cambios'}
+              {userMutation.isPending ? t('page.profile.guardando') : t('page.profile.guardarCambios')}
             </Button>
           </form>
         </CardContent>
@@ -220,65 +208,62 @@ export default function Profile() {
           <CardHeader>
             <div className="flex items-center gap-3">
               <GraduationCap className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-lg">Perfil Profesional</CardTitle>
+              <CardTitle className="text-lg">{t('page.profile.perfilProfesional')}</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
             <form onSubmit={profForm.handleSubmit(onProfSubmit)} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="especialidad">Especialidad</Label>
-                  <Input id="especialidad" placeholder="Biotecnología, Energía, etc." {...profForm.register('especialidad')} />
+                  <Label htmlFor="especialidad">{t('page.profile.especialidad')}</Label>
+                  <Input id="especialidad" placeholder={t('page.profile.especialidadPlaceholder')} {...profForm.register('especialidad')} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="grado_cientifico">Grado científico</Label>
-                  <Input id="grado_cientifico" placeholder="Dr.C., MSc., Ing." {...profForm.register('grado_cientifico')} />
+                  <Label htmlFor="grado_cientifico">{t('page.profile.gradoCientifico')}</Label>
+                  <Input id="grado_cientifico" placeholder={t('page.profile.gradoCientificoPlaceholder')} {...profForm.register('grado_cientifico')} />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="cv_url">URL del CV (opcional)</Label>
+                <Label htmlFor="cv_url">{t('page.profile.urlCv')}</Label>
                 <Input id="cv_url" placeholder="https://..." {...profForm.register('cv_url')} />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="linkedin_url">LinkedIn (opcional)</Label>
+                  <Label htmlFor="linkedin_url">{t('page.profile.linkedin')}</Label>
                   <Input id="linkedin_url" placeholder="https://linkedin.com/in/..." {...profForm.register('linkedin_url')} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="twitter_url">Twitter / X (opcional)</Label>
+                  <Label htmlFor="twitter_url">{t('page.profile.twitter')}</Label>
                   <Input id="twitter_url" placeholder="https://x.com/..." {...profForm.register('twitter_url')} />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="researchgate_url">ResearchGate (opcional)</Label>
+                  <Label htmlFor="researchgate_url">{t('page.profile.researchgate')}</Label>
                   <Input id="researchgate_url" placeholder="https://researchgate.net/profile/..." {...profForm.register('researchgate_url')} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="orcid">ORCID (opcional)</Label>
+                  <Label htmlFor="orcid">{t('page.profile.orcid')}</Label>
                   <Input id="orcid" placeholder="0000-0000-0000-0000" {...profForm.register('orcid')} />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="biografia">Biografía</Label>
+                <Label htmlFor="biografia">{t('page.profile.biografia')}</Label>
                 <textarea
                   id="biografia"
                   className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  placeholder="Breve descripción de su trayectoria profesional..."
+                  placeholder={t('page.profile.biografiaPlaceholder')}
                   {...profForm.register('biografia')}
                 />
               </div>
 
-              {profError && <p className="text-sm text-danger">{profError}</p>}
-              {profSuccess && <p className="text-sm text-success">Perfil profesional actualizado correctamente.</p>}
-
               <Button type="submit" className="w-full" disabled={profMutation.isPending}>
                 <Save className="h-4 w-4 mr-2" />
-                {profMutation.isPending ? 'Guardando...' : 'Guardar perfil profesional'}
+                {profMutation.isPending ? t('page.profile.guardando') : t('page.profile.guardarPerfil')}
               </Button>
             </form>
           </CardContent>

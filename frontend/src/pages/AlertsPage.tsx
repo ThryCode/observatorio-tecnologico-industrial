@@ -29,9 +29,11 @@ import type { Alert } from '@/types';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { queryKeys } from '@/lib/queryKeys';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function AlertsPage() {
   const { can } = usePermissions();
+  const { t } = useLanguage();
   const [q, setQ] = useState('');
   const [severidad, setSeveridad] = useState<string | undefined>();
   const [leidaFilter, setLeidaFilter] = useState<'todas' | 'no_leidas' | 'leidas'>('todas');
@@ -99,12 +101,12 @@ export default function AlertsPage() {
       } else {
         await createMutation.mutateAsync(data);
       }
-      toast.success(editingAlert ? 'Alerta actualizada correctamente' : 'Alerta creada correctamente');
+      toast.success(editingAlert ? t('page.alerts.actualizadaCorrectamente') : t('page.alerts.creadaCorrectamente'));
       setDialogOpen(false);
       setEditingAlert(null);
       resetForm();
     } catch (error) {
-      let message = 'No se pudo guardar la alerta. Intenta de nuevo.';
+      let message = t('page.alerts.noGuardar');
       if (error instanceof AxiosError && error.response?.data?.detail) {
         message = error.response.data.detail;
       }
@@ -116,10 +118,10 @@ export default function AlertsPage() {
     if (!deleteAlertId) return;
     try {
       await deleteMutation.mutateAsync(deleteAlertId);
-      toast.success('Alerta eliminada correctamente');
+      toast.success(t('page.alerts.eliminadaCorrectamente'));
       setDeleteAlertId(null);
     } catch (error) {
-      let message = 'No se pudo eliminar la alerta. Intenta de nuevo.';
+      let message = t('page.alerts.noEliminar');
       if (error instanceof AxiosError && error.response?.data?.detail) {
         message = error.response.data.detail;
       }
@@ -132,35 +134,35 @@ export default function AlertsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Alertas de Vigilancia"
-        highlight="Alertas"
-        description="Monitoreo automatizado de patentes, normativas, publicaciones y cambios en el ecosistema CTI."
+        title={t('page.alerts.title')}
+        highlight={t('page.alerts.title')}
+        description={t('page.alerts.description')}
         actions={
           <div className="flex flex-wrap gap-2 items-center">
             <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar alertas..."
+                placeholder={t('page.alerts.buscarPlaceholder')}
                 className="pl-8"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
               />
             </div>
             <Select value={leidaFilter} onValueChange={(v) => setLeidaFilter(v as 'todas' | 'no_leidas' | 'leidas')}>
-              <SelectTrigger className="w-[130px]"><SelectValue placeholder="Estado" /></SelectTrigger>
+              <SelectTrigger className="w-[130px]"><SelectValue placeholder={t('page.alerts.estado')} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="todas">Todas</SelectItem>
-                <SelectItem value="no_leidas">No leídas</SelectItem>
-                <SelectItem value="leidas">Leídas</SelectItem>
+                <SelectItem value="todas">{t('page.alerts.todas')}</SelectItem>
+                <SelectItem value="no_leidas">{t('page.alerts.noLeidas')}</SelectItem>
+                <SelectItem value="leidas">{t('page.alerts.leidas')}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={severidad || 'todas'} onValueChange={(v) => setSeveridad(v === 'todas' ? undefined : v)}>
-              <SelectTrigger className="w-[130px]"><SelectValue placeholder="Severidad" /></SelectTrigger>
+              <SelectTrigger className="w-[130px]"><SelectValue placeholder={t('page.alerts.severidad')} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="todas">Todas</SelectItem>
-                <SelectItem value="alta">Alta</SelectItem>
-                <SelectItem value="media">Media</SelectItem>
-                <SelectItem value="baja">Baja</SelectItem>
+                <SelectItem value="todas">{t('page.alerts.todas')}</SelectItem>
+                <SelectItem value="alta">{t('page.alerts.alta')}</SelectItem>
+                <SelectItem value="media">{t('page.alerts.media')}</SelectItem>
+                <SelectItem value="baja">{t('page.alerts.baja')}</SelectItem>
               </SelectContent>
             </Select>
             <div className="flex items-center gap-1">
@@ -169,17 +171,17 @@ export default function AlertsPage() {
               <Input type="date" className="w-[140px]" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} placeholder="Hasta" />
             </div>
             <Button variant={proximasActive ? 'default' : 'outline'} size="sm" onClick={() => { setProximasActive(!proximasActive); setFechaDesde(proximasActive ? '' : today); setFechaHasta(''); setPage(1); }}>
-              Próximas
+              {t('page.alerts.proximas')}
             </Button>
             {Array.isArray(rawAlerts?.items) && rawAlerts.items.some(a => !a.leida) && (
               <Button variant="outline" size="sm" onClick={() => markAllRead.mutate()} disabled={markAllRead.isPending}>
-                {markAllRead.isPending ? 'Marcando...' : 'Marcar todas como leídas'}
+                {markAllRead.isPending ? t('page.alerts.marcando') : t('page.alerts.marcarTodasLeidas')}
               </Button>
             )}
             {can('alerts', 'create') && (
               <Button className="gap-2" onClick={openCreate}>
                 <Plus className="h-4 w-4" />
-                Nueva Alerta
+                {t('page.alerts.nuevaAlerta')}
               </Button>
             )}
           </div>
@@ -193,9 +195,9 @@ export default function AlertsPage() {
         <div className="bg-surface rounded-lg border border-border">
           <EmptyState
             icon={<Bell className="h-10 w-10 text-text-muted" />}
-            title="No hay alertas"
-            description="No se encontraron alertas con los filtros actuales. Ajusta los filtros o crea una nueva alerta."
-            action={can('alerts', 'create') ? { label: 'Nueva alerta', onClick: openCreate } : undefined}
+            title={t('page.alerts.noHayAlertas')}
+            description={t('page.alerts.noEncontradas')}
+            action={can('alerts', 'create') ? { label: t('page.alerts.nuevaAlerta'), onClick: openCreate } : undefined}
           />
         </div>
       ) : (
@@ -208,11 +210,11 @@ export default function AlertsPage() {
       {!isLoading && allAlerts.length > 0 && (
         <div className="flex items-center justify-between pt-2">
           <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>
-            Anteriores
+            {t('common.anteriores')}
           </Button>
-          <span className="text-sm text-text-muted">Página {page} de {Math.max(1, rawAlerts?.total_pages ?? 1)}</span>
+          <span className="text-sm text-text-muted">{t('common.pagina')} {page} {t('common.de')} {Math.max(1, rawAlerts?.total_pages ?? 1)}</span>
           <Button variant="outline" size="sm" disabled={page >= (rawAlerts?.total_pages ?? 1)} onClick={() => setPage(p => p + 1)}>
-            Siguientes
+            {t('common.siguientes')}
           </Button>
         </div>
       )}
@@ -221,15 +223,15 @@ export default function AlertsPage() {
       <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) { setDialogOpen(false); setEditingAlert(null); resetForm(); } }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingAlert ? 'Editar Alerta' : 'Nueva Alerta'}</DialogTitle>
+            <DialogTitle>{editingAlert ? t('common.editar') + ' ' + t('page.alerts.alerta') : t('page.alerts.nuevaAlerta')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label htmlFor="alert-titulo" className="text-sm font-medium">Título *</label>
+              <label htmlFor="alert-titulo" className="text-sm font-medium">{t('page.alerts.titulo')} *</label>
               <Input id="alert-titulo" value={formData.titulo} onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} placeholder="Título de la alerta" />
             </div>
             <div>
-              <label htmlFor="alert-descripcion" className="text-sm font-medium">Descripción</label>
+              <label htmlFor="alert-descripcion" className="text-sm font-medium">{t('page.alerts.descripcion')}</label>
               <textarea
                 id="alert-descripcion"
                 className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -239,26 +241,26 @@ export default function AlertsPage() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Severidad</label>
+              <label className="text-sm font-medium">{t('page.alerts.severidad')}</label>
               <Select value={formData.severidad} onValueChange={(v) => setFormData({ ...formData, severidad: v })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="alta">Alta</SelectItem>
-                  <SelectItem value="media">Media</SelectItem>
-                  <SelectItem value="baja">Baja</SelectItem>
+                  <SelectItem value="alta">{t('page.alerts.alta')}</SelectItem>
+                  <SelectItem value="media">{t('page.alerts.media')}</SelectItem>
+                  <SelectItem value="baja">{t('page.alerts.baja')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <label htmlFor="alert-fecha" className="text-sm font-medium">Fecha</label>
+              <label htmlFor="alert-fecha" className="text-sm font-medium">{t('page.alerts.fecha')}</label>
               <Input id="alert-fecha" type="date" value={formData.fecha} onChange={(e) => setFormData({ ...formData, fecha: e.target.value })} />
             </div>
             <div>
-              <label className="text-sm font-medium">Sector</label>
+              <label className="text-sm font-medium">{t('common.sector')}</label>
               <Select value={formData.sector || 'general'} onValueChange={(v) => setFormData({ ...formData, sector: v === 'general' ? '' : v })}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar sector..." /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={t('page.alerts.seleccionarSector')} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="general">General</SelectItem>
+                  <SelectItem value="general">{t('page.alerts.general')}</SelectItem>
                   {sectorOptions.map((s) => (
                     <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                   ))}
@@ -267,9 +269,9 @@ export default function AlertsPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setDialogOpen(false); setEditingAlert(null); resetForm(); }}>Cancelar</Button>
+            <Button variant="outline" onClick={() => { setDialogOpen(false); setEditingAlert(null); resetForm(); }}>{t('common.cancelar')}</Button>
             <Button onClick={handleSave} disabled={!formData.titulo || isSaving}>
-              {editingAlert ? 'Guardar' : 'Crear'}
+              {editingAlert ? t('common.guardar') : t('common.crear')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -279,12 +281,12 @@ export default function AlertsPage() {
       <Dialog open={!!deleteAlertId} onOpenChange={() => setDeleteAlertId(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Eliminar Alerta</DialogTitle>
+            <DialogTitle>{t('page.alerts.eliminarAlerta')}</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-text-muted">¿Estás seguro de que deseas eliminar esta alerta? Esta acción no se puede deshacer.</p>
+          <p className="text-sm text-text-muted">{t('page.alerts.seguroEliminar')} {t('common.accionNoSePuedeDeshacer')}</p>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteAlertId(null)}>Cancelar</Button>
-            <Button variant="destructive" onClick={handleDeleteConfirm} disabled={deleteMutation.isPending}>Eliminar</Button>
+            <Button variant="outline" onClick={() => setDeleteAlertId(null)}>{t('common.cancelar')}</Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm} disabled={deleteMutation.isPending}>{t('common.eliminar')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
