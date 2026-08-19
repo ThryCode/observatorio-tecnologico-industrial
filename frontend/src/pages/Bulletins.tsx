@@ -53,6 +53,7 @@ export default function Bulletins() {
       createMutation={createMutation}
       updateMutation={updateMutation}
       deleteMutation={deleteMutation}
+      virtualScroll
       page={page}
       onPageChange={setPage}
       searchPlaceholder="Buscar boletines..."

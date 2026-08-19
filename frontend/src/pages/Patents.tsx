@@ -89,6 +89,7 @@ export default function Patents() {
       createMutation={createMutation}
       updateMutation={updateMutation}
       deleteMutation={deleteMutation}
+      virtualScroll
       page={page}
       onPageChange={setPage}
       searchPlaceholder={t('page.patents.buscarPlaceholder')}

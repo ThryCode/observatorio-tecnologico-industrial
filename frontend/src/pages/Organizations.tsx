@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useOrganizations, useCreateOrganization, useDeleteOrganization } from '@/hooks/useOrganizations';
+import { useOrganizations, useCreateOrganization, useUpdateOrganization, useDeleteOrganization } from '@/hooks/useOrganizations';
 import { useAuth } from '@/contexts/AuthContext';
 import { getIndustrialSectors } from '@/api/industrialSectors';
 import { followOrganization, unfollowOrganization, getFollowStatus } from '@/api/follows';
@@ -32,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, Building2, Globe, MapPin, ExternalLink, Phone, Calendar, Plus, Trash2 } from 'lucide-react';
+import { Search, Building2, Globe, MapPin, ExternalLink, Phone, Calendar, Plus, Trash2, Pencil } from 'lucide-react';
 import { formatDate } from '@/utils/formatters';
 import { usePermissions } from '@/hooks/usePermissions';
 import type { Organization } from '@/types';
@@ -61,6 +62,7 @@ export default function Organizations() {
   const [followStatus, setFollowStatus] = useState<{ is_following: boolean; followers_count: number } | null>(null);
   const [followPending, setFollowPending] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingOrg, setEditingOrg] = useState<Organization | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [orgToDelete, setOrgToDelete] = useState<Organization | null>(null);
   const [formData, setFormData] = useState({
@@ -69,6 +71,7 @@ export default function Organizations() {
   });
 
   const createMutation = useCreateOrganization();
+  const updateMutation = useUpdateOrganization();
   const deleteMutation = useDeleteOrganization();
 
   useEffect(() => {
@@ -118,19 +121,45 @@ export default function Organizations() {
   };
 
   const openCreateDialog = () => {
+    setEditingOrg(null);
     resetForm();
+    setDialogOpen(true);
+  };
+
+  const openEditDialog = (org: Organization) => {
+    setEditingOrg(org);
+    setFormData({
+      nombre: org.nombre,
+      siglas: org.siglas,
+      tipo: org.tipo,
+      sector_codigo: org.sector_codigo ?? '',
+      pais: org.pais ?? '',
+      provincia: org.provincia ?? '',
+      sitio_web: org.sitio_web ?? '',
+      email_contacto: org.email_contacto ?? '',
+      fecha_creacion: org.fecha_creacion ?? '',
+      contacto: org.contacto ?? '',
+    });
     setDialogOpen(true);
   };
 
   const handleSave = async () => {
     const data: Partial<Organization> = { ...formData, sector_codigo: formData.sector_codigo || undefined };
     try {
-      await createMutation.mutateAsync(data);
-      toast.success(t('page.organizations.creadaCorrectamente'));
+      if (editingOrg) {
+        await updateMutation.mutateAsync({ id: editingOrg.id, data });
+        toast.success(t('page.organizations.actualizadaCorrectamente'));
+      } else {
+        await createMutation.mutateAsync(data);
+        toast.success(t('page.organizations.creadaCorrectamente'));
+      }
       setDialogOpen(false);
+      setEditingOrg(null);
       resetForm();
     } catch (error) {
-      let message = t('page.organizations.noCrear');
+      let message = editingOrg
+        ? t('page.organizations.noActualizar')
+        : t('page.organizations.noCrear');
       if (error instanceof AxiosError && error.response?.data?.detail) {
         message = error.response.data.detail;
       }
@@ -151,6 +180,22 @@ export default function Organizations() {
     }
   };
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const filtered = (data?.items ?? []).filter(
+    (org) =>
+      !search ||
+      org.nombre.toLowerCase().includes(search.toLowerCase()) ||
+      org.siglas.toLowerCase().includes(search.toLowerCase()),
+  );
+  const enableVirtual = filtered.length > 20;
+  const virtualizer = useVirtualizer({
+    count: enableVirtual ? filtered.length : 0,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 48,
+    overscan: 10,
+    enabled: enableVirtual,
+  });
+
   if (isError) {
     return (
       <div className="space-y-6">
@@ -166,13 +211,6 @@ export default function Organizations() {
       </div>
     );
   }
-
-  const filtered = (data?.items ?? []).filter(
-    (org) =>
-      !search ||
-      org.nombre.toLowerCase().includes(search.toLowerCase()) ||
-      org.siglas.toLowerCase().includes(search.toLowerCase()),
-  );
 
   return (
     <div className="space-y-6">
@@ -216,6 +254,66 @@ export default function Organizations() {
 
       <Card>
         <CardContent className="p-0">
+          {enableVirtual ? (
+            <div ref={scrollRef} className="max-h-[600px] overflow-auto">
+              <Table>
+                <TableHeader className="sticky top-0 bg-background z-10">
+                  <TableRow>
+                    <TableHead>{t('page.organizations.nombre')}</TableHead>
+                    <TableHead>{t('page.organizations.siglas')}</TableHead>
+                    <TableHead>{t('page.organizations.tipo')}</TableHead>
+                    <TableHead>{t('common.sector')}</TableHead>
+                    <TableHead>{t('page.organizations.provincia')}</TableHead>
+                    <TableHead className="w-[120px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+              </Table>
+              <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative', width: '100%' }}>
+                {virtualizer.getVirtualItems().map((virtualRow) => {
+                  const org = filtered[virtualRow.index];
+                  return (
+                    <div
+                      key={org.id}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: `${virtualRow.size}px`,
+                        transform: `translateY(${virtualRow.start}px)`,
+                      }}
+                      className="flex items-center border-b border-border"
+                    >
+                      <div className="flex-1 px-4 py-2 text-sm font-medium">
+                        <button className="hover:underline text-left" onClick={() => setSelectedOrg(org)}>
+                          {org.nombre}
+                        </button>
+                      </div>
+                      <div className="flex-1 px-4 py-2 text-sm">{org.siglas}</div>
+                      <div className="flex-1 px-4 py-2 text-sm"><Badge variant="secondary">{org.tipo}</Badge></div>
+                      <div className="flex-1 px-4 py-2 text-sm">{sectorMap.get(org.sector_codigo ?? '') || org.sector_codigo || '-'}</div>
+                      <div className="flex-1 px-4 py-2 text-sm">{org.provincia || '-'}</div>
+                      <div className="flex gap-1 px-4">
+                        {(can('organizations', 'edit') || currentUser?.organization_id === org.id) && (
+                          <Button variant="ghost" size="sm" onClick={() => openEditDialog(org)} aria-label="Editar organización">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {can('organizations', 'delete') && (
+                          <Button variant="ghost" size="sm" onClick={() => { setOrgToDelete(org); setDeleteDialogOpen(true); }}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedOrg(org)}>
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
           <Table>
             <TableHeader>
               <TableRow>
@@ -250,6 +348,11 @@ export default function Organizations() {
                         <TableCell>{org.provincia || '-'}</TableCell>
                         <TableCell>
                           <div className="flex gap-1">
+                            {(can('organizations', 'edit') || currentUser?.organization_id === org.id) && (
+                              <Button variant="ghost" size="sm" onClick={() => openEditDialog(org)} aria-label="Editar organización">
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            )}
                             {can('organizations', 'delete') && (
                               <Button variant="ghost" size="sm" onClick={() => { setOrgToDelete(org); setDeleteDialogOpen(true); }}>
                                 <Trash2 className="h-4 w-4 text-destructive" />
@@ -271,6 +374,7 @@ export default function Organizations() {
                     )}
             </TableBody>
           </Table>
+          )}
         </CardContent>
       </Card>
 
@@ -331,10 +435,10 @@ export default function Organizations() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) { setDialogOpen(false); resetForm(); } }}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) { setDialogOpen(false); setEditingOrg(null); resetForm(); } }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{t('page.organizations.crearEntidad')}</DialogTitle>
+            <DialogTitle>{editingOrg ? t('page.organizations.editarEntidad') : t('page.organizations.crearEntidad')}</DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
@@ -393,9 +497,9 @@ export default function Organizations() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setDialogOpen(false); resetForm(); }}>{t('common.cancelar')}</Button>
-            <Button onClick={handleSave} disabled={!formData.nombre || !formData.siglas || createMutation.isPending}>
-              {t('common.crear')}
+            <Button variant="outline" onClick={() => { setDialogOpen(false); setEditingOrg(null); resetForm(); }}>{t('common.cancelar')}</Button>
+            <Button onClick={handleSave} disabled={!formData.nombre || !formData.siglas || createMutation.isPending || updateMutation.isPending}>
+              {editingOrg ? t('common.guardar') : t('common.crear')}
             </Button>
           </DialogFooter>
         </DialogContent>

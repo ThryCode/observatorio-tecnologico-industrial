@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { toast } from 'sonner';
 import PageHeader from '@/components/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
@@ -51,6 +52,8 @@ interface CrudPageProps<T extends { id: string }> {
   canEdit?: (item: T) => boolean;
   canDelete?: (item: T) => boolean;
   nameField?: string;
+  virtualScroll?: boolean;
+  rowHeight?: number;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -73,10 +76,13 @@ export default function CrudPage<T extends { id: string }>({
   page, onPageChange,
   canEdit: canEditFn, canDelete: canDeleteFn,
   nameField,
+  virtualScroll = false,
+  rowHeight = 48,
 }: CrudPageProps<T>) {
   const { can } = usePermissions();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -146,6 +152,15 @@ export default function CrudPage<T extends { id: string }>({
 
   const filteredItems = !onSearch && searchFilter && debouncedSearch ? (data?.items ?? []).filter((i) => searchFilter(i, debouncedSearch)) : data?.items ?? [];
 
+  const enableVirtual = virtualScroll && filteredItems.length > 20;
+  const virtualizer = useVirtualizer({
+    count: enableVirtual ? filteredItems.length : 0,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => rowHeight,
+    overscan: 10,
+    enabled: enableVirtual,
+  });
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -190,6 +205,44 @@ export default function CrudPage<T extends { id: string }>({
       <div className={renderSidebar ? 'grid gap-6 lg:grid-cols-3' : ''}>
         <div className={renderSidebar ? 'lg:col-span-2' : ''}>
           <div className="bg-surface rounded-lg border border-border">
+            {enableVirtual ? (
+              <div ref={scrollRef} className="max-h-[600px] overflow-auto">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-background z-10">
+                    <TableRow>
+                      {columns.map((c) => <TableHead key={c.header} className={c.className}>{c.header}</TableHead>)}
+                      <TableHead className="w-[80px]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                </Table>
+                <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative', width: '100%' }}>
+                  {virtualizer.getVirtualItems().map((virtualRow) => {
+                    const item = filteredItems[virtualRow.index];
+                    return (
+                      <div
+                        key={item.id}
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: `${virtualRow.size}px`,
+                          transform: `translateY(${virtualRow.start}px)`,
+                        }}
+                        onClick={() => renderSidebar && setSelected(selected?.id === item.id ? null : item)}
+                        className={`flex items-center border-b border-border ${renderSidebar ? `cursor-pointer transition-colors ${selected?.id === item.id ? 'bg-primary/5' : 'hover:bg-muted/50'}` : ''}`}
+                      >
+                        {columns.map((c) => <div key={c.header} className="flex-1 px-4 py-2 text-sm">{c.render(item)}</div>)}
+                        <div className="flex gap-1 px-4">
+                          {can(permissionResource, 'edit') && (!canEditFn || canEditFn(item)) && <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openEditDialog(item); }} aria-label="Editar"><Pencil className="h-4 w-4" /></Button>}
+                          {can(permissionResource, 'delete') && (!canDeleteFn || canDeleteFn(item)) && <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setItemToDelete(item); setDeleteDialogOpen(true); }} aria-label="Eliminar"><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -219,6 +272,7 @@ export default function CrudPage<T extends { id: string }>({
                 )}
               </TableBody>
             </Table>
+            )}
 
             {data && data.total_pages > 1 && (
               <div className="flex items-center justify-between border-t border-border px-4 py-3">

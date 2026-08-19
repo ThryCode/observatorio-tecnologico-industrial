@@ -58,6 +58,7 @@ export default function Technologies() {
       createMutation={createMutation}
       updateMutation={updateMutation}
       deleteMutation={deleteMutation}
+      virtualScroll
       page={page}
       onPageChange={setPage}
       searchPlaceholder="Buscar tecnologías..."
