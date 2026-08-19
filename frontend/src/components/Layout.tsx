@@ -15,7 +15,7 @@ export default function Layout() {
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden lg:ml-sidebar">
         <Topbar />
-        <main id="main-content" className="flex-1 overflow-y-auto px-6 py-8" role="main">
+        <main id="main-content" className="flex-1 overflow-y-auto px-5 py-5" role="main">
           <div key={location.pathname} className="animate-fade-in-up">
             <Outlet />
           </div>
