@@ -137,6 +137,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [activeSectors, setActiveSectors] = useState<string[]>([]);
   const [exporting, setExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState('');
   const sectorParam = activeSectors.length > 0 ? activeSectors.map((s) => s.toUpperCase()).join(',') : undefined;
   const { data: rawAlerts, isLoading: alertsLoading, isError: alertsError } = useAlerts(false, 1, 5, undefined, undefined, sectorParam);
   const { data: kpis, isLoading: kpisLoading, isError: kpisError } = useDashboardKPIs(sectorParam);
@@ -171,26 +172,51 @@ export default function Dashboard() {
 
   const handleExport = useCallback(async () => {
     setExporting(true);
+    setExportProgress('Cargando KPIs...');
     try {
       const [{ default: FullExportPDF }, { pdf }] = await Promise.all([
         import('@/components/FullExportPDF'),
         import('@react-pdf/renderer'),
       ]);
-      const [
-        kpisRes, patentsRes, techRes, orgsRes, regsRes,
-        indicsRes, alertsRes, bullsRes, sectorsRes, timelineRes,
-      ] = await Promise.all([
-        fetchSafe(() => getDashboardKPIs(), []),
-        fetchSafe(() => getPatents(1, 200), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
-        fetchSafe(() => getTechnologies(1, 200), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
-        fetchSafe(() => getOrganizations(1, 200), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
-        fetchSafe(() => getRegulations(1, 200), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
-        fetchSafe(() => getIndicators(1, 200), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
-        fetchSafe(() => listAlerts(), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
-        fetchSafe(() => listBulletins(1, 200), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
-        fetchSafe(() => getIndustrialSectors(1, 200), { items: [], total: 0, page: 1, per_page: 200, total_pages: 0 }),
-        fetchSafe(() => getTimelineEvents(), []),
-      ]);
+
+      const kpisRes = await fetchSafe(() => getDashboardKPIs(), []);
+
+      setExportProgress('Cargando patentes...');
+      const patentsRes = await fetchSafe(() => getPatents(1, 50), { items: [], total: 0, page: 1, per_page: 50, total_pages: 0 });
+
+      setExportProgress('Cargando tecnologías...');
+      const techRes = await fetchSafe(() => getTechnologies(1, 50), { items: [], total: 0, page: 1, per_page: 50, total_pages: 0 });
+
+      setExportProgress('Cargando organizaciones...');
+      const orgsRes = await fetchSafe(() => getOrganizations(1, 50), { items: [], total: 0, page: 1, per_page: 50, total_pages: 0 });
+
+      setExportProgress('Cargando regulaciones...');
+      const regsRes = await fetchSafe(() => getRegulations(1, 50), { items: [], total: 0, page: 1, per_page: 50, total_pages: 0 });
+
+      setExportProgress('Cargando indicadores...');
+      const indicsRes = await fetchSafe(() => getIndicators(1, 50), { items: [], total: 0, page: 1, per_page: 50, total_pages: 0 });
+
+      setExportProgress('Cargando alertas...');
+      const alertsRes = await fetchSafe(() => listAlerts(false, 1, 50), { items: [], total: 0, page: 1, per_page: 50, total_pages: 0 });
+
+      setExportProgress('Cargando boletines...');
+      const bullsRes = await fetchSafe(() => listBulletins(1, 50), { items: [], total: 0, page: 1, per_page: 50, total_pages: 0 });
+
+      setExportProgress('Cargando sectores...');
+      const sectorsRes = await fetchSafe(() => getIndustrialSectors(1, 100), { items: [], total: 0, page: 1, per_page: 100, total_pages: 0 });
+
+      setExportProgress('Cargando timeline...');
+      const timelineRes = await fetchSafe(() => getTimelineEvents(), []);
+
+      const loaded = [patentsRes, techRes, orgsRes, regsRes, indicsRes, alertsRes, bullsRes, sectorsRes]
+        .filter((r) => r.items.length > 0).length;
+      if (loaded === 0) {
+        setExportProgress('Sin datos disponibles. Verifica la conexión.');
+        setTimeout(() => setExportProgress(''), 3000);
+        return;
+      }
+
+      setExportProgress('Generando PDF...');
       const blob = await pdf(
         <FullExportPDF
           kpis={kpisRes}
@@ -212,6 +238,10 @@ export default function Dashboard() {
       a.download = `informe-completo-${new Date().toISOString().split('T')[0]}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
+      setExportProgress('');
+    } catch {
+      setExportProgress('Error al generar PDF');
+      setTimeout(() => setExportProgress(''), 3000);
     } finally {
       setExporting(false);
     }
@@ -228,7 +258,7 @@ export default function Dashboard() {
           <div className="flex gap-2">
             <Button variant="secondary" className="gap-2" onClick={handleExport} disabled={exporting}>
               <Download className={`h-4 w-4 ${exporting ? 'animate-spin' : ''}`} />
-              {exporting ? 'Exportando...' : 'Exportar'}
+              {exporting ? exportProgress || 'Exportando...' : 'Exportar'}
             </Button>
             <Button className="gap-2" onClick={() => navigate('/alerts')}>
               <Plus className="h-4 w-4" />
