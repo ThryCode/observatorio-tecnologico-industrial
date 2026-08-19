@@ -6,6 +6,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import Layout from '@/components/Layout';
 import Login from '@/pages/Login';
 import { NotFound } from '@/pages/NotFound';
+import { OfflineBanner } from '@/components/OfflineBanner';
 
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Organizations = lazy(() => import('@/pages/Organizations'));
@@ -85,6 +86,7 @@ export default function App() {
         </Route>
       </Routes>
       <Toaster position="top-right" richColors closeButton />
+      <OfflineBanner />
     </Suspense>
     </ErrorBoundary>
   );
