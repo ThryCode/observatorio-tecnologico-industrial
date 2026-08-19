@@ -36,7 +36,7 @@ export default function Competitiveness() {
     queryFn: () => getIndustrialSectors(1, 100),
   });
 
-  const paises = data?.paises ?? [];
+  const paises = useMemo(() => data?.paises ?? [], [data?.paises]);
   const chartData = data?.chartData ?? [];
   const items = data?.items ?? [];
 
