@@ -98,7 +98,7 @@ export default function Competitiveness() {
           {/* Chart */}
           <div className="bg-surface rounded-lg border border-border p-6">
             <h3 className="text-base font-bold text-foreground mb-4">Índice de Competitividad Industrial por Sector</h3>
-            <div className="h-[400px]">
+            <div className="h-[320px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border-subtle" />
@@ -125,7 +125,8 @@ export default function Competitiveness() {
             <div className="p-6 pb-0">
               <h3 className="text-base font-bold text-foreground mb-4">Datos Detallados</h3>
             </div>
-            <Table>
+            <div className="max-h-[480px] overflow-y-auto">
+              <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Sector</TableHead>
@@ -149,6 +150,7 @@ export default function Competitiveness() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           </div>
         </SectionErrorBoundary>
       )}

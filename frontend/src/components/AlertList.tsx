@@ -42,7 +42,7 @@ const priorityConfig = {
 
 export default function AlertList({ alerts, className, onEdit, onDelete }: AlertListProps) {
   return (
-    <div className={cn('flex flex-col gap-3', className)} role="list" aria-label="Alertas de vigilancia">
+    <div className={cn('flex flex-col gap-2', className)} role="list" aria-label="Alertas de vigilancia">
       {alerts.map((alert) => {
         const config = priorityConfig[alert.priority];
         const Icon = config.icon;
@@ -50,7 +50,7 @@ export default function AlertList({ alerts, className, onEdit, onDelete }: Alert
         return (
           <div
             key={alert.id}
-            className="group relative flex gap-3 p-4 rounded-md border border-border-subtle bg-surface cursor-pointer transition-all duration-150 hover:border-border hover:shadow-sm hover:translate-x-0.5"
+            className="group relative flex gap-3 p-3 rounded-md border border-border-subtle bg-surface cursor-pointer transition-all duration-150 hover:border-border hover:shadow-sm hover:translate-x-0.5"
             role="listitem"
             onClick={() => onEdit?.(alert.id)}
           >
@@ -73,9 +73,9 @@ export default function AlertList({ alerts, className, onEdit, onDelete }: Alert
 
             {/* Content */}
             <div className="flex-1 min-w-0">
-              <h4 className="text-base font-semibold text-foreground truncate">{alert.title}</h4>
-              <p className="text-xs text-text-muted leading-relaxed line-clamp-2 mt-1">{alert.description}</p>
-              <div className="flex items-center gap-3 mt-2">
+              <h4 className="text-sm font-semibold text-foreground truncate">{alert.title}</h4>
+              <p className="text-xs text-text-muted leading-relaxed line-clamp-2 mt-0.5">{alert.description}</p>
+              <div className="flex items-center gap-3 mt-1.5">
                 <Badge variant={alert.tag.variant} className="text-[10px] uppercase tracking-wider px-1.5 py-0.5">
                   {alert.tag.label}
                 </Badge>

@@ -14,9 +14,9 @@ export default function PageHeader({ title, highlight, description, actions, cla
     : null;
 
   return (
-    <div className={cn('flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8', className)}>
+    <div className={cn('flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5', className)}>
       <div className="space-y-1.5">
-        <h1 className="text-3xl font-extrabold text-foreground leading-tight">
+        <h1 className="text-2xl font-extrabold text-foreground leading-tight">
           {parts ? (
             <>
               {parts[0]}

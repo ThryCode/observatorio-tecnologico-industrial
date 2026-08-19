@@ -117,7 +117,7 @@ export default function Sidebar() {
         )}
       </div>
 
-      <nav className="flex-1 overflow-y-auto sidebar-scrollbar px-3 py-4 space-y-6" role="navigation" aria-label="Navegación principal">
+      <nav className="flex-1 overflow-y-auto sidebar-scrollbar px-3 py-3 space-y-4" role="navigation" aria-label="Navegación principal">
         <Section label={t('sidebar.principal')} collapsed={collapsed}>
           {mainNav.map((item) => (
             <NavItem
@@ -276,7 +276,7 @@ function NavItem({
       onClick={onClick}
       className={cn(
         'relative flex items-center gap-3 rounded-md transition-all duration-150 group',
-        collapsed ? 'justify-center p-3' : 'px-3 py-3',
+        collapsed ? 'justify-center p-2' : 'px-3 py-2',
         active
           ? 'bg-sidebar-active text-accent-red font-semibold'
           : 'text-white/70 hover:bg-sidebar-hover hover:text-white',

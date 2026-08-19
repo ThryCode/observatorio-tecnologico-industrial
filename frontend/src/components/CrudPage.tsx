@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { toast } from 'sonner';
 import PageHeader from '@/components/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
@@ -216,7 +216,7 @@ export default function CrudPage<T extends { id: string }>({
                   </TableHeader>
                 </Table>
                 <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative', width: '100%' }}>
-                  {virtualizer.getVirtualItems().map((virtualRow) => {
+                  {virtualizer.getVirtualItems().map((virtualRow: VirtualItem) => {
                     const item = filteredItems[virtualRow.index];
                     return (
                       <div

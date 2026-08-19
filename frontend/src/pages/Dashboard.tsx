@@ -139,7 +139,7 @@ export default function Dashboard() {
   const [exporting, setExporting] = useState(false);
   const [exportProgress, setExportProgress] = useState('');
   const sectorParam = activeSectors.length > 0 ? activeSectors.map((s) => s.toUpperCase()).join(',') : undefined;
-  const { data: rawAlerts, isLoading: alertsLoading, isError: alertsError } = useAlerts(false, 1, 5, undefined, undefined, sectorParam);
+  const { data: rawAlerts, isLoading: alertsLoading, isError: alertsError } = useAlerts(false, 1, 3, undefined, undefined, sectorParam);
   const { data: kpis, isLoading: kpisLoading, isError: kpisError } = useDashboardKPIs(sectorParam);
   const { data: rawTimeline, isLoading: timelineLoading, isError: timelineError } = useTimelineEvents(sectorParam);
   const { data: sectorsData, isLoading: sectorsLoading, isError: sectorsError } = useQuery({
@@ -248,7 +248,7 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6">
       {/* Section 1 — Header */}
       <PageHeader
         title="Panel de Inteligencia Tecnológica"
@@ -306,7 +306,7 @@ export default function Dashboard() {
             <h3 className="text-base font-bold text-foreground mb-3">Grafo de Conocimiento Industrial</h3>
             <SectionErrorBoundary title="Grafo de Conocimiento">
               <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
-                <KnowledgeGraph height={620} className="rounded-lg border border-border" sectorCodigos={activeSectors.map((s) => s.toUpperCase())} />
+                <KnowledgeGraph height={400} className="rounded-lg border border-border" sectorCodigos={activeSectors.map((s) => s.toUpperCase())} />
               </Suspense>
             </SectionErrorBoundary>
           </div>
@@ -403,7 +403,7 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <SectionErrorBoundary title="Actividad Reciente">
-                  <DashboardTimeline events={timelineEvents.slice(0, 6)} />
+                  <DashboardTimeline events={timelineEvents.slice(0, 4)} />
                 </SectionErrorBoundary>
               )}
             </div>
