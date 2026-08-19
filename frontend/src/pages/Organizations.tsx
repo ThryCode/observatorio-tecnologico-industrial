@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useOrganizations, useCreateOrganization, useUpdateOrganization, useDeleteOrganization } from '@/hooks/useOrganizations';
 import { useAuth } from '@/contexts/AuthContext';
@@ -269,7 +269,7 @@ export default function Organizations() {
                 </TableHeader>
               </Table>
               <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative', width: '100%' }}>
-                {virtualizer.getVirtualItems().map((virtualRow) => {
+                {virtualizer.getVirtualItems().map((virtualRow: VirtualItem) => {
                   const org = filtered[virtualRow.index];
                   return (
                     <div
