@@ -96,6 +96,13 @@ export const es = {
   'topbar.configuracion': 'Configuración',
   'topbar.cerrarSesion': 'Cerrar sesión',
 
+  // ── Command Palette ──
+  'commandPalette.placeholder': 'Buscar entidades, tecnologías, patentes...',
+  'commandPalette.navigation': 'Navegación',
+  'commandPalette.results': 'Resultados',
+  'commandPalette.noResults': 'No se encontraron resultados',
+  'commandPalette.typeToSearch': 'Escribe para buscar en todo el observatorio...',
+
   // ── Common ──
   'common.crear': 'Crear',
   'common.editar': 'Editar',
@@ -480,6 +487,13 @@ export const en: Record<TranslationKey, string> = {
   'topbar.alertas': 'Alerts',
   'topbar.configuracion': 'Settings',
   'topbar.cerrarSesion': 'Log out',
+
+  // ── Command Palette ──
+  'commandPalette.placeholder': 'Search entities, technologies, patents...',
+  'commandPalette.navigation': 'Navigation',
+  'commandPalette.results': 'Results',
+  'commandPalette.noResults': 'No results found',
+  'commandPalette.typeToSearch': 'Type to search across the observatory...',
 
   // ── Common ──
   'common.crear': 'Create',

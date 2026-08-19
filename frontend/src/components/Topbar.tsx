@@ -1,11 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { roleLabels } from '@/utils/roles';
 import { useAlerts } from '@/hooks/useAlerts';
+import CommandPalette from '@/components/CommandPalette';
 import type { TranslationKey } from '@/i18n/translations';
 import {
   Search,
@@ -28,9 +28,7 @@ export default function Topbar() {
   const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const searchRef = useRef<HTMLInputElement>(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [notifClicked, setNotifClicked] = useState(false);
   const today = new Date().toISOString().slice(0, 10);
   const { data: upcomingAlerts } = useAlerts(false, 1, 1, undefined, undefined, undefined, today);
@@ -60,24 +58,17 @@ export default function Topbar() {
     '/admin/pending': t('page.admin.pending.title'),
   };
 
-  // Keyboard shortcut: Cmd+K / Ctrl+K to focus search
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        setSearchOpen(true);
-        searchRef.current?.focus();
-      }
-      if (e.key === 'Escape') {
-        setSearchOpen(false);
-        setSearchQuery('');
+        setPaletteOpen((prev) => !prev);
       }
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Build breadcrumbs from path
   const pathParts = location.pathname.split('/').filter(Boolean);
   const breadcrumbs = [{ path: '/', label: t('topbar.inicio') }];
   let currentPath = '';
@@ -89,7 +80,6 @@ export default function Topbar() {
   return (
     <header className="sticky top-0 z-20 h-topbar bg-background/90 backdrop-blur-[12px] saturate-[180%] border-b border-border">
       <div className="flex items-center justify-between h-full px-8">
-        {/* Breadcrumbs */}
         <nav className="flex items-center gap-1.5 text-sm" aria-label="Breadcrumb">
           {breadcrumbs.map((crumb, i) => (
             <span key={crumb.path} className="flex items-center gap-1.5">
@@ -105,36 +95,19 @@ export default function Topbar() {
           ))}
         </nav>
 
-        {/* Right side */}
         <div className="flex items-center gap-3">
-          {/* Search */}
-          <div className="relative">
-            <div className={cn(
-              'relative flex items-center transition-all duration-base',
-              searchOpen ? 'w-[320px]' : 'w-[200px] lg:w-[320px]',
-            )}>
-              <Search className="absolute left-3.5 h-4 w-4 text-text-muted pointer-events-none" />
-              <input
-                ref={searchRef}
-                type="search"
-                placeholder={t('topbar.buscar')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setSearchOpen(true)}
-                onBlur={() => !searchQuery && setSearchOpen(false)}
-                className={cn(
-                  'w-full h-10 rounded-full border border-border bg-background pl-10 pr-12 text-sm text-foreground placeholder:text-text-placeholder outline-none transition-all duration-150',
-                  searchOpen && 'border-accent-red shadow-[0_0_0_3px_hsl(var(--accent-subtle))] shadow-sm',
-                )}
-                aria-label={t('topbar.buscarAria')}
-              />
-              <kbd className="absolute right-3 hidden lg:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-text-muted bg-surface border border-border rounded-sm">
-                ⌘K
-              </kbd>
-            </div>
-          </div>
+          <Button
+            variant="outline"
+            className="flex items-center gap-2 h-9 rounded-full border-border bg-surface text-text-secondary hover:bg-background hover:border-accent-red hover:text-accent-red transition-all duration-150"
+            onClick={() => setPaletteOpen(true)}
+          >
+            <Search className="h-4 w-4" />
+            <span className="hidden lg:inline text-muted-foreground text-sm">{t('topbar.buscar')}</span>
+            <kbd className="pointer-events-none ml-1 hidden lg:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+              <span className="text-xs">⌘</span>K
+            </kbd>
+          </Button>
 
-          {/* Notifications */}
           <button onClick={() => { setNotifClicked(true); localStorage.setItem('lastAlertUpcomingCount', String(rawCount)); navigate('/alerts'); }} className="relative w-10 h-10 rounded-full border border-border bg-surface text-text-secondary hover:bg-background hover:border-accent-red hover:text-accent-red hover:-translate-y-0.5 transition-all duration-150 flex items-center justify-center" aria-label={t('topbar.alertas')} title={t('topbar.alertas')}>
             <Bell className="h-4 w-4" />
             {notifCount > 0 && (
@@ -144,15 +117,12 @@ export default function Topbar() {
             )}
           </button>
 
-          {/* Settings */}
           <button onClick={() => navigate('/settings')} className="w-10 h-10 rounded-full border border-border bg-surface text-text-secondary hover:bg-background hover:border-accent-red hover:text-accent-red hover:-translate-y-0.5 transition-all duration-150 flex items-center justify-center" aria-label={t('topbar.configuracion')} title={t('topbar.configuracion')}>
             <Settings className="h-4 w-4" />
           </button>
 
-          {/* Divider */}
           <div className="h-8 w-px bg-border mx-1" />
 
-          {/* User info */}
           <div className="hidden sm:flex items-center gap-2 text-sm">
             <span className="text-sm font-medium text-foreground">{user?.full_name || user?.username}</span>
             <span className="rounded-full bg-accent-subtle text-accent-red px-2.5 py-0.5 text-[11px] font-semibold">
@@ -160,12 +130,13 @@ export default function Topbar() {
             </span>
           </div>
 
-          {/* Logout */}
           <Button variant="ghost" size="icon" onClick={logout} title={t('topbar.cerrarSesion')} className="text-text-muted hover:text-accent-red">
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
       </div>
+
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </header>
   );
 }
