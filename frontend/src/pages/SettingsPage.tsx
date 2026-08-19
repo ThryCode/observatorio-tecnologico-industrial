@@ -254,7 +254,7 @@ export default function SettingsPage() {
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-text-muted">{t('settings.system.version')}</span>
-                <span className="font-mono text-foreground">{import.meta.env.VITE_APP_VERSION || '1.0.0'}</span>
+                <span className="font-mono text-foreground">{import.meta.env.VITE_APP_VERSION || '0.5.0'}</span>
               </div>
               {Object.entries(serviceLabels).map(([key, label]) => {
                 const service = health?.services?.[key];

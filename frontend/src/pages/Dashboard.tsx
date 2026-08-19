@@ -428,7 +428,7 @@ export default function Dashboard() {
           <span className="hidden sm:inline">Privacidad</span>
         </div>
         <div className="flex items-center gap-3 text-xs text-text-muted">
-          <span className="font-mono">v{import.meta.env.VITE_APP_VERSION || '1.0.0'}</span>
+          <span className="font-mono">v{import.meta.env.VITE_APP_VERSION || '0.5.0'}</span>
           <span className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse-dot" />
             {/* TODO: conectar al timestamp real del endpoint de health cuando exista */}

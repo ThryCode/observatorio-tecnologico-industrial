@@ -100,7 +100,7 @@ app = FastAPI(
     title="Observatorio Tecnológico Industrial API",
     description="API del Observatorio Tecnológico Industrial para el MINDUS (Ministerio de Industrias). "
     "Monitorea tendencias globales en ciencia, tecnología e innovación para sectores industriales cubanos.",
-    version="1.0.0",
+    version="0.5.0",
     lifespan=lifespan,
 )
 app.state.limiter = limiter
