@@ -194,7 +194,7 @@ _USERS = [
         "username": "paco",
         "email": "paco@gmail.com",
         "full_name": "Paco Perez",
-        "role": "visitante",
+        "role": "profesional",
         "password": "paco123",
         "status": UserStatus.APPROVED,
     },
