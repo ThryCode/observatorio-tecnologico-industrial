@@ -207,7 +207,7 @@ describe('useCompetitiveness', () => {
     const { useCompetitiveness } = await import('@/hooks/useCompetitiveness');
     const { result } = renderHook(() => useCompetitiveness(), { wrapper: createWrapper() });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data).toHaveLength(1);
+    expect(result.current.data?.chartData).toHaveLength(1);
   });
 });
 

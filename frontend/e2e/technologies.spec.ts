@@ -1,30 +1,24 @@
 import { test, expect } from '@playwright/test';
-import { login } from './helpers';
-
-test.beforeEach(async ({ page }) => {
-  await login(page);
-});
 
 test.describe('Technologies CRUD', () => {
   test('displays technologies list', async ({ page }) => {
-    await page.getByRole('link', { name: /tecnologías/i }).first().click();
-    await expect(page).toHaveURL('/technologies');
-    await expect(page.locator('h1, h2').filter({ hasText: /tecnolog/i }).first()).toBeVisible();
+    await page.goto('/technologies');
+    await expect(page.getByRole('heading', { name: /tecnologías/i })).toBeVisible({ timeout: 10_000 });
   });
 
   test('opens create form and cancels', async ({ page }) => {
     await page.goto('/technologies');
+    await expect(page.getByRole('heading', { name: /tecnologías/i })).toBeVisible({ timeout: 10_000 });
     await page.getByRole('button', { name: /nuevo/i }).click();
 
-    // Form should be visible (dialog opens)
-    await expect(page.locator('#technology-nombre')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#technology-nombre')).toBeVisible();
 
-    // Cancel
     await page.getByRole('button', { name: /cancelar/i }).click();
   });
 
   test('creates a new technology', async ({ page }) => {
     await page.goto('/technologies');
+    await expect(page.getByRole('heading', { name: /tecnologías/i })).toBeVisible({ timeout: 10_000 });
     await page.getByRole('button', { name: /nuevo/i }).click();
 
     const testName = `Tech E2E ${Date.now()}`;
@@ -34,12 +28,16 @@ test.describe('Technologies CRUD', () => {
 
     await page.getByRole('button', { name: /crear/i }).first().click();
 
-    // After clicking Crear, either dialog closes (success) or error is shown
-    await page.waitForTimeout(3000);
+    // Dialog closes on success; stays open with "Request failed" on error
+    await expect(page.getByRole('dialog')).not.toBeVisible({ timeout: 15_000 });
+
+    // Verify toast success message appeared
+    await expect(page.getByText(/creado correctamente/i)).toBeVisible({ timeout: 5_000 });
   });
 
   test('searches technologies', async ({ page }) => {
     await page.goto('/technologies');
+    await expect(page.getByRole('heading', { name: /tecnologías/i })).toBeVisible({ timeout: 10_000 });
 
     const searchInput = page.locator('input[placeholder*="buscar"], input[type="search"]');
     if (await searchInput.isVisible()) {

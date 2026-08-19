@@ -1,45 +1,45 @@
 import { test, expect } from '@playwright/test';
-import { login } from './helpers';
-
-test.beforeEach(async ({ page }) => {
-  await login(page);
-});
 
 test.describe('Dashboard', () => {
   test('loads dashboard with KPIs', async ({ page }) => {
-    await expect(page.locator('text=Panel de Inteligencia')).toBeVisible();
+    await page.goto('/');
+    await expect(page.locator('text=Panel de Inteligencia')).toBeVisible({ timeout: 15_000 });
     await expect(page.locator('text=Grafo de Conocimiento Industrial')).toBeVisible();
   });
 
   test('displays alerts section', async ({ page }) => {
-    await expect(page.locator('text=Alertas Recientes')).toBeVisible();
+    await page.goto('/');
+    await expect(page.locator('text=Alertas Recientes')).toBeVisible({ timeout: 15_000 });
   });
 
   test('displays entities section', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Entidades CTI' })).toBeVisible();
+    await page.goto('/');
+    await expect(page.getByRole('heading', { name: 'Entidades CTI' })).toBeVisible({ timeout: 15_000 });
   });
 
   test('displays timeline section', async ({ page }) => {
-    await expect(page.locator('text=Actividad Reciente')).toBeVisible();
+    await page.goto('/');
+    await expect(page.locator('text=Actividad Reciente')).toBeVisible({ timeout: 15_000 });
   });
 
   test('sector pills are clickable', async ({ page }) => {
-    // Wait for sector pills to load
-    await expect(page.locator('text=Panel de Inteligencia')).toBeVisible();
-    await page.waitForLoadState('networkidle');
-    // SectorPills renders buttons inside a group with aria-label
-    const group = page.getByRole('group', { name: /sector/i });
-    await expect(group).toBeVisible({ timeout: 10000 });
-    const pills = group.getByRole('button');
-    expect(await pills.count()).toBeGreaterThan(0);
+    await page.goto('/');
+    await expect(page.locator('text=Panel de Inteligencia')).toBeVisible({ timeout: 15_000 });
+    const pills = page.locator('[role="group"] button').filter({ hasText: /todos/i });
+    await expect(pills.first()).toBeVisible({ timeout: 10_000 });
+    await pills.first().click();
   });
 
   test('export button is present', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('text=Panel de Inteligencia')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole('button', { name: /exportar/i })).toBeVisible();
   });
 
   test('new alert button navigates to alerts', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('text=Panel de Inteligencia')).toBeVisible({ timeout: 15_000 });
     await page.getByRole('button', { name: /nueva alerta/i }).click();
-    await expect(page).toHaveURL('/alerts');
+    await page.waitForURL('/alerts', { timeout: 10_000 });
   });
 });

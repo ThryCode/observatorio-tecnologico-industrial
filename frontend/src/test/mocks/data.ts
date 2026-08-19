@@ -47,7 +47,11 @@ export const mockBulletinsPage = {
   items: [{ id: '1', titulo: 'Boletin 1' }], total: 1, page: 1, per_page: 20, total_pages: 1,
 };
 
-export const mockCompetitivenessData = [{ sector: 'BIO', Cuba: 10 }];
+export const mockCompetitivenessData = {
+  chartData: [{ sector: 'BIO', Cuba: 10 }],
+  items: [{ id: '1', sector: 'BIO', sector_codigo: 'BIO', indicador: 'Test', valor: 10, pais: 'Cuba', periodo: '2025', fuente: null }],
+  paises: ['Cuba'],
+};
 
 export const mockGraphStats = [{ label: 'Organizaciones', count: 10 }];
 

@@ -10,13 +10,29 @@ export default defineConfig({
     headless: true,
     screenshot: 'only-on-failure',
     trace: 'on-first-retry',
-    channel: 'chrome',
   },
   projects: [
-    { name: 'chromium', use: { browserName: 'chromium' } },
+    {
+      name: 'setup',
+      testMatch: /auth\.setup\.ts$/,
+    },
+    {
+      name: 'auth',
+      testMatch: /auth\.spec\.ts$/,
+      use: { browserName: 'chromium' },
+    },
+    {
+      name: 'app',
+      testMatch: /(dashboard|navigation|technologies)\.spec\.ts$/,
+      use: {
+        browserName: 'chromium',
+        storageState: 'e2e/.auth/admin.json',
+      },
+      dependencies: ['setup'],
+    },
   ],
   webServer: {
-    command: 'G:\\Proyects\\Observatorio\\tools\\nodejs\\node-v20.18.3-win-x64\\node.exe node_modules\\vite\\bin\\vite.js',
+    command: 'npm run dev',
     port: 5173,
     reuseExistingServer: true,
     timeout: 30_000,
