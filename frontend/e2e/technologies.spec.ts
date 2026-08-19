@@ -33,6 +33,18 @@ test.describe('Technologies CRUD', () => {
 
     // Verify toast success message appeared
     await expect(page.getByText(/creado correctamente/i)).toBeVisible({ timeout: 5_000 });
+
+    // Cleanup: find and delete the test technology
+    const testRow = page.getByText(testName);
+    if (await testRow.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await testRow.click();
+      const deleteBtn = page.getByRole('button', { name: /eliminar/i });
+      if (await deleteBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await deleteBtn.click();
+        await page.getByRole('button', { name: /eliminar/i }).last().click();
+        await page.waitForTimeout(1000);
+      }
+    }
   });
 
   test('searches technologies', async ({ page }) => {
