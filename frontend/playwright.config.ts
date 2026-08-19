@@ -10,12 +10,13 @@ export default defineConfig({
     headless: true,
     screenshot: 'only-on-failure',
     trace: 'on-first-retry',
+    channel: 'chrome',
   },
   projects: [
     { name: 'chromium', use: { browserName: 'chromium' } },
   ],
   webServer: {
-    command: 'npm run dev',
+    command: 'G:\\Proyects\\Observatorio\\tools\\nodejs\\node-v20.18.3-win-x64\\node.exe node_modules\\vite\\bin\\vite.js',
     port: 5173,
     reuseExistingServer: true,
     timeout: 30_000,

@@ -1,11 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { login } from './helpers';
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/login');
-  await page.getByLabel('Usuario o correo electrónico').fill('admin@mindus.gob.cu');
-  await page.getByLabel('Contraseña').fill('admin123');
-  await page.getByRole('button', { name: /iniciar sesión/i }).click();
-  await expect(page).toHaveURL('/');
+  await login(page);
 });
 
 test.describe('Dashboard', () => {
@@ -19,7 +16,7 @@ test.describe('Dashboard', () => {
   });
 
   test('displays entities section', async ({ page }) => {
-    await expect(page.locator('text=Entidades CTI')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Entidades CTI' })).toBeVisible();
   });
 
   test('displays timeline section', async ({ page }) => {
@@ -27,9 +24,14 @@ test.describe('Dashboard', () => {
   });
 
   test('sector pills are clickable', async ({ page }) => {
-    const pills = page.locator('button').filter({ hasText: /todos|automatización|bio/i });
-    const count = await pills.count();
-    expect(count).toBeGreaterThan(0);
+    // Wait for sector pills to load
+    await expect(page.locator('text=Panel de Inteligencia')).toBeVisible();
+    await page.waitForLoadState('networkidle');
+    // SectorPills renders buttons inside a group with aria-label
+    const group = page.getByRole('group', { name: /sector/i });
+    await expect(group).toBeVisible({ timeout: 10000 });
+    const pills = group.getByRole('button');
+    expect(await pills.count()).toBeGreaterThan(0);
   });
 
   test('export button is present', async ({ page }) => {

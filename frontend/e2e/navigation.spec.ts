@@ -1,11 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { login } from './helpers';
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/login');
-  await page.getByLabel('Usuario o correo electrónico').fill('admin@mindus.gob.cu');
-  await page.getByLabel('Contraseña').fill('admin123');
-  await page.getByRole('button', { name: /iniciar sesión/i }).click();
-  await expect(page).toHaveURL('/');
+  await login(page);
 });
 
 test.describe('Sidebar navigation', () => {
