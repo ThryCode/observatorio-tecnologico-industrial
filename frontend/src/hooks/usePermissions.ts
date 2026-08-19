@@ -1,18 +1,19 @@
 import { useAuth } from '@/contexts/AuthContext';
 import type { UserRole } from '@/types';
 
-export type Entity = 'technologies' | 'organizations' | 'patents' | 'regulations' | 'indicators' | 'alerts' | 'users' | 'settings' | 'research-publications';
+export type Entity = 'technologies' | 'organizations' | 'patents' | 'regulations' | 'indicators' | 'alerts' | 'users' | 'settings' | 'research-publications' | 'bulletins';
 type Action = 'create' | 'edit' | 'delete' | 'approve' | 'reject' | 'view';
 
 const PERMISSIONS: Record<UserRole, Partial<Record<Entity, Action[]>>> = {
   admin_mindus: {
     technologies: ['create', 'edit', 'delete'],
-    organizations: ['delete'],
+    organizations: ['edit', 'delete'],
     patents: ['create', 'edit', 'delete'],
     regulations: ['create', 'edit', 'delete'],
     indicators: ['create', 'edit', 'delete'],
     alerts: ['create', 'edit', 'delete'],
     'research-publications': ['create', 'edit', 'delete'],
+    bulletins: ['create', 'edit', 'delete'],
     users: ['approve', 'reject'],
     settings: ['view'],
   },

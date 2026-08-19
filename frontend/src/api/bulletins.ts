@@ -82,4 +82,44 @@ export async function listBulletins(
   };
 }
 
+export async function createBulletin(data: {
+  titulo: string;
+  resumen?: string;
+  fecha_publicacion: string;
+  categoria: string;
+  autor?: string;
+  archivo_url?: string;
+  sector_codigo?: string;
+}) {
+  const res = await client.post<BulletinApiItem>('/bulletins', {
+    ...data,
+    fecha_publicacion: new Date(data.fecha_publicacion).toISOString(),
+  });
+  return mapBulletin(res.data);
+}
+
+export async function updateBulletin(
+  id: string,
+  data: {
+    titulo?: string;
+    resumen?: string;
+    fecha_publicacion?: string;
+    categoria?: string;
+    autor?: string;
+    archivo_url?: string;
+    sector_codigo?: string;
+  },
+) {
+  const payload: Record<string, unknown> = { ...data };
+  if (data.fecha_publicacion) {
+    payload.fecha_publicacion = new Date(data.fecha_publicacion).toISOString();
+  }
+  const res = await client.put<BulletinApiItem>(`/bulletins/${id}`, payload);
+  return mapBulletin(res.data);
+}
+
+export async function deleteBulletin(id: string) {
+  await client.delete(`/bulletins/${id}`);
+}
+
 
