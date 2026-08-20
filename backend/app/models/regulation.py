@@ -12,7 +12,7 @@ class RegulationCategory(enum.StrEnum):
     DECREE = "decree"
     RESOLUTION = "resolution"
     STANDARD = "standard"
-    NORM = "norm"
+    OTHER = "other"
 
 
 class Regulation(Base, UUIDMixin, TimestampMixin):

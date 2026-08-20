@@ -23,6 +23,7 @@ import {
   Menu,
   X,
   GitBranch,
+  Scale,
 } from 'lucide-react';
 
 function formatPatentCount(count: number): string {
@@ -57,6 +58,7 @@ export default function Sidebar() {
   const intelligenceNav = [
     { to: '/alerts', label: t('sidebar.alertas'), icon: Bell, badgeVariant: 'danger' as const },
     { to: '/bulletins', label: t('sidebar.boletines'), icon: BookOpen },
+    { to: '/regulations', label: t('sidebar.regulaciones'), icon: Scale },
     { to: '/competitiveness', label: t('sidebar.analisisCompetitividad'), icon: BarChart3 },
     { to: '/patent-maps', label: t('sidebar.mapasPatentes'), icon: Map },
   ];

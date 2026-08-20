@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { listAlerts, createAlert, updateAlert, deleteAlert, markAllAlertsRead } from '@/api/alerts';
+import { listAlerts, createAlert, updateAlert, deleteAlert, markAllAlertsRead, markAlertRead } from '@/api/alerts';
 import type { PaginatedAlerts } from '@/api/alerts';
 import { queryKeys } from '@/lib/queryKeys';
 
@@ -38,6 +38,14 @@ export function useMarkAllAlertsRead() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: markAllAlertsRead,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.alerts.all }),
+  });
+}
+
+export function useMarkAlertRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: markAlertRead,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.alerts.all }),
   });
 }

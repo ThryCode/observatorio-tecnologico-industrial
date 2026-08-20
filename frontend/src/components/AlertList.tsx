@@ -18,6 +18,7 @@ interface AlertItem {
 interface AlertListProps {
   alerts: AlertItem[];
   className?: string;
+  onDetail?: (id: string) => void;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
 }
@@ -40,7 +41,7 @@ const priorityConfig = {
   },
 };
 
-export default function AlertList({ alerts, className, onEdit, onDelete }: AlertListProps) {
+export default function AlertList({ alerts, className, onDetail, onEdit, onDelete }: AlertListProps) {
   return (
     <div className={cn('flex flex-col gap-2', className)} role="list" aria-label="Alertas de vigilancia">
       {alerts.map((alert) => {
@@ -52,7 +53,7 @@ export default function AlertList({ alerts, className, onEdit, onDelete }: Alert
             key={alert.id}
             className="group relative flex gap-3 p-3 rounded-md border border-border-subtle bg-surface cursor-pointer transition-all duration-150 hover:border-border hover:shadow-sm hover:translate-x-0.5"
             role="listitem"
-            onClick={() => onEdit?.(alert.id)}
+            onClick={() => onDetail?.(alert.id)}
           >
             {/* Priority bar */}
             <div className={cn(

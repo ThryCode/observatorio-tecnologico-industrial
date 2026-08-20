@@ -5,9 +5,9 @@ import EmptyState from '@/components/ui/empty-state';
 import { TableSkeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, Bell } from 'lucide-react';
+import { Plus, Search, Bell, Calendar, Tag, AlertTriangle, AlertCircle, Info, CheckCircle } from 'lucide-react';
 import { usePermissions } from '@/hooks/usePermissions';
-import { useAlerts, useCreateAlert, useUpdateAlert, useDeleteAlert, useMarkAllAlertsRead } from '@/hooks/useAlerts';
+import { useAlerts, useCreateAlert, useUpdateAlert, useDeleteAlert, useMarkAllAlertsRead, useMarkAlertRead } from '@/hooks/useAlerts';
 import { getIndustrialSectors } from '@/api/industrialSectors';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { mapAlertToAlertItem } from '@/utils/alertUtils';
 import type { Alert } from '@/types';
 import { toast } from 'sonner';
@@ -44,6 +45,7 @@ export default function AlertsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAlert, setEditingAlert] = useState<Alert | null>(null);
   const [deleteAlertId, setDeleteAlertId] = useState<string | null>(null);
+  const [detailAlert, setDetailAlert] = useState<Alert | null>(null);
   const [formData, setFormData] = useState({ titulo: '', descripcion: '', severidad: 'media', fecha: '', sector: '' });
   const today = new Date().toISOString().slice(0, 10);
   const unreadOnly = leidaFilter === 'no_leidas';
@@ -59,6 +61,7 @@ export default function AlertsPage() {
   const allAlerts = (rawAlerts?.items ?? []).filter((a) => leidaFilter !== 'leidas' || a.leida);
   const alerts = allAlerts.map(mapAlertToAlertItem);
   const markAllRead = useMarkAllAlertsRead();
+  const markRead = useMarkAlertRead();
   const createMutation = useCreateAlert();
   const updateMutation = useUpdateAlert();
   const deleteMutation = useDeleteAlert();
@@ -85,6 +88,15 @@ export default function AlertsPage() {
       sector: alert.sector_codigo || '',
     });
     setDialogOpen(true);
+  };
+
+  const openDetail = (id: string) => {
+    const alert = rawAlerts?.items.find((a) => a.id === id);
+    if (!alert) return;
+    setDetailAlert(alert);
+    if (!alert.leida) {
+      markRead.mutate(id);
+    }
   };
 
   const handleSave = async () => {
@@ -203,6 +215,7 @@ export default function AlertsPage() {
       ) : (
         <AlertList
           alerts={alerts}
+          onDetail={openDetail}
           onEdit={can('alerts', 'edit') ? openEdit : undefined}
           onDelete={can('alerts', 'delete') ? (id) => setDeleteAlertId(id) : undefined}
         />
@@ -287,6 +300,47 @@ export default function AlertsPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteAlertId(null)}>{t('common.cancelar')}</Button>
             <Button variant="destructive" onClick={handleDeleteConfirm} disabled={deleteMutation.isPending}>{t('common.eliminar')}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Detail Dialog */}
+      <Dialog open={!!detailAlert} onOpenChange={() => setDetailAlert(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {detailAlert?.severidad === 'alta' && <AlertTriangle className="h-5 w-5 text-danger" />}
+              {detailAlert?.severidad === 'media' && <AlertCircle className="h-5 w-5 text-warning" />}
+              {detailAlert?.severidad === 'baja' && <Info className="h-5 w-5 text-info" />}
+              {detailAlert?.titulo}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-sm text-text-muted">
+              <Calendar className="h-4 w-4" />
+              <span>{detailAlert?.fecha}</span>
+              {detailAlert?.leida && (
+                <Badge variant="secondary" className="ml-2">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Leída
+                </Badge>
+              )}
+            </div>
+            {detailAlert?.sector_codigo && (
+              <div className="flex items-center gap-2 text-sm text-text-muted">
+                <Tag className="h-4 w-4" />
+                <span>Sector: {detailAlert.sector_codigo}</span>
+              </div>
+            )}
+            <div className="pt-2 border-t border-border">
+              <p className="text-sm text-foreground whitespace-pre-wrap">{detailAlert?.descripcion || 'Sin descripción'}</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetailAlert(null)}>Cerrar</Button>
+            {can('alerts', 'edit') && (
+              <Button onClick={() => { setDetailAlert(null); openEdit(detailAlert?.id || ''); }}>Editar</Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

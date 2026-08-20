@@ -6,9 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, require_role
 from app.models.user import User
+from app.schemas.alert import AlertCreate
 from app.schemas.common import Message, PaginatedResponse
 from app.schemas.regulation import RegulationCreate, RegulationResponse, RegulationUpdate
+from app.services.alert_service import AlertService
 from app.services.regulation_service import RegulationService
+from app.ws_manager import manager
 
 router = APIRouter(prefix="/regulations", tags=["regulations"])
 
@@ -47,9 +50,23 @@ async def get_regulation(regulation_id: UUID, db: AsyncSession = Depends(get_db)
 async def create_regulation(
     data: RegulationCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_role("admin_mindus")),
+    current_user: User = Depends(require_role("admin_mindus")),
 ):
-    return await RegulationService(db).create(data)
+    regulation = await RegulationService(db).create(data)
+
+    alert = await AlertService(db).create(AlertCreate(
+        titulo=f"Nueva normativa: {regulation.title}",
+        descripcion=f"Se ha publicado una nueva normativa ({regulation.regulation_number}). {regulation.summary or ''}",
+        severidad="media",
+        sector_codigo=regulation.sector_codigo,
+    ))
+
+    await manager.broadcast({
+        "type": "new_alert",
+        "alert": {"id": str(alert.id), "titulo": alert.titulo},
+    })
+
+    return regulation
 
 
 @router.put("/{regulation_id}", response_model=RegulationResponse)

@@ -108,3 +108,14 @@ export async function deleteAlert(id: string): Promise<void> {
   }
   await client.delete(`/alerts/${id}`);
 }
+
+export async function markAlertRead(id: string): Promise<Alert> {
+  if (USE_MOCK) {
+    const alert = MOCK_ALERTS.find((a) => a.id === id);
+    if (!alert) throw new Error('Alert not found');
+    alert.leida = true;
+    return alert;
+  }
+  const res = await client.patch<Alert>(`/alerts/${id}/read`);
+  return res.data;
+}
