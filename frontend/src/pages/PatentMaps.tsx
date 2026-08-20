@@ -12,7 +12,7 @@ import { getIndustrialSectors } from '@/api/industrialSectors';
 import { chartColors } from '@/lib/graph-colors';
 import { queryKeys } from '@/lib/queryKeys';
 import { SectionErrorBoundary } from '@/components/SectionErrorBoundary';
-import { MapIcon, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { MapIcon, ArrowUpRight, ArrowDownRight, X } from 'lucide-react';
 
 const COUNTRIES = [
   { value: 'all', label: 'Todos' },
@@ -27,9 +27,12 @@ const COUNTRIES = [
 export default function PatentMaps() {
   const [sector, setSector] = useState('all');
   const [country, setCountry] = useState('all');
+  const [selectedTech, setSelectedTech] = useState<string | null>(null);
 
   const sectorParam = sector === 'all' ? undefined : sector;
   const countryParam = country === 'all' ? undefined : country;
+
+  const toggleTech = (t: string) => setSelectedTech((prev) => (prev === t ? null : t));
 
   const { data, isLoading } = usePatentMaps(countryParam, sectorParam);
 
@@ -50,6 +53,7 @@ export default function PatentMaps() {
   }, [data]);
 
   const maxPatentes = chartData.length > 0 ? Math.max(...chartData.map((d) => d.patentes)) : 1;
+  const detailData = selectedTech ? (data ?? []).filter((i) => i.tecnologia === selectedTech) : (data ?? []);
 
   return (
     <div className="space-y-6">
@@ -103,7 +107,8 @@ export default function PatentMaps() {
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Chart */}
             <div className="bg-surface rounded-lg border border-border p-6">
-              <h3 className="text-base font-bold text-foreground mb-4">Patentes por Tecnología</h3>
+              <h3 className="text-base font-bold text-foreground mb-1">Patentes por Tecnología</h3>
+              <p className="text-xs text-muted-foreground mb-4">Haz clic en una tecnología para filtrar la tabla de detalle (drill-down).</p>
               <div className="h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 30, left: 120, bottom: 5 }}>
@@ -117,7 +122,7 @@ export default function PatentMaps() {
                         borderRadius: '8px',
                       }}
                     />
-                    <Bar dataKey="patentes" fill={chartColors.accent} radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="patentes" fill={chartColors.accent} radius={[0, 4, 4, 0]} className="cursor-pointer" onClick={(d: { tecnologia?: string }) => d?.tecnologia && toggleTech(d.tecnologia)} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -128,7 +133,7 @@ export default function PatentMaps() {
               <h3 className="text-base font-bold text-foreground mb-4">Resumen</h3>
               <div className="space-y-4">
                 {chartData.map((item) => (
-                  <div key={item.tecnologia} className="flex items-center gap-3">
+                  <div key={item.tecnologia} onClick={() => toggleTech(item.tecnologia)} className="flex items-center gap-3 cursor-pointer">
                     <span className="w-32 text-sm text-text-muted truncate shrink-0">{item.tecnologia}</span>
                     <div className="flex-1 h-2 bg-border-subtle rounded-full overflow-hidden">
                       <div
@@ -145,8 +150,17 @@ export default function PatentMaps() {
 
           {/* Detail table */}
           <div className="bg-surface rounded-lg border border-border mt-6">
-            <div className="p-6 pb-0">
+            <div className="p-6 pb-0 flex items-center justify-between gap-3 flex-wrap">
               <h3 className="text-base font-bold text-foreground mb-4">Detalle por País</h3>
+              {selectedTech && (
+                <button
+                  onClick={() => setSelectedTech(null)}
+                  className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1 text-sm text-foreground hover:bg-muted/50"
+                >
+                  Drill-down: {selectedTech}
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
             <Table>
               <TableHeader>
@@ -159,7 +173,7 @@ export default function PatentMaps() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.map((row) => (
+                {detailData.map((row) => (
                   <TableRow key={`${row.id}`}>
                     <TableCell className="font-medium">{row.tecnologia}</TableCell>
                     <TableCell>{row.pais}</TableCell>
@@ -182,6 +196,9 @@ export default function PatentMaps() {
                 ))}
               </TableBody>
             </Table>
+            {detailData.length === 0 && (
+              <div className="p-6 text-center text-sm text-muted-foreground">No hay datos para la tecnología seleccionada.</div>
+            )}
           </div>
         </SectionErrorBoundary>
       )}
