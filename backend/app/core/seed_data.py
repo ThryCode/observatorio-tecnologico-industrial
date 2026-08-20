@@ -76,26 +76,35 @@ _ORGANIZATIONS = [
     {
         "nombre": "BioNova Cuba",
         "siglas": "BNC",
-        "tipo": "BIO",
+        "tipo": "empresa",
         "sector_codigo": "BIO",
         "provincia": "La Habana",
         "pais": "Cuba",
+        "sitio_web": "https://bionova.cu",
+        "fecha_creacion": date(2018, 5, 12),
+        "contacto": "78654321",
     },
     {
         "nombre": "AutoTech Solutions",
         "siglas": "ATS",
-        "tipo": "AUT",
+        "tipo": "empresa",
         "sector_codigo": "AUT",
-        "provincia": "La Habana",
+        "provincia": "Villa Clara",
         "pais": "Cuba",
+        "sitio_web": "https://autotech.cu",
+        "fecha_creacion": date(2020, 1, 20),
+        "contacto": "42234567",
     },
     {
         "nombre": "QuimiCuba Industrial",
         "siglas": "QCI",
-        "tipo": "QUI",
+        "tipo": "empresa",
         "sector_codigo": "QUI",
-        "provincia": "La Habana",
+        "provincia": "Matanzas",
         "pais": "Cuba",
+        "sitio_web": "https://quimicuba.cu",
+        "fecha_creacion": date(2015, 9, 3),
+        "contacto": "45234567",
     },
     {
         "nombre": "EmpresaNEW",
@@ -103,6 +112,17 @@ _ORGANIZATIONS = [
         "tipo": "empresa",
         "sector_codigo": "AUT",
         "provincia": "Villa Clara",
+        "pais": "Cuba",
+        "sitio_web": "https://prueba.cu",
+        "fecha_creacion": date(2026, 1, 21),
+        "contacto": "51234567",
+    },
+    {
+        "nombre": "TechnoSol Industriales",
+        "siglas": "TECHNO",
+        "tipo": "empresa",
+        "sector_codigo": "ELE",
+        "provincia": "La Habana",
         "pais": "Cuba",
     },
 ]
@@ -143,6 +163,7 @@ _USERS = [
         "full_name": "Carlos Mendez",
         "password": "test12345",
         "role": "rep_cti",
+        "job_title": "Director Tecnico",
         "status": UserStatus.APPROVED,
         "org_siglas": "BNC",
     },
@@ -152,6 +173,7 @@ _USERS = [
         "full_name": "Ana Rodriguez",
         "password": "test12345",
         "role": "rep_cti",
+        "job_title": "Jefa de I+D",
         "status": UserStatus.APPROVED,
         "org_siglas": "ATS",
     },
@@ -161,6 +183,7 @@ _USERS = [
         "full_name": "Pedro Castillo",
         "password": "test12345",
         "role": "rep_cti",
+        "job_title": "Gerente General",
         "status": UserStatus.APPROVED,
         "org_siglas": "QCI",
     },
@@ -170,6 +193,7 @@ _USERS = [
         "full_name": "Enmanuel Perez",
         "password": "12345678",
         "role": "rep_cti",
+        "job_title": "CEO",
         "status": UserStatus.APPROVED,
         "org_siglas": "ENW",
     },
@@ -195,6 +219,7 @@ _USERS = [
         "email": "paco@gmail.com",
         "full_name": "Paco Perez",
         "role": "profesional",
+        "job_title": "Investigador Principal",
         "password": "paco123",
         "status": UserStatus.APPROVED,
     },
@@ -203,6 +228,7 @@ _USERS = [
         "email": "marta@investigacion.cu",
         "full_name": "Marta Fernandez",
         "role": "profesional",
+        "job_title": "Ingeniera de Procesos",
         "password": "marta123",
         "status": UserStatus.APPROVED,
     },
@@ -211,6 +237,7 @@ _USERS = [
         "email": "luis@investigacion.cu",
         "full_name": "Luis Ramirez",
         "role": "profesional",
+        "job_title": "Analista de Tecnología",
         "password": "luis123",
         "status": UserStatus.APPROVED,
         "org_siglas": "CIEA",
@@ -220,6 +247,7 @@ _USERS = [
         "email": "sofia@biotech.cu",
         "full_name": "Sofia Torres",
         "role": "profesional",
+        "job_title": "Directora de Innovación",
         "password": "sofia123",
         "status": UserStatus.APPROVED,
         "org_siglas": "CBI",
@@ -229,6 +257,7 @@ _USERS = [
         "email": "jorge@energia.cu",
         "full_name": "Jorge Navarro",
         "role": "profesional",
+        "job_title": "Especialista en Energía",
         "password": "jorge123",
         "status": UserStatus.APPROVED,
         "org_siglas": "ELEVC",
@@ -272,6 +301,7 @@ async def seed_users(session: AsyncSession) -> int:
             status=status_val,
             is_active=True,
             organization_id=org_id,
+            job_title=data.get("job_title"),
         )
         session.add(user)
         inserted += 1
@@ -446,35 +476,38 @@ _PROFESSIONAL_PROFILES = [
         "username": "paco",
         "especialidad": "Ingeniería Industrial",
         "grado_cientifico": "Doctor",
-        "biografia": "Profesional con 15 años de experiencia en automatización industrial y control de procesos.",
+        "biografia": (
+            "Investigador principal con 15 años de experiencia en automatización"
+            " industrial y control de procesos."
+        ),
         "intereses": ["IA aplicada", "Robótica", "Energías renovables"],
     },
     {
         "username": "marta",
         "especialidad": "Biotecnología",
         "grado_cientifico": "Doctora",
-        "biografia": "Investigadora en biotecnología industrial con enfoque en fermentación y bioprocesos.",
+        "biografia": "Ingeniera de procesos especializada en fermentación y bioprocesos industriales.",
         "intereses": ["Biotecnología", "Fermentación", "Bioinformática"],
     },
     {
         "username": "luis",
-        "especialidad": "Ingeniería en Automatización",
-        "grado_cientifico": "Máster",
-        "biografia": "Investigador del Centro de Investigaciones de Energía y Automatización.",
+        "especialidad": "Automatización",
+        "grado_cientifico": "Ingeniero",
+        "biografia": "Analista de tecnología del Centro de Investigaciones de Energía y Automatización.",
         "intereses": ["Automatización", "Energía", "Control de procesos"],
     },
     {
         "username": "sofia",
-        "especialidad": "Biotecnología Industrial",
-        "grado_cientifico": "Doctor",
-        "biografia": "Especialista en biopolímeros y fermentación en el Centro de Biotecnología Industrial.",
+        "especialidad": "Biotecnología",
+        "grado_cientifico": "Máster",
+        "biografia": "Directora de innovación en el Centro de Biotecnología Industrial.",
         "intereses": ["Biopolímeros", "Biotecnología", "Economía circular"],
     },
     {
         "username": "jorge",
-        "especialidad": "Ingeniería Eléctrica",
-        "grado_cientifico": "Máster",
-        "biografia": "Ingeniero de la Empresa Eléctrica de Villa Clara, especializado en eficiencia energética.",
+        "especialidad": "Energía",
+        "grado_cientifico": "Ingeniero",
+        "biografia": "Especialista en energía de la Empresa Eléctrica de Villa Clara.",
         "intereses": ["Eficiencia energética", "Iluminación LED", "Smart grids"],
     },
 ]
@@ -536,12 +569,12 @@ async def seed_alerts(session: AsyncSession) -> int:
         Alert(
             titulo="Nueva patente en biotecnología",
             descripcion="Se ha registrado una patente clave para fermentación de precisión.",
-            severidad="alta", leida=False, sector_codigo="BIO",
+            severidad="alta", leida=False,
         ),
         Alert(
             titulo="Actualización regulatoria sector energético",
             descripcion="Nueva normativa para eficiencia energética publicada por el MINEM.",
-            severidad="media", leida=False, sector_codigo="ENE",
+            severidad="media", leida=False,
         ),
         Alert(
             titulo="Indicador de innovación en ascenso",
@@ -551,27 +584,12 @@ async def seed_alerts(session: AsyncSession) -> int:
         Alert(
             titulo="Tendencia: Automatización en manufactura",
             descripcion="La adopción de robots industriales crece un 15% anual en la región.",
-            severidad="media", leida=False, sector_codigo="MET",
+            severidad="media", leida=False,
         ),
         Alert(
             titulo="Fondo de innovación disponible",
             descripcion="Nuevo fondo concursable para proyectos de I+D industrial.",
             severidad="alta", leida=False,
-        ),
-        Alert(
-            titulo="Electrónica: nuevo estándar de eficiencia",
-            descripcion="Normativa ISO actualizada para componentes electrónicos industriales.",
-            severidad="media", leida=False, sector_codigo="ELE",
-        ),
-        Alert(
-            titulo="Química: método innovador de catálisis",
-            descripcion="Nuevo catalizador reduce costos en procesos petroquímicos.",
-            severidad="media", leida=False, sector_codigo="QUI",
-        ),
-        Alert(
-            titulo="Siderurgia: actualización tecnológica",
-            descripcion="Planta siderúrgica nacional incorpora horno de arco eléctrico de última generación.",
-            severidad="alta", leida=True, sector_codigo="SID",
         ),
     ]
     for alert in alerts:
@@ -593,20 +611,14 @@ _BULLETINS = [
         "categoria": "alerta", "autor": "CIB", "sector_codigo": None,
     },
     {
-        "titulo": "Boletin de prueba",
-        "resumen": "Probando el endpoint real",
-        "fecha_publicacion": datetime(2026, 7, 28),
-        "categoria": "boletin", "autor": "Admin MINDUS", "sector_codigo": None,
-    },
-    {
-        "titulo": "Boletin Trimestral Q2 2026",
-        "resumen": "Analisis de tendencias tecnologicas en sectores siderurgico, metalurgico y quimico",
+        "titulo": "Boletin Trimestral de Ciencia y Tecnologia Q2 2026",
+        "resumen": "Tendencias tecnologicas emergentes en sectores siderurgico, metalurgico y quimico.",
         "fecha_publicacion": datetime(2026, 7, 1),
         "categoria": "boletin", "autor": "OCyT", "sector_codigo": "SID",
     },
     {
         "titulo": "Estudio de Prospectiva: IA en Manufactura",
-        "resumen": "Evaluacion del potencial de adopcion de IA en procesos productivos industriales",
+        "resumen": "Potencial de adopcion de IA en procesos productivos del sector industrial cubano.",
         "fecha_publicacion": datetime(2026, 6, 1),
         "categoria": "estudio", "autor": "ICT", "sector_codigo": "ELE",
     },
@@ -701,13 +713,13 @@ async def seed_patent_maps(session: AsyncSession) -> int:
 # ---------------------------------------------------------------------------
 
 _SECTORES = [
-    {"codigo": "AUT", "nombre": "Automotriz", "descripcion": "Industria automotriz y autopartes"},
-    {"codigo": "BIO", "nombre": "Biotecnología", "descripcion": "Biotecnología y ciencias de la vida"},
-    {"codigo": "ELE", "nombre": "Electrónica", "descripcion": "Electrónica y equipos eléctricos"},
-    {"codigo": "ENE", "nombre": "Energía", "descripcion": "Sector energético industrial"},
-    {"codigo": "MET", "nombre": "Metalurgia", "descripcion": "Metalurgia y minería"},
+    {"codigo": "AUT", "nombre": "Automatización", "descripcion": "Automatización industrial y robótica"},
+    {"codigo": "BIO", "nombre": "Biotecnologia", "descripcion": "Sector biotecnologico industrial"},
+    {"codigo": "ELE", "nombre": "Electrónica", "descripcion": "Componentes y sistemas electrónicos"},
+    {"codigo": "ENE", "nombre": "Energia", "descripcion": "Sector energetico industrial"},
+    {"codigo": "MET", "nombre": "Metalurgia", "descripcion": "Transformación de metales no ferrosos"},
     {"codigo": "QUI", "nombre": "Química", "descripcion": "Industria química y petroquímica"},
-    {"codigo": "SID", "nombre": "Siderurgia", "descripcion": "Siderurgia y acero"},
+    {"codigo": "SID", "nombre": "Siderurgia", "descripcion": "Industria del acero y derivados"},
 ]
 
 
@@ -733,94 +745,202 @@ async def seed_industrial_sectors(session: AsyncSession) -> int:
 
 _RESEARCH_PUBLICATIONS = [
     {
-        "titulo": "Modelo de optimización energética en procesos siderúrgicos mediante redes neuronales",
-        "autores": "Rodríguez, C.; Pérez, M.; González, L.",
-        "resumen": (
-            "Se propone un modelo basado en redes neuronales artificiales para optimizar el consumo "
-            "energético en hornos de arco eléctrico de la industria siderúrgica cubana. Los resultados "
-            "muestran una reducción del 12% en el consumo específico de energía."
+        "titulo": (
+            "Aplicación de redes neuronales artificiales para la optimización de procesos"
+            " de manufactura en la industria azucarera cubana"
         ),
-        "doi": "10.1234/steel.2026.001",
-        "journal": "Revista Cubana de Ingeniería Industrial",
-        "fecha_publicacion": datetime(2026, 3, 15),
-        "palabras_clave": ["redes neuronales", "optimización energética", "siderurgia", "IA"],
-        "sector_codigo": "SID",
-        "url": "https://doi.org/10.1234/steel.2026.001",
-    },
-    {
-        "titulo": "Bioprospección de microorganismos para biorremediación de efluentes metalúrgicos",
-        "autores": "Martínez, A.; Fernández, R.; Díaz, T.",
+        "autores": "María Elena García López, Carlos Alejandro Rodríguez Pérez",
         "resumen": (
-            "Se aislaron y caracterizaron cepas bacterianas nativas con capacidad de remover metales "
-            "pesados en efluentes de la industria metalúrgica. La cepa Bacillus sp. MET-23 mostró "
-            "una eficiencia de remoción del 87% para cromo hexavalente."
+            "Se presenta un modelo de red neuronal artificial para la predicción y"
+            " optimización de parámetros críticos en la producción de azúcar, logrando una"
+            " reducción del 15% en el consumo de energía."
         ),
-        "doi": "10.1234/met.2026.008",
-        "journal": "Biotecnología Aplicada",
-        "fecha_publicacion": datetime(2026, 5, 20),
-        "palabras_clave": ["biorremediación", "metales pesados", "microorganismos", "metalurgia"],
-        "sector_codigo": "MET",
-        "url": "https://doi.org/10.1234/met.2026.008",
-    },
-    {
-        "titulo": "Desarrollo de un recubrimiento cerámico nanoestructurado para prótesis ortopédicas",
-        "autores": "Sánchez, P.; Herrera, J.; Cruz, E.",
-        "resumen": (
-            "Se sintetizaron recubrimientos de hidroxiapatita nanoestructurada mediante deposición "
-            "electroforética sobre sustratos de Ti-6Al-4V. Las pruebas in vitro demostraron "
-            "excelente biocompatibilidad y resistencia a la corrosión."
-        ),
-        "doi": "10.1234/bio.2026.003",
-        "journal": "Materiales y Biomateriales",
-        "fecha_publicacion": datetime(2026, 2, 10),
-        "palabras_clave": ["nanotecnología", "biomateriales", "recubrimientos", "implantes"],
+        "doi": "10.1016/j.compchemeng.2025.108234",
+        "journal": "Computers & Chemical Engineering",
+        "fecha_publicacion": datetime(2025, 3, 15),
+        "palabras_clave": ["inteligencia artificial", "manufactura", "azúcar", "optimización"],
         "sector_codigo": "BIO",
-        "url": None,
+        "url": "https://doi.org/10.1016/j.compchemeng.2025.108234",
     },
     {
-        "titulo": "Sistema de control predictivo para microrredes eléctricas con penetración renovable",
-        "autores": "García, D.; López, S.; Torres, R.",
-        "resumen": (
-            "Se implementó un controlador predictivo basado en modelo (MPC) para la gestión óptima "
-            "de microrredes eléctricas con alta penetración de fuentes renovables. El sistema "
-            "logró mantener la estabilidad de frecuencia con un error máximo del 0.5%."
+        "titulo": (
+            "Manufactura aditiva de piezas metálicas mediante impresión 3D para la"
+            " reparación de equipos industriales"
         ),
-        "doi": "10.1234/ele.2026.012",
-        "journal": "Ingeniería Eléctrica y Automática",
-        "fecha_publicacion": datetime(2026, 7, 5),
-        "palabras_clave": ["microrredes", "control predictivo", "energía renovable", "MPC"],
-        "sector_codigo": "ELE",
-        "url": "https://doi.org/10.1234/ele.2026.012",
+        "autores": "Carlos Alejandro Rodríguez Pérez, Pedro Manuel Sánchez Díaz",
+        "resumen": (
+            "Evaluación de técnicas de fabricación aditiva con metales para la producción de"
+            " repuestos industriales, demostrando viabilidad técnica y económica para la"
+            " industria cubana."
+        ),
+        "doi": "10.1016/j.addma.2025.03.012",
+        "journal": "Additive Manufacturing",
+        "fecha_publicacion": datetime(2025, 5, 20),
+        "palabras_clave": ["manufactura aditiva", "impresión 3D", "repuestos", "metalurgia"],
+        "sector_codigo": "MET",
+        "url": "https://doi.org/10.1016/j.addma.2025.03.012",
     },
     {
-        "titulo": "Evaluación de la huella de carbono del biodiésel a partir de aceite de jatropha en Cuba",
-        "autores": "Torres, M.; Ramírez, O.; Medina, J.",
+        "titulo": "Biorrefinería sostenible: producción de bioplásticos a partir de residuos agrícolas en Cuba",
+        "autores": "Ana Lucía Martínez Fernández, Laura Isabel Hernández Torres",
         "resumen": (
-            "Mediante análisis de ciclo de vida (LCA) se evaluó la huella de carbono de la "
-            "producción de biodiésel a partir de Jatropha curcas en condiciones cubanas. Se "
-            "obtuvo una reducción del 62% respecto al diésel fósil."
+            "Investigación sobre la obtención de polihidroxialcanoatos (PHA) a partir de"
+            " subproductos de la agricultura cubana, como alternativa biodegradable a los"
+            " plásticos convencionales."
         ),
-        "doi": "10.1234/qui.2026.005",
-        "journal": "Revista Cubana de Química",
-        "fecha_publicacion": datetime(2026, 4, 28),
-        "palabras_clave": ["biodiésel", "huella de carbono", "LCA", "jatropha", "sostenibilidad"],
+        "doi": "10.1016/j.biortech.2025.130456",
+        "journal": "Bioresource Technology",
+        "fecha_publicacion": datetime(2025, 2, 10),
+        "palabras_clave": ["bioplásticos", "biorrefinería", "residuos agrícolas", "sostenibilidad"],
+        "sector_codigo": "BIO",
+        "url": "https://doi.org/10.1016/j.biortech.2025.130456",
+    },
+    {
+        "titulo": (
+            "Evaluación del potencial eólico para la generación distribuida en zonas"
+            " industriales del occidente cubano"
+        ),
+        "autores": "Pedro Manuel Sánchez Díaz, María Elena García López",
+        "resumen": (
+            "Análisis de recursos eólicos y diseño de sistemas de generación distribuida"
+            " para zonas industriales, logrando una factibilidad técnica del 78% para la"
+            " integración de energía eólica."
+        ),
+        "doi": "10.1016/j.rser.2025.114789",
+        "journal": "Renewable and Sustainable Energy Reviews",
+        "fecha_publicacion": datetime(2025, 6, 1),
+        "palabras_clave": ["energía eólica", "generación distribuida", "zonas industriales", "Cuba"],
+        "sector_codigo": "ENE",
+        "url": "https://doi.org/10.1016/j.rser.2025.114789",
+    },
+    {
+        "titulo": "Nanocomposites de celulosa microcristalina: aplicaciones en la industria alimentaria cubana",
+        "autores": "Laura Isabel Hernández Torres, Ana Lucía Martínez Fernández",
+        "resumen": (
+            "Desarrollo de nanocomposites derivados de celulosa microcristalina para"
+            " envases alimentarios activos con propiedades antimicrobianas y barrera al"
+            " oxígeno."
+        ),
+        "doi": "10.1016/j.carbpol.2025.122345",
+        "journal": "Carbohydrate Polymers",
+        "fecha_publicacion": datetime(2025, 4, 18),
+        "palabras_clave": ["nanocomposites", "celulosa", "envases", "industria alimentaria"],
         "sector_codigo": "QUI",
-        "url": "https://doi.org/10.1234/qui.2026.005",
+        "url": "https://doi.org/10.1016/j.carbpol.2025.122345",
     },
     {
-        "titulo": "Arquitectura de control descentralizado para líneas de ensamblaje automotriz basada en ROS 2",
-        "autores": "Díaz, L.; Fernández, A.; Pérez, G.",
+        "titulo": "Sistema de visión artificial para control de calidad en la producción de componentes electrónicos",
+        "autores": "María Elena García López, Ana Lucía Martínez Fernández, Carlos Alejandro Rodríguez Pérez",
         "resumen": (
-            "Se propone una arquitectura modular de control descentralizado utilizando ROS 2 para "
-            "líneas de ensamblaje en la industria automotriz. La implementación redujo el tiempo "
-            "de ciclo en un 18% y mejoró la flexibilidad del sistema."
+            "Implementación de un sistema de inspección automática basado en deep learning"
+            " para la detección de defectos en líneas de ensamblaje electrónico, alcanzando"
+            " un 97.3% de precisión."
         ),
-        "doi": "10.1234/aut.2026.009",
-        "journal": "Automatización Industrial",
-        "fecha_publicacion": datetime(2026, 6, 15),
-        "palabras_clave": ["ROS 2", "control descentralizado", "automotriz", "línea de ensamblaje"],
+        "doi": "10.1016/j.engappai.2025.110234",
+        "journal": "Engineering Applications of Artificial Intelligence",
+        "fecha_publicacion": datetime(2025, 7, 5),
+        "palabras_clave": ["visión artificial", "deep learning", "control de calidad", "electrónica"],
+        "sector_codigo": "ELE",
+        "url": "https://doi.org/10.1016/j.engappai.2025.110234",
+    },
+    {
+        "titulo": "Optimización de procesos de fermentación para la producción de bioetanol de segunda generación",
+        "autores": "Ana Lucía Martínez Fernández, Pedro Manuel Sánchez Díaz",
+        "resumen": (
+            "Optimización de condiciones de fermentación usando cepas mejoradas de"
+            " Saccharomyces cerevisiae con residuos lignocelulósicos como sustrato,"
+            " incrementando el rendimiento en un 23%."
+        ),
+        "doi": "10.1016/j.biombioe.2025.107890",
+        "journal": "Biomass and Bioenergy",
+        "fecha_publicacion": datetime(2025, 1, 22),
+        "palabras_clave": ["bioetanol", "fermentación", "biomasa", "segunda generación"],
+        "sector_codigo": "BIO",
+        "url": "https://doi.org/10.1016/j.biombioe.2025.107890",
+    },
+    {
+        "titulo": (
+            "Recubrimientos anticorrosivos auto-reparables basados en microcápsulas para la"
+            " protección de infraestructura industrial"
+        ),
+        "autores": "Laura Isabel Hernández Torres, Carlos Alejandro Rodríguez Pérez",
+        "resumen": (
+            "Diseño de recubrimientos inteligentes con microcápsulas de agentes reparadores"
+            " que se activan ante daño mecánico, prolongando la vida útil de estructuras"
+            " metálicas en ambientes agresivos."
+        ),
+        "doi": "10.1016/j.progpolymsci.2025.101890",
+        "journal": "Progress in Polymer Science",
+        "fecha_publicacion": datetime(2025, 8, 12),
+        "palabras_clave": ["recubrimientos", "auto-reparables", "anticorrosivo", "microcápsulas"],
+        "sector_codigo": "QUI",
+        "url": "https://doi.org/10.1016/j.progpolymsci.2025.101890",
+    },
+    {
+        "titulo": "Simulación de procesos térmicos para la mejora de eficiencia en hornos industriales cubanos",
+        "autores": "Pedro Manuel Sánchez Díaz, María Elena García López, Laura Isabel Hernández Torres",
+        "resumen": (
+            "Modelo de simulación computacional para la optimización del flujo de calor y la"
+            " distribución de temperatura en hornos industriales, logrando ahorros"
+            " energéticos del 18%."
+        ),
+        "doi": "10.1016/j.apenergy.2025.124567",
+        "journal": "Applied Energy",
+        "fecha_publicacion": datetime(2025, 5, 30),
+        "palabras_clave": ["simulación", "hornos industriales", "eficiencia energética", "transferencia de calor"],
+        "sector_codigo": "ENE",
+        "url": "https://doi.org/10.1016/j.apenergy.2025.124567",
+    },
+    {
+        "titulo": (
+            "Plataforma IoT para el monitoreo en tiempo real de variables ambientales en"
+            " plantas de procesamiento de alimentos"
+        ),
+        "autores": "María Elena García López, Ana Lucía Martínez Fernández",
+        "resumen": (
+            "Diseño e implementación de una plataforma de Internet de las Cosas para el"
+            " monitoreo continuo de temperatura, humedad y calidad del aire en instalaciones"
+            " de procesamiento alimentario."
+        ),
+        "doi": "10.1016/j.compag.2025.109876",
+        "journal": "Computers and Electronics in Agriculture",
+        "fecha_publicacion": datetime(2025, 3, 8),
+        "palabras_clave": ["IoT", "monitoreo ambiental", "industria alimentaria", "sensores"],
         "sector_codigo": "AUT",
-        "url": None,
+        "url": "https://doi.org/10.1016/j.compag.2025.109876",
+    },
+    {
+        "titulo": "Hidrógeno verde como vector energético para la industria química cubana: análisis de viabilidad",
+        "autores": "Pedro Manuel Sánchez Díaz, Carlos Alejandro Rodríguez Pérez, Ana Lucía Martínez Fernández",
+        "resumen": (
+            "Estudio de viabilidad técnica y económica para la producción de hidrógeno verde"
+            " mediante electrólisis solar en la industria química cubana, con proyección a"
+            " 2030."
+        ),
+        "doi": "10.1016/j.ijhydrogen.2025.04.023",
+        "journal": "International Journal of Hydrogen Energy",
+        "fecha_publicacion": datetime(2025, 6, 25),
+        "palabras_clave": ["hidrógeno verde", "electrólisis", "energía solar", "industria química"],
+        "sector_codigo": "ENE",
+        "url": "https://doi.org/10.1016/j.ijhydrogen.2025.04.023",
+    },
+    {
+        "titulo": (
+            "Materiales compuestos de fibra de coco para aplicaciones estructurales en la"
+            " construcción civil cubana"
+        ),
+        "autores": "Laura Isabel Hernández Torres, Pedro Manuel Sánchez Díaz",
+        "resumen": (
+            "Caracterización mecánica de materiales compuestos reforzados con fibra de coco"
+            " natural para uso en elementos estructurales no convencionales, con propiedades"
+            " comparables a materiales sintéticos."
+        ),
+        "doi": "10.1016/j.compositesb.2025.110567",
+        "journal": "Composites Part B: Engineering",
+        "fecha_publicacion": datetime(2025, 4, 2),
+        "palabras_clave": ["materiales compuestos", "fibra de coco", "construcción", "sostenibilidad"],
+        "sector_codigo": "SID",
+        "url": "https://doi.org/10.1016/j.compositesb.2025.110567",
     },
 ]
 
@@ -856,7 +976,7 @@ _PATENTS = [
         ),
         "technological_sector": "AUT",
         "country": "Cuba",
-        "org_siglas": "ATS",
+        "org_siglas": "CIEA",
     },
     {
         "title": "Proceso de obtención de biopolímeros a partir de residuos de la industria azucarera",
@@ -907,7 +1027,7 @@ _PATENTS = [
         ),
         "technological_sector": "MET",
         "country": "Cuba",
-        "org_siglas": "METCAM",
+        "org_siglas": "INSID",
     },
     {
         "title": "Composición catalítica para la producción de amoníaco verde a baja temperatura",
@@ -924,7 +1044,7 @@ _PATENTS = [
         ),
         "technological_sector": "QUI",
         "country": "Cuba",
-        "org_siglas": "QCI",
+        "org_siglas": "CBI",
     },
     {
         "title": "Procedimiento de laminación en caliente para aceros de alta resistencia soldables",
@@ -941,7 +1061,7 @@ _PATENTS = [
         ),
         "technological_sector": "SID",
         "country": "Cuba",
-        "org_siglas": "INSID",
+        "org_siglas": "METCAM",
     },
 ]
 
