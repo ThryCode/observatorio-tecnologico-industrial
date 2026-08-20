@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
@@ -57,3 +58,25 @@ export class SectionErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+interface PageErrorBoundaryProps {
+  children: ReactNode;
+  title?: string;
+}
+
+/**
+ * Error boundary para páginas completas. En reintentar invalida todas las
+ * queries de TanStack para forzar la recarga de los datos.
+ */
+export function PageErrorBoundary({ children, title = 'Error al cargar la página' }: PageErrorBoundaryProps) {
+  const queryClient = useQueryClient();
+  return (
+    <SectionErrorBoundary
+      title={title}
+      onRetry={() => queryClient.invalidateQueries()}
+    >
+      {children}
+    </SectionErrorBoundary>
+  );
+}
+

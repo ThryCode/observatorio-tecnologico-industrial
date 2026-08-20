@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '@/components/Sidebar';
 import Topbar from '@/components/Topbar';
+import { PageErrorBoundary } from '@/components/SectionErrorBoundary';
 import { useWebSocket } from '@/hooks/useWebSocket';
 
 export default function Layout() {
@@ -17,7 +18,9 @@ export default function Layout() {
         <Topbar />
         <main id="main-content" className="flex-1 overflow-y-auto px-5 py-5" role="main">
           <div key={location.pathname} className="animate-fade-in-up">
-            <Outlet />
+            <PageErrorBoundary>
+              <Outlet />
+            </PageErrorBoundary>
           </div>
         </main>
       </div>

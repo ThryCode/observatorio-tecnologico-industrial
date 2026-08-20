@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
-import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import type { VirtualItem } from '@tanstack/react-virtual';
 import { toast } from 'sonner';
 import PageHeader from '@/components/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import EmptyState from '@/components/ui/empty-state';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Search, Plus, Pencil, Trash2, AlertCircle, X } from 'lucide-react';
@@ -69,7 +71,7 @@ function getDisplayName(item: Record<string, any> | null, nameField?: string): s
 export default function CrudPage<T extends { id: string }>({
   title, description, permissionResource, columns, emptyMessage = 'No hay registros aún.',
   searchPlaceholder = 'Buscar...', filterBar,
-  queryResult: { data, isLoading, isError },
+  queryResult: { data, isLoading, isError, refetch },
   createMutation, updateMutation, deleteMutation,
   renderForm, renderDetail, renderSidebar, defaultForm,
   formToPayload, transformEditItem, validateForm, searchFilter, onSearch,
@@ -200,78 +202,97 @@ export default function CrudPage<T extends { id: string }>({
       </div>
 
       {isError ? (
-        <Card><CardContent className="flex flex-col items-center gap-2 py-8"><p className="text-sm text-destructive">No se pudieron cargar los datos. Intente de nuevo más tarde.</p></CardContent></Card>
+        <EmptyState
+          icon={<AlertCircle className="h-16 w-16" strokeWidth={1.5} />}
+          title="Error al cargar"
+          description="No se pudieron cargar los datos. Intenta de nuevo."
+          action={{ label: 'Reintentar', onClick: () => refetch(), variant: 'outline' }}
+        />
       ) : (
       <div className={renderSidebar ? 'grid gap-6 lg:grid-cols-3' : ''}>
         <div className={renderSidebar ? 'lg:col-span-2' : ''}>
           <div className="bg-surface rounded-lg border border-border">
-            {enableVirtual ? (
-              <div ref={scrollRef} className="max-h-[600px] overflow-auto">
-                <Table>
-                  <TableHeader className="sticky top-0 bg-background z-10">
-                    <TableRow>
-                      {columns.map((c) => <TableHead key={c.header} className={c.className}>{c.header}</TableHead>)}
-                      <TableHead className="w-[80px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                </Table>
-                <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative', width: '100%' }}>
-                  {virtualizer.getVirtualItems().map((virtualRow: VirtualItem) => {
-                    const item = filteredItems[virtualRow.index];
-                    return (
-                      <div
-                        key={item.id}
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '100%',
-                          height: `${virtualRow.size}px`,
-                          transform: `translateY(${virtualRow.start}px)`,
-                        }}
-                        onClick={() => renderSidebar && setSelected(selected?.id === item.id ? null : item)}
-                        className={`flex items-center border-b border-border ${renderSidebar ? `cursor-pointer transition-colors ${selected?.id === item.id ? 'bg-primary/5' : 'hover:bg-muted/50'}` : ''}`}
-                      >
-                        {columns.map((c) => <div key={c.header} className="flex-1 px-4 py-2 text-sm">{c.render(item)}</div>)}
-                        <div className="flex gap-1 px-4">
+            {isLoading ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {columns.map((c) => <TableHead key={c.header} className={c.className}>{c.header}</TableHead>)}
+                    <TableHead className="w-[80px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>{Array.from({ length: columns.length + 1 }).map((_, j) => <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>)}</TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : filteredItems.length > 0 ? (
+              enableVirtual ? (
+                <div ref={scrollRef} className="max-h-[600px] overflow-auto">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-background z-10">
+                      <TableRow>
+                        {columns.map((c) => <TableHead key={c.header} className={c.className}>{c.header}</TableHead>)}
+                        <TableHead className="w-[80px]"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                  </Table>
+                  <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative', width: '100%' }}>
+                    {virtualizer.getVirtualItems().map((virtualRow: VirtualItem) => {
+                      const item = filteredItems[virtualRow.index];
+                      return (
+                        <div
+                          key={item.id}
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: `${virtualRow.size}px`,
+                            transform: `translateY(${virtualRow.start}px)`,
+                          }}
+                          onClick={() => renderSidebar && setSelected(selected?.id === item.id ? null : item)}
+                          className={`flex items-center border-b border-border ${renderSidebar ? `cursor-pointer transition-colors ${selected?.id === item.id ? 'bg-primary/5' : 'hover:bg-muted/50'}` : ''}`}
+                        >
+                          {columns.map((c) => <div key={c.header} className="flex-1 px-4 py-2 text-sm">{c.render(item)}</div>)}
+                          <div className="flex gap-1 px-4">
+                            {can(permissionResource, 'edit') && (!canEditFn || canEditFn(item)) && <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openEditDialog(item); }} aria-label="Editar"><Pencil className="h-4 w-4" /></Button>}
+                            {can(permissionResource, 'delete') && (!canDeleteFn || canDeleteFn(item)) && <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setItemToDelete(item); setDeleteDialogOpen(true); }} aria-label="Eliminar"><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {columns.map((c) => <TableHead key={c.header} className={c.className}>{c.header}</TableHead>)}
+                    <TableHead className="w-[80px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredItems.map((item) => (
+                    <TableRow
+                      key={item.id}
+                      onClick={() => renderSidebar && setSelected(selected?.id === item.id ? null : item)}
+                      className={renderSidebar ? `cursor-pointer transition-colors ${selected?.id === item.id ? 'bg-primary/5' : 'hover:bg-muted/50'}` : undefined}
+                    >
+                      {columns.map((c) => <TableCell key={c.header}>{c.render(item)}</TableCell>)}
+                      <TableCell>
+                        <div className="flex gap-1">
                           {can(permissionResource, 'edit') && (!canEditFn || canEditFn(item)) && <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openEditDialog(item); }} aria-label="Editar"><Pencil className="h-4 w-4" /></Button>}
                           {can(permissionResource, 'delete') && (!canDeleteFn || canDeleteFn(item)) && <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setItemToDelete(item); setDeleteDialogOpen(true); }} aria-label="Eliminar"><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              )
             ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {columns.map((c) => <TableHead key={c.header} className={c.className}>{c.header}</TableHead>)}
-                  <TableHead className="w-[80px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>{Array.from({ length: columns.length + 1 }).map((_, j) => <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>)}</TableRow>
-                )) : filteredItems.length > 0 ? filteredItems.map((item) => (
-                  <TableRow
-                    key={item.id}
-                    onClick={() => renderSidebar && setSelected(selected?.id === item.id ? null : item)}
-                    className={renderSidebar ? `cursor-pointer transition-colors ${selected?.id === item.id ? 'bg-primary/5' : 'hover:bg-muted/50'}` : undefined}
-                  >
-                    {columns.map((c) => <TableCell key={c.header}>{c.render(item)}</TableCell>)}
-                    <TableCell>
-                      <div className="flex gap-1">
-                        {can(permissionResource, 'edit') && (!canEditFn || canEditFn(item)) && <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openEditDialog(item); }} aria-label="Editar"><Pencil className="h-4 w-4" /></Button>}
-                        {can(permissionResource, 'delete') && (!canDeleteFn || canDeleteFn(item)) && <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setItemToDelete(item); setDeleteDialogOpen(true); }} aria-label="Eliminar"><Trash2 className="h-4 w-4 text-destructive" /></Button>}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )) : (
-                  <TableRow><TableCell colSpan={columns.length + 1} className="text-center py-8 text-muted-foreground">{emptyMessage}</TableCell></TableRow>
-                )}
-              </TableBody>
-            </Table>
+              <EmptyState title="Sin registros" description={emptyMessage} />
             )}
 
             {data && data.total_pages > 1 && (
