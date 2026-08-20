@@ -40,6 +40,10 @@
     "tailwind-merge": "^2.4.0",
     "zod": "^3.23.0"
   },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "^4.29.1",
+    "@rollup/rollup-win32-x64-msvc": "^4.29.1"
+  },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
     "@storybook/addon-essentials": "8.6.18",
