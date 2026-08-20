@@ -1,7 +1,13 @@
 """Seed data for initial database population.
 
-All functions are idempotent: they check for existing records before inserting.
-Each function returns the number of inserted records.
+Contract:
+    - All functions are idempotent: they check for existing records before inserting.
+    - Each function returns the number of inserted records (0 if already populated).
+    - Functions accept an AsyncSession and must be called within a transaction.
+    - seed_all() calls all seed functions in dependency order.
+    - On startup, db.py runs ``alembic upgrade head`` then ``seed_all()``.
+    - Seed data is aligned with the production SQL dump (2026-08-20).
+    - Neo4j graph sync happens separately via seed_follows_data.sync_neo4j_graph().
 """
 
 from datetime import date, datetime

@@ -53,6 +53,7 @@ React 18 + TypeScript SPA with Vite, Tailwind CSS, shadcn/ui, and TanStack Query
 - Translations: `src/i18n/translations.ts` — flat key-value pairs
 - Usage: `const { t } = useLanguage(); t('sidebar.dashboard')`
 - Persistence: localStorage key `language`
+- **All user-visible text must use `t()`** — no hardcoded strings in JSX for labels, titles, buttons, descriptions, placeholders, or toast messages
 
 ## Toast Notifications
 - Library: sonner (`import { toast } from "sonner"`)

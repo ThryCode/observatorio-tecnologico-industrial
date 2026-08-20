@@ -1,6 +1,6 @@
 # Runbook - Observatorio Tecnologico Industrial
 
-##日常运维操作
+## Operaciones diarias
 
 ### 1. Iniciar servicios
 

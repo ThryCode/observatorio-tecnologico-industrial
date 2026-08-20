@@ -5,10 +5,4 @@ the file is regenerated on every follow/unfollow API call.
 """
 
 FOLLOWS_DATA: list[tuple[str, str]] = [
-    ("CBI", "ATS"),
-    ("QCI", "INSID"),
-    ("QCI", "METCAM"),
-    ("CIEA", "ENW"),
-    ("ELEVC", "ENW"),
-    ("BNC", "CBI"),
 ]

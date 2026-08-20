@@ -23,7 +23,7 @@ Implement security with:
 
 ### Authorization
 - Role-Based Access Control (RBAC)
-- 6 roles: admin_mindus, rep_cti, analista, profesional, cliente, visitante
+- 5 roles: admin_mindus, rep_cti, analista, profesional, visitante
 - `require_role()` dependency for endpoint protection
 
 ### Data Protection

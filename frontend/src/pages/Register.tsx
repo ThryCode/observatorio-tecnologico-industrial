@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const ESPECIALIDADES = [
   'Biotecnología',
@@ -86,6 +87,7 @@ const registerSchema = z
 type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function Register() {
+  const { t } = useLanguage();
   const [success, setSuccess] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -96,7 +98,7 @@ export default function Register() {
       if (error instanceof AxiosError && error.response?.data?.detail) {
         setServerError(error.response.data.detail);
       } else {
-        setServerError('Error al registrar. Intente de nuevo.');
+        setServerError(t('register.errorGeneric'));
       }
     },
   });
@@ -119,18 +121,16 @@ export default function Register() {
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold">
-              Registro Enviado
+              {t('register.successTitle')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-center">
             <p className="text-muted-foreground">
-              Su solicitud de registro ha sido enviada exitosamente. Un
-              administrador revisará su cuenta y le notificará por correo
-              electrónico cuando sea aprobada.
+              {t('register.successMessage')}
             </p>
             <Link to="/login">
               <Button variant="outline" className="w-full">
-                Volver al inicio de sesión
+                {t('register.backToLogin')}
               </Button>
             </Link>
           </CardContent>
@@ -158,16 +158,16 @@ export default function Register() {
       <Card className="w-full max-w-lg">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-bold">
-            Registro de Usuario
+            {t('register.title')}
           </CardTitle>
           <CardDescription>
-            Complete el formulario para solicitar acceso a la plataforma
+            {t('register.subtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label>Tipo de cuenta</Label>
+              <Label>{t('register.accountTypeLabel')}</Label>
               <Select
                 value={accountType}
                 onValueChange={(v) =>
@@ -175,15 +175,15 @@ export default function Register() {
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Seleccione..." />
+                  <SelectValue placeholder={t('register.selectPlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="representante">
-                    Representante CTI
+                    {t('register.roleRepresentante')}
                   </SelectItem>
-                  <SelectItem value="analista">Analista</SelectItem>
+                  <SelectItem value="analista">{t('register.roleAnalista')}</SelectItem>
                   <SelectItem value="profesional">
-                    Profesional / Investigador
+                    {t('register.roleProfesional')}
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -196,7 +196,7 @@ export default function Register() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="username">Usuario</Label>
+                <Label htmlFor="username">{t('register.usernameLabel')}</Label>
                 <Input
                   id="username"
                   placeholder="mi_usuario"
@@ -209,7 +209,7 @@ export default function Register() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email">Correo electrónico</Label>
+                <Label htmlFor="email">{t('register.emailLabel')}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -225,7 +225,7 @@ export default function Register() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="full_name">Nombre completo</Label>
+              <Label htmlFor="full_name">{t('register.fullNameLabel')}</Label>
               <Input
                 id="full_name"
                 placeholder="Juan Pérez García"
@@ -239,7 +239,7 @@ export default function Register() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Teléfono (opcional)</Label>
+              <Label htmlFor="phone">{t('register.phoneLabel')}</Label>
               <Input
                 id="phone"
                 placeholder="+53 5555 5555"
@@ -249,7 +249,7 @@ export default function Register() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="password">Contraseña</Label>
+                <Label htmlFor="password">{t('register.passwordLabel')}</Label>
                 <Input
                   id="password"
                   type="password"
@@ -263,7 +263,7 @@ export default function Register() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+                <Label htmlFor="confirmPassword">{t('register.confirmPasswordLabel')}</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -281,11 +281,11 @@ export default function Register() {
             {accountType === 'profesional' && (
               <div className="space-y-4 rounded-md border border-border bg-muted/30 p-4">
                 <p className="text-sm font-medium text-foreground">
-                  Información profesional
+                  {t('register.professionalInfo')}
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Especialidad *</Label>
+                    <Label>{t('register.specialtyLabel')}</Label>
                     <Select
                       value={watch('especialidad') || ''}
                       onValueChange={(v) => setValue('especialidad', v)}
@@ -306,7 +306,7 @@ export default function Register() {
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="grado_cientifico">Grado científico</Label>
+                    <Label htmlFor="grado_cientifico">{t('register.scientificDegree')}</Label>
                     <Input
                       id="grado_cientifico"
                       placeholder="Dr.C., MSc., Ing."
@@ -316,7 +316,7 @@ export default function Register() {
                 </div>
                 {watch('especialidad') === 'Otro' && (
                   <div className="space-y-2">
-                    <Label htmlFor="especialidad_custom">Escriba su especialidad *</Label>
+                    <Label htmlFor="especialidad_custom">{t('register.customSpecialtyLabel')}</Label>
                     <Input
                       id="especialidad_custom"
                       placeholder="Ej: Robótica Agrícola"
@@ -332,10 +332,10 @@ export default function Register() {
                   </div>
                 )}
                 <div className="space-y-3">
-                  <p className="text-xs font-medium text-muted-foreground">Redes sociales (opcionales)</p>
+                  <p className="text-xs font-medium text-muted-foreground">{t('register.socialNetworks')}</p>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="linkedin_url" className="text-xs">LinkedIn</Label>
+                      <Label htmlFor="linkedin_url" className="text-xs">{t('register.linkedin')}</Label>
                       <Input
                         id="linkedin_url"
                         placeholder="https://linkedin.com/in/..."
@@ -343,7 +343,7 @@ export default function Register() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="twitter_url" className="text-xs">Twitter / X</Label>
+                      <Label htmlFor="twitter_url" className="text-xs">{t('register.twitter')}</Label>
                       <Input
                         id="twitter_url"
                         placeholder="https://x.com/..."
@@ -353,7 +353,7 @@ export default function Register() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="researchgate_url" className="text-xs">ResearchGate</Label>
+                      <Label htmlFor="researchgate_url" className="text-xs">{t('register.researchgate')}</Label>
                       <Input
                         id="researchgate_url"
                         placeholder="https://researchgate.net/profile/..."
@@ -361,7 +361,7 @@ export default function Register() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="orcid" className="text-xs">ORCID</Label>
+                      <Label htmlFor="orcid" className="text-xs">{t('register.orcid')}</Label>
                       <Input
                         id="orcid"
                         placeholder="0000-0000-0000-0000"
@@ -383,14 +383,14 @@ export default function Register() {
               disabled={registerMutation.isPending}
             >
               {registerMutation.isPending
-                ? 'Enviando registro...'
-                : 'Enviar solicitud de registro'}
+                ? t('register.sending')
+                : t('register.submit')}
             </Button>
 
             <p className="text-center text-sm text-muted-foreground">
-              Ya tiene una cuenta?{' '}
+              {t('register.haveAccount')}{' '}
               <Link to="/login" className="text-primary hover:underline">
-                Iniciar sesión
+                {t('register.loginLink')}
               </Link>
             </p>
           </form>

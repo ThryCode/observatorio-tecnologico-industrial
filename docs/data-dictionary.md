@@ -262,7 +262,6 @@
 | `rep_cti` | Representante CTI | Ver su empresa, contenido |
 | `analista` | Analista | Crear/editar patentes, indicadores |
 | `profesional` | Profesional | Crear publicaciones, seguir |
-| `cliente` | Cliente | Solo lectura |
 | `visitante` | Visitante | Solo lectura basica |
 
 ## Relaciones en Neo4j

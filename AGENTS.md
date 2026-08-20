@@ -93,6 +93,8 @@ frontend/src/
 - Use `contextlib.asynccontextmanager` for lifespan (not deprecated `on_event`)
 - Use `React.lazy()` + `Suspense` for route-level code splitting
 - Use `manualChunks` in Vite config for vendor splitting
+- Use `const { t } = useLanguage()` for all user-visible text in React components
+- Use `t('key')` from `src/i18n/translations.ts` for every label, title, button, description, placeholder, and toast message
 
 ### Ask first
 - Run database migrations (`alembic upgrade/downgrade`)
@@ -112,6 +114,7 @@ frontend/src/
 - Skip error handling in API endpoints
 - Use string concatenation for Cypher queries
 - Import from `node_modules` directly in source
+- Hardcode user-visible strings in React components (use `t()` from LanguageContext)
 
 ## Known Issues
 - No GitHub branch protection or PR reviews

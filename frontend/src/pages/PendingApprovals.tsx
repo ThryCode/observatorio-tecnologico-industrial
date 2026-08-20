@@ -30,8 +30,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { queryKeys } from '@/lib/queryKeys';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function PendingApprovals() {
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [rejectDialog, setRejectDialog] = useState<{
     open: boolean;
@@ -68,20 +70,20 @@ export default function PendingApprovals() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
-          Aprobación de Usuarios
+          {t('pending.approvalTitle')}
         </h1>
         <p className="text-muted-foreground">
-          Revise y apruebe las solicitudes de registro de nuevos usuarios.
+          {t('pending.description')}
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Solicitudes Pendientes</CardTitle>
+          <CardTitle>{t('pending.title')}</CardTitle>
           <CardDescription>
             {pendingUsers.length === 0
-              ? 'No hay solicitudes pendientes.'
-              : `${pendingUsers.length} solicitud(es) pendiente(s).`}
+              ? t('pending.noPending')
+              : `${pendingUsers.length} ${t('pending.pendingCount')}`}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -91,19 +93,19 @@ export default function PendingApprovals() {
             </div>
           ) : pendingUsers.length === 0 ? (
             <p className="text-center py-8 text-muted-foreground">
-              No hay solicitudes de registro pendientes.
+              {t('pending.empty')}
             </p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Usuario</TableHead>
-                  <TableHead>Nombre</TableHead>
-                  <TableHead>Correo</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Cargo</TableHead>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
+                  <TableHead>{t('pending.tableUser')}</TableHead>
+                  <TableHead>{t('pending.tableName')}</TableHead>
+                  <TableHead>{t('pending.tableEmail')}</TableHead>
+                  <TableHead>{t('pending.tableType')}</TableHead>
+                  <TableHead>{t('pending.tableJobTitle')}</TableHead>
+                  <TableHead>{t('pending.tableDate')}</TableHead>
+                  <TableHead className="text-right">{t('common.acciones')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -117,10 +119,10 @@ export default function PendingApprovals() {
                     <TableCell>
                       <Badge variant="outline">
                         {user.role === 'representante'
-                          ? 'Representante CTI'
+                          ? t('pending.roleRepresentante')
                           : user.role === 'profesional'
-                          ? 'Profesional'
-                          : 'Analista'}
+                          ? t('pending.roleProfesional')
+                          : t('pending.roleAnalista')}
                       </Badge>
                     </TableCell>
                     <TableCell>{user.job_title}</TableCell>
@@ -133,7 +135,7 @@ export default function PendingApprovals() {
                         onClick={() => approveMutation.mutate(user.id)}
                         disabled={approveMutation.isPending}
                       >
-                        Aprobar
+                        {t('pending.approve')}
                       </Button>
                       <Button
                         size="sm"
@@ -146,7 +148,7 @@ export default function PendingApprovals() {
                           })
                         }
                       >
-                        Rechazar
+                        {t('pending.reject')}
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -165,18 +167,18 @@ export default function PendingApprovals() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rechazar solicitud</DialogTitle>
+            <DialogTitle>{t('pending.rejectTitle')}</DialogTitle>
             <DialogDescription>
-              Indique el motivo del rechazo para{' '}
+              {t('pending.rejectReasonFor')}{' '}
               <strong>{rejectDialog.user?.full_name}</strong>.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="reject-reason">Motivo del rechazo</Label>
+              <Label htmlFor="reject-reason">{t('pending.rejectReasonLabel')}</Label>
               <Input
                 id="reject-reason"
-                placeholder="Escriba el motivo..."
+                placeholder={t('pending.rejectReasonPlaceholder')}
                 value={rejectDialog.reason}
                 onChange={(e) =>
                   setRejectDialog((prev) => ({
@@ -194,7 +196,7 @@ export default function PendingApprovals() {
                 setRejectDialog({ open: false, user: null, reason: '' })
               }
             >
-              Cancelar
+              {t('common.cancelar')}
             </Button>
             <Button
               variant="destructive"
@@ -210,7 +212,7 @@ export default function PendingApprovals() {
                 }
               }}
             >
-              {rejectMutation.isPending ? 'Rechazando...' : 'Rechazar'}
+              {rejectMutation.isPending ? t('pending.rejecting') : t('pending.reject')}
             </Button>
           </DialogFooter>
         </DialogContent>

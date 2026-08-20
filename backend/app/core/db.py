@@ -1,4 +1,7 @@
+import asyncio
+import sys
 from collections.abc import AsyncGenerator
+from pathlib import Path
 
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -12,6 +15,27 @@ from app.core.config import settings
 
 _engine: AsyncEngine | None = None
 _session_factory: async_sessionmaker[AsyncSession] | None = None
+
+
+async def _run_alembic_migrations() -> None:
+    from loguru import logger
+
+    backend_dir = str(Path(__file__).resolve().parent.parent.parent)
+    proc = await asyncio.create_subprocess_exec(
+        sys.executable,
+        "-m",
+        "alembic",
+        "upgrade",
+        "head",
+        cwd=backend_dir,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    stdout, stderr = await proc.communicate()
+    if proc.returncode != 0:
+        logger.error("Alembic migration failed: {}", stderr.decode())
+        raise RuntimeError(f"Alembic migration failed: {stderr.decode()}")
+    logger.info("Alembic migrations applied successfully")
 
 
 async def startup_db() -> None:
@@ -34,9 +58,7 @@ async def startup_db() -> None:
         expire_on_commit=False,
     )
 
-    async with _engine.begin() as conn:
-        from app.models.base import Base
-        await conn.run_sync(Base.metadata.create_all)
+    await _run_alembic_migrations()
 
     async with _session_factory() as session:
         from app.core.init_db import init_db as seed_db

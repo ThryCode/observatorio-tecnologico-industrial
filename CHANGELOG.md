@@ -81,7 +81,7 @@
 - Frontend test coverage: `App.test.tsx`, `Button.test.tsx`, `utils.test.tsx`
 - Branch protection documentation and PR template
 - `docs/production-guide.md` — production deployment guide for Windows
-- `docs/backup-recovery.md` — PostgreSQL, Neo4j, and Redis backup procedures
+- `docs/backup-recovery.md` — SQLite, Neo4j, and Redis backup procedures
 - `CONTRIBUTING.md` contribution guidelines
 
 ### Changed
@@ -104,7 +104,7 @@
 
 ### Added
 - CI/CD: GitHub Actions workflow with backend and frontend jobs
-- Health check endpoint: `GET /api/v1/health` — verifies PostgreSQL, Neo4j, Redis
+- Health check endpoint: `GET /api/v1/health` — verifies SQLite, Neo4j, Redis
 - Rate limiting with slowapi on auth endpoints
 - Neo4j graph repository with parametrized Cypher queries using APOC
 - Graph sync endpoint: `POST /api/v1/graph/sync`
@@ -149,7 +149,7 @@
 - Backend scaffold: FastAPI app with Uvicorn, SQLAlchemy 2.0 async, Alembic
 - Frontend scaffold: React 18 + TypeScript + Vite 5 + Tailwind CSS 3
 - Neo4j Community 5 integration with async driver
-- PostgreSQL 15 async connection via asyncpg
+- SQLite async connection via aiosqlite
 - Redis 5.0 cache integration (tporadowski Windows build)
 - Alembic migrations `0001_initial_schema.py` and `0002_performance_indexes.py`
 - ORM models: User, Technology, Patent, Organization, Indicator, Regulation, IndustrialSector

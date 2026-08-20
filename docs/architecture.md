@@ -88,7 +88,7 @@ Usuario → Frontend (React) → Backend (FastAPI) →
 - **Almacenamiento**: Sin estado (stateless)
 
 ### Autorización
-- **Roles**: admin_mindus, cti_representative, analyst, visitor
+- **Roles**: admin_mindus, rep_cti, analista, profesional, visitante
 - **Patrón**: `require_role` dependency
 
 ### CORS

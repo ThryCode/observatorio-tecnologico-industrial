@@ -277,7 +277,7 @@ Usuario público                Sistema                    Administrador
 │   ├── alembic/
 │   │   └── versions/
 │   │       └── bb25b3baf793_*.py  # Initial SQLite schema
-│   ├──    tests/                   # pytest (348+ tests)
+│   ├──    tests/                   # pytest (544+ tests)
 │   ├── requirements.txt
 │   └── .env
 ├── frontend/
@@ -307,7 +307,7 @@ Usuario público                Sistema                    Administrador
 │       │   └── AuthContext.tsx   # Auth state + localStorage
 │       ├── types/
 │       │   └── index.ts         # TypeScript interfaces
-│       ├── test/                # Vitest (86 tests, with coverage)
+│       ├── test/                # Vitest (116 tests, with coverage)
 │       └── lib/utils.ts         # cn() utility
 ├── docs/
 │   └── instalacion-windows.md
@@ -326,11 +326,11 @@ Usuario público                Sistema                    Administrador
 ## Testing
 
 ```bash
-# Backend (348+ tests)
+# Backend (544+ tests)
 cd backend
 pytest -v
 
-# Frontend (90+ tests, with coverage)
+# Frontend (116 tests, with coverage)
 cd frontend
 npx vitest run
 npx vitest run --coverage
@@ -375,7 +375,7 @@ npx eslint src/
 | Graph Nav | 9 | Vitest | graphNav.test.ts |
 | API clients | 48 | Vitest | api-clients.test.ts |
 | Hooks | 19 | Vitest | hooks.test.tsx |
-| **Total** | **348+** | | |
+| **Total** | **544+** | | |
 
 ## Cómo contribuir
 

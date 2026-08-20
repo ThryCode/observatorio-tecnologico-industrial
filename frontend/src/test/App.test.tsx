@@ -12,6 +12,20 @@ vi.mock('@/pages/Profile', () => ({ default: () => <div>Profile</div> }));
 vi.mock('@/pages/Login', () => ({ default: () => <div>Login</div> }));
 vi.mock('@/pages/Register', () => ({ default: () => <div>Register</div> }));
 vi.mock('@/pages/PendingApprovals', () => ({ default: () => <div>PendingApprovals</div> }));
+vi.mock('@/pages/NotFound', () => ({
+  default: () => (
+    <div>
+      <div>404</div>
+      <div>Página no encontrada</div>
+    </div>
+  ),
+  NotFound: () => (
+    <div>
+      <div>404</div>
+      <div>Página no encontrada</div>
+    </div>
+  ),
+}));
 vi.mock('@/components/ProtectedRoute', () => ({
   ProtectedRoute: () => <Outlet />,
 }));

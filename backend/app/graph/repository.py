@@ -6,6 +6,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class GraphRepository:
+    """Neo4j Cypher query repository for the industrial knowledge graph.
+
+    Contract:
+        - All methods accept a Neo4j AsyncDriver via constructor.
+        - Methods return dicts suitable for Pydantic serialization.
+        - Graph sync is triggered on startup via seed_data.sync_neo4j_graph()
+          and manually via POST /api/v1/graph/sync.
+        - Node IDs: Organization uses ``codigo`` (e.g. "ORG-001"),
+          Technology/Regulation/Indicator use ``codigo``.
+        - Relationships: FOLLOWS (user/org), COMPETE (org-org),
+          USES_TECH (org-tech), APPLIES_REG (org-reg),
+          PRODUCES_PAT (org-pat), MEASURES_IND (org-ind).
+        - If APOC is unavailable, falls back to non-APOC Cypher paths.
+        - Graceful degradation: all methods return empty results on Neo4j errors.
+    """
+
     def __init__(self, driver: AsyncDriver):
         self.driver = driver
 

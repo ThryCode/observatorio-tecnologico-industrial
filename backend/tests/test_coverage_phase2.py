@@ -511,7 +511,8 @@ class TestCoreDB:
 
         with patch("app.core.db.settings") as mock_settings, \
              patch("app.core.db.create_async_engine", return_value=mock_engine) as mock_create, \
-             patch("app.core.db.async_sessionmaker", return_value=mock_session_factory):
+             patch("app.core.db.async_sessionmaker", return_value=mock_session_factory), \
+             patch("app.core.db._run_alembic_migrations", new_callable=AsyncMock):
             mock_settings.database_url = "sqlite+aiosqlite:///test.db"
             mock_session_inst = AsyncMock()
             mock_session_factory.return_value.__aenter__ = AsyncMock(return_value=mock_session_inst)
@@ -531,7 +532,8 @@ class TestCoreDB:
 
         with patch("app.core.db.settings") as mock_settings, \
              patch("app.core.db.create_async_engine", return_value=mock_engine) as mock_create, \
-             patch("app.core.db.async_sessionmaker", return_value=mock_session_factory):
+             patch("app.core.db.async_sessionmaker", return_value=mock_session_factory), \
+             patch("app.core.db._run_alembic_migrations", new_callable=AsyncMock):
             mock_settings.database_url = "postgresql+asyncpg://test:test@localhost/test"
             mock_session_inst = AsyncMock()
             mock_session_factory.return_value.__aenter__ = AsyncMock(return_value=mock_session_inst)

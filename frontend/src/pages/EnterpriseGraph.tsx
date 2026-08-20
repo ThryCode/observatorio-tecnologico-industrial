@@ -8,6 +8,7 @@ import EmptyState from '@/components/ui/empty-state';
 import { SectionErrorBoundary } from '@/components/SectionErrorBoundary';
 import { Lightbulb, Loader2, GitBranch } from 'lucide-react';
 import { nodeTypeSpanish } from '@/lib/graphNav';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { EnterpriseGraphNode } from '@/types';
 
 const PATENT_STATUS_SPANISH: Record<string, string> = {
@@ -19,6 +20,7 @@ const PATENT_STATUS_SPANISH: Record<string, string> = {
 };
 
 export default function EnterpriseGraph() {
+  const { t } = useLanguage();
   const { data, isLoading } = useEnterpriseGraph();
   const [selected, setSelected] = useState<EnterpriseGraphNode | null>(null);
   const { data: recs, isLoading: recsLoading } = useOrgRecommendations(selected?.id ?? null);
@@ -54,7 +56,7 @@ export default function EnterpriseGraph() {
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Grafo Empresarial</h2>
+          <h2 className="text-2xl font-bold tracking-tight">{t('page.enterpriseGraph.title')}</h2>
           <Skeleton className="h-4 w-64 mt-2" />
         </div>
         <div className="grid gap-4 md:grid-cols-3">
@@ -73,23 +75,23 @@ export default function EnterpriseGraph() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Grafo Empresarial</h2>
+        <h2 className="text-2xl font-bold tracking-tight">{t('page.enterpriseGraph.title')}</h2>
         <p className="text-muted-foreground">
-          Relaciones de seguimiento entre empresas. Un arco indica que una empresa sigue a otra.
+          {t('enterpriseGraph.description')}
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Empresas</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">{t('enterpriseGraph.companies')}</CardTitle></CardHeader>
           <CardContent><div className="text-2xl font-bold">{stats?.orgs ?? 0}</div></CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Conexiones</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">{t('enterpriseGraph.connections')}</CardTitle></CardHeader>
           <CardContent><div className="text-2xl font-bold">{stats?.connections ?? 0}</div></CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Nodos aislados</CardTitle></CardHeader>
+          <CardHeader className="pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">{t('enterpriseGraph.isolatedNodes')}</CardTitle></CardHeader>
           <CardContent><div className="text-2xl font-bold">{stats?.isolated ?? 0}</div></CardContent>
         </Card>
       </div>
@@ -98,13 +100,13 @@ export default function EnterpriseGraph() {
         <Card className="lg:col-span-2">
           <CardContent className="p-0">
             <div className="h-[600px]">
-              <SectionErrorBoundary title="Grafo Empresarial">
+              <SectionErrorBoundary title={t('page.enterpriseGraph.title')}>
                 {graphNodes.length === 0 ? (
                   <EmptyState
                     className="h-full"
                     icon={<GitBranch className="h-10 w-10 text-text-muted" />}
-                    title="Grafo empresarial vacío"
-                    description="Aún no hay relaciones de seguimiento entre empresas registradas."
+                    title={t('enterpriseGraph.emptyTitle')}
+                    description={t('enterpriseGraph.emptyDescription')}
                   />
                 ) : (
                   <ForceGraph2D
@@ -122,7 +124,7 @@ export default function EnterpriseGraph() {
         <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              {selected ? 'Detalles de la empresa' : 'Selecciona un nodo'}
+              {selected ? t('enterpriseGraph.companyDetails') : t('enterpriseGraph.selectNode')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -134,27 +136,27 @@ export default function EnterpriseGraph() {
                 </div>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between border-b border-border pb-1">
-                    <span className="text-muted-foreground">Tipo</span>
+                    <span className="text-muted-foreground">{t('enterpriseGraph.type')}</span>
                     <span className="font-medium capitalize">{selected.tipo || '—'}</span>
                   </div>
                   <div className="flex justify-between border-b border-border pb-1">
-                    <span className="text-muted-foreground">Sector</span>
+                    <span className="text-muted-foreground">{t('common.sector')}</span>
                     <span className="font-medium">{selected.sector || '—'}</span>
                   </div>
                   <div className="flex justify-between border-b border-border pb-1">
-                    <span className="text-muted-foreground">Provincia</span>
+                    <span className="text-muted-foreground">{t('enterpriseGraph.province')}</span>
                     <span className="font-medium">{selected.provincia || '—'}</span>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">Patentes</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('enterpriseGraph.patents')}</p>
                   <div className="flex gap-2">
                     <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                      {selected.patents_active} activas
+                      {selected.patents_active} {t('enterpriseGraph.activePatents')}
                     </span>
                     <span className="inline-flex items-center rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-700 ring-1 ring-inset ring-yellow-600/20">
-                      {selected.patents_pending} pendientes
+                      {selected.patents_pending} {t('enterpriseGraph.pendingPatents')}
                     </span>
                   </div>
                   {selected.patents.length > 0 ? (
@@ -172,21 +174,21 @@ export default function EnterpriseGraph() {
                             }`}>{PATENT_STATUS_SPANISH[p.status] ?? p.status}</span>
                           </div>
                           {p.filing_date && (
-                            <p className="text-muted-foreground">Presentada: {p.filing_date}</p>
+                            <p className="text-muted-foreground">{t('enterpriseGraph.filedLabel')}: {p.filing_date}</p>
                           )}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-muted-foreground">No tiene patentes registradas</p>
+                    <p className="text-xs text-muted-foreground">{t('enterpriseGraph.noPatents')}</p>
                   )}
                 </div>
 
-                <p className="text-xs text-muted-foreground pt-2">Haz clic en otro nodo para ver sus datos</p>
+                <p className="text-xs text-muted-foreground pt-2">{t('enterpriseGraph.clickAnotherNode')}</p>
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">
-                Haz clic sobre cualquier nodo del grafo para ver su información.
+                {t('enterpriseGraph.clickNodeHint')}
               </p>
             )}
           </CardContent>
@@ -197,7 +199,7 @@ export default function EnterpriseGraph() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                 <Lightbulb className="h-4 w-4 text-amber-500" />
-                Sugerencias del grafo
+                {t('enterpriseGraph.suggestionsTitle')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -208,7 +210,7 @@ export default function EnterpriseGraph() {
               ) : recs && recs.items.length > 0 ? (
                 <div className="space-y-2">
                   <p className="text-xs text-muted-foreground">
-                    Entidades del mismo sector que {recs.org_name || 'la empresa'} aún no sigue:
+                    {t('enterpriseGraph.suggestionsIntro')} {recs.org_name || t('enterpriseGraph.theCompany')} {t('enterpriseGraph.notFollowing')}:
                   </p>
                   <ul className="space-y-2">
                     {recs.items.map((item) => (
@@ -226,7 +228,7 @@ export default function EnterpriseGraph() {
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  No hay sugerencias disponibles para esta empresa.
+                  {t('enterpriseGraph.noSuggestions')}
                 </p>
               )}
             </CardContent>
