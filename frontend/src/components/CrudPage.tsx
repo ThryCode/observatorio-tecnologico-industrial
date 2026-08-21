@@ -35,18 +35,13 @@ interface CrudPageProps<T extends { id: string }> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateMutation: { mutateAsync: (data: any) => Promise<T>; isPending: boolean };
   deleteMutation: { mutateAsync: (id: string) => Promise<unknown>; isPending: boolean };
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  renderForm: (props: { data: Record<string, any>; onChange: (patch: Record<string, any>) => void; isEditing: boolean }) => React.ReactNode;
+  renderForm: (props: { data: Record<string, string>; onChange: (patch: Record<string, string>) => void; isEditing: boolean }) => React.ReactNode;
   renderDetail?: (item: T) => React.ReactNode;
   renderSidebar?: (item: T) => React.ReactNode;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  defaultForm: Record<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  formToPayload: (form: Record<string, any>, isEditing: boolean) => any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  transformEditItem?: (item: T) => Record<string, any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  validateForm?: (form: Record<string, any>) => string | null;
+  defaultForm: Record<string, string>;
+  formToPayload: (form: Record<string, string>, isEditing: boolean) => unknown;
+  transformEditItem?: (item: T) => Record<string, string>;
+  validateForm?: (form: Record<string, string>) => string | null;
   searchFilter?: (item: T, query: string) => boolean;
   onSearch?: (query: string) => void;
   page: number;
@@ -58,10 +53,9 @@ interface CrudPageProps<T extends { id: string }> {
   rowHeight?: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getDisplayName(item: Record<string, any> | null, nameField?: string): string {
+function getDisplayName(item: Record<string, unknown> | null, nameField?: string): string {
   if (!item) return '';
-  if (nameField && typeof item[nameField] === 'string') return item[nameField] as string;
+  if (nameField && typeof item[nameField] === 'string') return item[nameField];
   if ('nombre' in item && typeof item.nombre === 'string') return item.nombre;
   if ('title' in item && typeof item.title === 'string') return item.title;
   if ('titulo' in item && typeof item.titulo === 'string') return item.titulo;
@@ -99,16 +93,14 @@ export default function CrudPage<T extends { id: string }>({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<T | null>(null);
   const [editingItem, setEditingItem] = useState<T | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [form, setForm] = useState<Record<string, any>>(defaultForm);
+  const [form, setForm] = useState<Record<string, string>>(defaultForm);
   const [saveError, setSaveError] = useState('');
 
   const resetForm = () => { setForm(defaultForm); setEditingItem(null); setSaveError(''); };
 
   const openCreateDialog = () => { resetForm(); setDialogOpen(true); };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const openEditDialog = (item: T) => { setEditingItem(item); setForm(transformEditItem ? transformEditItem(item) : { ...item } as Record<string, any>); setDialogOpen(true); };
+  const openEditDialog = (item: T) => { setEditingItem(item); setForm(transformEditItem ? transformEditItem(item) : { ...item } as Record<string, string>); setDialogOpen(true); };
 
   const handleSave = async () => {
     if (validateForm) {
@@ -119,7 +111,7 @@ export default function CrudPage<T extends { id: string }>({
     try {
       const payload = formToPayload(form, !!editingItem);
       if (editingItem) {
-        await updateMutation.mutateAsync({ id: editingItem.id, ...payload });
+        await updateMutation.mutateAsync({ id: editingItem.id, data: payload });
         toast.success('Registro actualizado correctamente');
       } else {
         await createMutation.mutateAsync(payload);
@@ -331,8 +323,7 @@ export default function CrudPage<T extends { id: string }>({
       {!renderSidebar && renderDetail && selected && !dialogOpen && !deleteDialogOpen && (
         <Dialog open={!!selected} onOpenChange={() => setSelected(null)}>
           <DialogContent className="max-w-md">
-            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-            <DialogHeader><DialogTitle>{getDisplayName(selected as any, nameField) || 'Detalles'}</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{getDisplayName(selected as Record<string, unknown>, nameField) || 'Detalles'}</DialogTitle></DialogHeader>
             {renderDetail(selected)}
           </DialogContent>
         </Dialog>
@@ -352,8 +343,7 @@ export default function CrudPage<T extends { id: string }>({
 
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="max-w-sm">
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          <DialogHeader><DialogTitle>Confirmar eliminación</DialogTitle><DialogDescription>¿Está seguro de eliminar &quot;{getDisplayName(itemToDelete as any, nameField)}&quot;? Esta acción no se puede deshacer.</DialogDescription></DialogHeader>
+          <DialogHeader><DialogTitle>Confirmar eliminación</DialogTitle><DialogDescription>¿Está seguro de eliminar &quot;{getDisplayName(itemToDelete as Record<string, unknown>, nameField)}&quot;? Esta acción no se puede deshacer.</DialogDescription></DialogHeader>
           {deleteError && <div className="flex items-center gap-2 text-sm text-danger"><AlertCircle className="h-4 w-4" /><span>{deleteError}</span></div>}
           <DialogFooter>
             <Button variant="outline" onClick={() => { setDeleteDialogOpen(false); setDeleteError(''); }}>Cancelar</Button>
