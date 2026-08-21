@@ -14,7 +14,7 @@ Este documento establece las pautas para contribuir al proyecto.
 3. Incluye:
    - Pasos para reproducir
    - Comportamiento esperado vs. actual
-   - Logs relevantes (consola, loguru)
+   - Logs relevantes (consola, structlog)
    - Versiones de Python, Node.js, SQLite, Neo4j, Redis
 4. Etiqueta el issue como `bug`.
 
@@ -93,7 +93,7 @@ npm run lint
 | Schemas | Pydantic v2 para toda validación |
 | Errors | Usar `AppException` |
 | Pagination | `PaginatedResponse[T]` para listas |
-| Logging | loguru (no print ni logging stdlib) |
+| Logging | structlog (no print ni logging stdlib) |
 | Naming | Código en inglés, campos de dominio en español |
 
 ### Frontend (TypeScript/React)

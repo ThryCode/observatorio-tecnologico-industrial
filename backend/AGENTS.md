@@ -94,11 +94,12 @@ FastAPI backend with async SQLAlchemy, Pydantic v2, and Neo4j graph layer.
 - Auto-sync: `seed_follows()` syncs SQLite follows to Neo4j FOLLOWS relationships on startup
 - Neo4j: FOLLOWS relationships between Organization nodes
 
-## Logging (loguru)
-- Setup: `app/core/logging_config.py` — stdout + `logs/observatorio.log` (10MB rotation, 30 days)
-- Usage: `from loguru import logger; logger.info("message")`
+## Logging (structlog)
+- Setup: `app/core/logging_config.py` — stdout (human-readable) + `logs/observatorio.log` (10MB rotation, 30 days, JSON)
+- Usage: `import structlog; logger = structlog.stdlib.get_logger(); logger.info("event_name", key=value)`
+- Request ID via `structlog.contextvars.bind_contextvars(request_id=rid)` in middleware
 - Wired in `main.py` lifespan (startup + shutdown)
-- `init_db.py` also uses loguru for seed info
+- `init_db.py` also uses structlog for seed info
 
 ## CI Notes
 - Workflow: `.github/workflows/ci.yml` (ubuntu-latest, Python 3.11, Node 20)

@@ -9,7 +9,7 @@ Plataforma SaaS de inteligencia estrategica para el MINDUS (Ministerio de Indust
 - **Databases:** SQLite (aiosqlite), Neo4j 5 Community, Redis 5.0
 - **Testing:** pytest + pytest-asyncio (backend)
 - **Linting:** Ruff (backend, line-length=120, target py311, rules: E,F,W,I,N,UP,B,SIM), ESLint (frontend)
-- **Logging:** loguru with rotating files (backend)
+- **Logging:** structlog with rotating files (backend)
 - **Caching:** Redis with `app/services/cache.py` wrapper
 
 ## Setup Commands
