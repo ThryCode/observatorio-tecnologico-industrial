@@ -348,52 +348,9 @@ class GraphRepository:
 
             # --- Organization ---
             orgs = (await db.execute(select(Organization))).scalars().all()
-            for i in range(0, len(orgs), batch_size):
-                batch = orgs[i:i+batch_size]
-                batch_data = [
-                    {
-                        "id": str(o.id),
-                        "props": {
-                            "nombre": o.nombre,
-                            "siglas": o.siglas,
-                            "tipo": o.tipo,
-                            "sector_codigo": o.sector_codigo,
-                            "pais": o.pais,
-                            "provincia": o.provincia,
-                            "sitio_web": o.sitio_web,
-                            "email_contacto": o.email_contacto,
-                        },
-                    }
-                    for o in batch
-                ]
-                result = await session.run(
-                    """
-                    UNWIND $batch AS item
-                    MERGE (n:Organization:Enterprise {id: item.id})
-                    SET n += item.props
-                    RETURN count(*) AS merged
-                    """,
-                    batch=batch_data,
-                )
-                record = await result.single()
-                nodes_merged += record["merged"]
-
-                # BELONGS_TO_SECTOR for organizations
-                sector_rels = [
-                    {"org_id": str(o.id), "sector_codigo": o.sector_codigo}
-                    for o in batch if o.sector_codigo
-                ]
-                if sector_rels:
-                    await session.run(
-                        """
-                        UNWIND $batch AS item
-                        MATCH (org:Organization {id: item.org_id})
-                        MATCH (s:IndustrialSector {codigo: item.sector_codigo})
-                        MERGE (org)-[:BELONGS_TO_SECTOR]->(s)
-                        """,
-                        batch=sector_rels,
-                    )
-                    rels_merged += len(sector_rels)
+            n, r = await self._sync_organizations(session, orgs, batch_size)
+            nodes_merged += n
+            rels_merged += r
 
             # --- Technology ---
             techs = (await db.execute(select(Technology))).scalars().all()
@@ -822,64 +779,14 @@ class GraphRepository:
         batch_size = 500
 
         async with self.driver.session() as session:
-            nodes_merged = 0
-            rels_merged = 0
-
             orgs = (await db.execute(select(Organization))).scalars().all()
             org_map = {str(o.id): o for o in orgs}
 
-            # Prune stale Organization nodes not present in the relational DB
-            deleted = 0
-            current_org_ids = [str(o.id) for o in orgs]
-            deleted += await self._delete_missing(
-                session, "Organization", "id", current_org_ids
+            deleted = await self._delete_missing(
+                session, "Organization", "id", [str(o.id) for o in orgs]
             )
 
-            for i in range(0, len(orgs), batch_size):
-                batch = orgs[i:i+batch_size]
-                batch_data = [
-                    {
-                        "id": str(o.id),
-                        "props": {
-                            "nombre": o.nombre,
-                            "siglas": o.siglas,
-                            "tipo": o.tipo,
-                            "sector_codigo": o.sector_codigo,
-                            "pais": o.pais,
-                            "provincia": o.provincia,
-                        },
-                    }
-                    for o in batch
-                ]
-                result = await session.run(
-                    """
-                    UNWIND $batch AS item
-                    MERGE (n:Organization {id: item.id})
-                    SET n += item.props
-                    SET n:Enterprise
-                    RETURN count(*) AS merged
-                    """,
-                    batch=batch_data,
-                )
-                record = await result.single()
-                nodes_merged += record["merged"]
-
-                # BELONGS_TO_SECTOR for organizations
-                sector_rels = [
-                    {"org_id": str(o.id), "sector_codigo": o.sector_codigo}
-                    for o in batch if o.sector_codigo
-                ]
-                if sector_rels:
-                    await session.run(
-                        """
-                        UNWIND $batch AS item
-                        MATCH (org:Organization {id: item.org_id})
-                        MATCH (s:IndustrialSector {codigo: item.sector_codigo})
-                        MERGE (org)-[:BELONGS_TO_SECTOR]->(s)
-                        """,
-                        batch=sector_rels,
-                    )
-                    rels_merged += len(sector_rels)
+            nodes_merged, rels_merged = await self._sync_organizations(session, orgs, batch_size)
 
             users = (await db.execute(select(User))).scalars().all()
             user_org_map = {
@@ -888,27 +795,10 @@ class GraphRepository:
             }
 
             follows = (await db.execute(select(Follow))).scalars().all()
-
-            seen: set[tuple[str, str]] = set()
-            rels_batch: list[dict[str, str]] = []
-            for f in follows:
-                if f.follower_type == "user":
-                    follower_org = user_org_map.get(str(f.follower_id))
-                elif f.follower_type == "organization":
-                    follower_org = str(f.follower_id)
-                else:
-                    continue
-                target_org = str(f.organization_id)
-                if not follower_org or follower_org == target_org:
-                    continue
-                if follower_org in org_map and target_org in org_map:
-                    key = (follower_org, target_org)
-                    if key not in seen:
-                        seen.add(key)
-                        rels_batch.append({"source": follower_org, "target": target_org})
+            rels_batch = self._resolve_follows(follows, user_org_map, org_map)
 
             for i in range(0, len(rels_batch), batch_size):
-                batch = rels_batch[i:i+batch_size]
+                batch = rels_batch[i:i + batch_size]
                 result = await session.run(
                     """
                     UNWIND $batch AS item
@@ -1009,6 +899,84 @@ class GraphRepository:
                 await session.run(cql)
             except Exception:
                 pass
+
+    async def _sync_organizations(
+        self, session, orgs: list, batch_size: int = 500
+    ) -> tuple[int, int]:
+        """Merge Organization nodes + BELONGS_TO_SECTOR rels. Returns (nodes_merged, rels_merged)."""
+        nodes_merged = 0
+        rels_merged = 0
+        for i in range(0, len(orgs), batch_size):
+            batch = orgs[i:i + batch_size]
+            batch_data = [
+                {
+                    "id": str(o.id),
+                    "props": {
+                        "nombre": o.nombre,
+                        "siglas": o.siglas,
+                        "tipo": o.tipo,
+                        "sector_codigo": o.sector_codigo,
+                        "pais": o.pais,
+                        "provincia": o.provincia,
+                        "sitio_web": o.sitio_web,
+                        "email_contacto": o.email_contacto,
+                    },
+                }
+                for o in batch
+            ]
+            result = await session.run(
+                """
+                UNWIND $batch AS item
+                MERGE (n:Organization:Enterprise {id: item.id})
+                SET n += item.props
+                RETURN count(*) AS merged
+                """,
+                batch=batch_data,
+            )
+            record = await result.single()
+            nodes_merged += record["merged"]
+
+            sector_rels = [
+                {"org_id": str(o.id), "sector_codigo": o.sector_codigo}
+                for o in batch if o.sector_codigo
+            ]
+            if sector_rels:
+                await session.run(
+                    """
+                    UNWIND $batch AS item
+                    MATCH (org:Organization {id: item.org_id})
+                    MATCH (s:IndustrialSector {codigo: item.sector_codigo})
+                    MERGE (org)-[:BELONGS_TO_SECTOR]->(s)
+                    """,
+                    batch=sector_rels,
+                )
+                rels_merged += len(sector_rels)
+
+        return nodes_merged, rels_merged
+
+    @staticmethod
+    def _resolve_follows(
+        follows: list, user_org_map: dict[str, str], org_map: dict[str, object]
+    ) -> list[dict[str, str]]:
+        """Resolve follower_type to org_id and return deduplicated FOLLOWS edges."""
+        seen: set[tuple[str, str]] = set()
+        edges: list[dict[str, str]] = []
+        for f in follows:
+            if f.follower_type == "user":
+                follower_org = user_org_map.get(str(f.follower_id))
+            elif f.follower_type == "organization":
+                follower_org = str(f.follower_id)
+            else:
+                continue
+            target_org = str(f.organization_id)
+            if not follower_org or follower_org == target_org:
+                continue
+            if follower_org in org_map and target_org in org_map:
+                key = (follower_org, target_org)
+                if key not in seen:
+                    seen.add(key)
+                    edges.append({"source": follower_org, "target": target_org})
+        return edges
 
     async def _prune_stale_nodes(self, session, db) -> int:
         from app.models.indicator import Indicator
