@@ -14,6 +14,7 @@ import type { TranslationKey } from '@/i18n/translations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Save, User, Phone, Briefcase, Mail, ShieldAlert } from 'lucide-react';
 
 const profileSchema = z.object({
@@ -203,16 +204,12 @@ export default function SettingsPage() {
                   <p className="text-sm font-medium text-foreground">{t('settings.preferences.emailNotifications')}</p>
                   <p className="text-xs text-text-muted">{t('settings.preferences.emailNotificationsDesc')}</p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="sr-only peer"
-                    checked={user?.email_notifications ?? true}
-                    disabled={updatePreferencesMutation.isPending}
-                    onChange={(e) => updatePreferencesMutation.mutate({ email_notifications: e.target.checked })}
-                  />
-                  <div className="w-11 h-6 bg-border-subtle rounded-full peer peer-checked:bg-accent-red peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all" />
-                </label>
+                <Switch
+                  checked={user?.email_notifications ?? true}
+                  disabled={updatePreferencesMutation.isPending}
+                  onCheckedChange={(checked) => updatePreferencesMutation.mutate({ email_notifications: checked })}
+                  aria-label={t('settings.preferences.emailNotifications')}
+                />
               </div>
               <div className="flex items-center justify-between py-2 border-t border-border-subtle">
                 <div>
