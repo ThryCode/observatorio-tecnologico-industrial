@@ -1,10 +1,12 @@
 import asyncio
 from pathlib import Path
 
+import structlog
 from jinja2 import Template
-from loguru import logger
 
 from app.core.config import settings
+
+logger = structlog.stdlib.get_logger()
 
 _TEMPLATES_DIR = Path(__file__).parent / "email_templates"
 
@@ -14,7 +16,7 @@ _BACKOFF = 1.0
 
 async def _send_email(to: str, subject: str, html: str) -> bool:
     if not settings.smtp_host:
-        logger.warning("SMTP not configured, skipping email to {}", to)
+        logger.warning("smtp_not_configured", recipient=to)
         return False
 
     import aiosmtplib
@@ -27,7 +29,7 @@ async def _send_email(to: str, subject: str, html: str) -> bool:
                 await smtp.sendmail(settings.email_from, [to], _build_mime(to, subject, html))
             return True
         except Exception as e:
-            logger.warning("Email attempt {}/{} failed: {}", attempt, _RETRIES, e)
+            logger.warning("email_attempt_failed", attempt=attempt, retries=_RETRIES, error=str(e))
             if attempt < _RETRIES:
                 await asyncio.sleep(_BACKOFF * attempt)
     return False

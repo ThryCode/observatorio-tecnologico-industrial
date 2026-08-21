@@ -1,10 +1,12 @@
-from loguru import logger
+import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.security import get_password_hash
 from app.models.user import User, UserStatus
+
+logger = structlog.stdlib.get_logger()
 
 
 async def init_db(session: AsyncSession) -> None:
@@ -25,9 +27,9 @@ async def create_superuser_if_not_exists(session: AsyncSession) -> None:
         if existing_admin.status == UserStatus.PENDING.value:
             existing_admin.status = UserStatus.APPROVED.value
             await session.flush()
-            logger.info(f"Superuser status updated to approved: {existing_admin.email}")
+            logger.info("superuser_status_updated", email=existing_admin.email)
         else:
-            logger.info(f"Superuser already exists: {existing_admin.email}")
+            logger.info("superuser_exists", email=existing_admin.email)
         return
 
     raw = settings.first_superuser
@@ -50,4 +52,4 @@ async def create_superuser_if_not_exists(session: AsyncSession) -> None:
 
     session.add(superuser)
     await session.flush()
-    logger.info(f"Superuser created: {superuser.email}")
+    logger.info("superuser_created", email=superuser.email)

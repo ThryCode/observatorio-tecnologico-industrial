@@ -1,13 +1,15 @@
 from pathlib import Path
 
+import structlog
 from fastapi import APIRouter, Depends, File, UploadFile
 from fastapi.responses import FileResponse
-from loguru import logger
 
 from app.core.config import settings
 from app.core.exceptions import AppException
 from app.dependencies import get_current_user
 from app.services.file_service import FileServiceError, save_upload
+
+logger = structlog.stdlib.get_logger()
 
 router = APIRouter(prefix="/upload", tags=["upload"])
 files_router = APIRouter(prefix="/files", tags=["files"])
@@ -21,7 +23,7 @@ async def upload_file(file: UploadFile = File(...), user=Depends(get_current_use
     except FileServiceError as e:
         raise AppException(status_code=400, detail=str(e)) from None
     except Exception as e:
-        logger.error("Upload error: {}", e)
+        logger.error("upload_error", error=str(e))
         raise AppException(status_code=500, detail="Error al subir el archivo") from None
 
 

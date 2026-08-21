@@ -2,9 +2,9 @@ import json
 from contextlib import asynccontextmanager
 from pathlib import Path
 
+import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from loguru import logger
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
@@ -16,13 +16,15 @@ from app.core.logging_config import setup_logging
 from app.core.middleware import RequestIDMiddleware
 from app.limiter import limiter
 
+logger = structlog.stdlib.get_logger()
+
 origins = json.loads(settings.backend_cors_origins)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     setup_logging()
-    logger.bind(component="startup").info("Starting Observatorio Tecnologico Industrial API")
+    logger.info("starting_api", component="startup")
 
     await db.startup_db()
 
@@ -32,18 +34,18 @@ async def lifespan(app: FastAPI):
     try:
         from app.neo4j_client import create_neo4j_driver
         neo4j = create_neo4j_driver(settings)
-        logger.bind(component="startup").info("Neo4j driver created")
+        logger.info("neo4j_driver_created", component="startup")
     except Exception:
-        logger.bind(component="startup").warning("Neo4j not available, graph features disabled")
+        logger.warning("neo4j_unavailable", component="startup")
 
     try:
         from app.redis_client import create_redis_client
         redis_client = create_redis_client(settings)
         await redis_client.ping()
-        logger.info("Redis client created")
+        logger.info("redis_client_created")
     except Exception:
         redis_client = None
-        logger.warning("Redis not available, caching disabled")
+        logger.warning("redis_unavailable", reason="caching_disabled")
 
     app.state.neo4j = neo4j
     app.state.redis = redis_client
@@ -54,11 +56,11 @@ async def lifespan(app: FastAPI):
                 from app.graph.repository import GraphRepository
                 repo = GraphRepository(neo4j)
                 result = await repo.sync_enterprise_graph(session)
-                logger.info(f"Neo4j enterprise sync: {result}")
+                logger.info("neo4j_enterprise_sync", result=str(result))
         except Exception as e:
-            logger.warning(f"Neo4j enterprise sync failed: {e}")
+            logger.warning("neo4j_enterprise_sync_failed", error=str(e))
 
-    logger.info("Application startup complete")
+    logger.info("application_startup_complete")
 
     # Background summary email scheduler (only if SMTP is configured)
     summary_task = None
@@ -78,20 +80,20 @@ async def lifespan(app: FastAPI):
         try:
             await summary_task
         except asyncio.CancelledError:
-            logger.info("Summary scheduler cancelled")
+            logger.info("summary_scheduler_cancelled")
 
-    logger.info("Shutting down Observatorio API")
+    logger.info("shutting_down_api")
     await db.close_db()
     if neo4j:
         try:  # noqa: SIM105
             await neo4j.close()
-            logger.info("Neo4j connection closed")
+            logger.info("neo4j_connection_closed")
         except Exception:
             pass
     if redis_client:
         try:  # noqa: SIM105
             await redis_client.aclose()
-            logger.info("Redis connection closed")
+            logger.info("redis_connection_closed")
         except Exception:
             pass
 

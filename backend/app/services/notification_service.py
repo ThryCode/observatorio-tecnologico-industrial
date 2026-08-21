@@ -1,13 +1,15 @@
 import asyncio
 from datetime import UTC, datetime, timedelta
 
-from loguru import logger
+import structlog
 from sqlalchemy import select
 
 from app.core.config import settings
 from app.models.alert import Alert
 from app.models.user import User, UserStatus
 from app.services.email_service import _render, _send_email
+
+logger = structlog.stdlib.get_logger()
 
 FREQUENCY_DAY_RANGES: dict[str, int] = {
     "diario": 1,
@@ -33,7 +35,7 @@ async def notify_new_alert(alert_id: str, titulo: str, descripcion: str | None, 
             result = await session.execute(_subscribed_users_query())
             users = result.scalars().all()
             if not users:
-                logger.info("New alert email: no subscribed users")
+                logger.info("new_alert_email_no_subscribers")
                 return
             html = _render(
                 "new_alert.html",
@@ -48,9 +50,9 @@ async def notify_new_alert(alert_id: str, titulo: str, descripcion: str | None, 
                     f"Nueva alerta: {titulo} - Observatorio Tecnologico",
                     html,
                 )
-            logger.info("New alert email sent to {} user(s)", len(users))
+            logger.info("new_alert_email_sent", user_count=len(users))
     except Exception as e:  # noqa: BLE001
-        logger.error("New alert notification failed: {}", e)
+        logger.error("new_alert_notification_failed", error=str(e))
 
 
 async def _send_summary_for(frequency: str, users: list[User]) -> None:
@@ -65,7 +67,7 @@ async def _send_summary_for(frequency: str, users: list[User]) -> None:
             )
             alerts = result.scalars().all()
             if not alerts:
-                logger.info("Summary '{}': no recent activity to report", frequency)
+                logger.info("summary_no_activity", frequency=frequency)
                 return
             html = _render(
                 "summary.html",
@@ -83,9 +85,9 @@ async def _send_summary_for(frequency: str, users: list[User]) -> None:
                     f"Resumen {frequency} del Observatorio - {len(alerts)} novedades",
                     html,
                 )
-            logger.info("Summary '{}' sent to {} user(s) ({} items)", frequency, len(users), len(alerts))
+            logger.info("summary_sent", frequency=frequency, user_count=len(users), alert_count=len(alerts))
     except Exception as e:  # noqa: BLE001
-        logger.error("Summary '{}' failed: {}", frequency, e)
+        logger.error("summary_failed", frequency=frequency, error=str(e))
 
 
 async def send_due_summaries(now: datetime | None = None) -> None:
@@ -107,7 +109,7 @@ async def send_due_summaries(now: datetime | None = None) -> None:
             result = await session.execute(_subscribed_users_query())
             all_users = result.scalars().all()
     except Exception as e:  # noqa: BLE001
-        logger.error("Summary scheduler: user query failed: {}", e)
+        logger.error("summary_scheduler_user_query_failed", error=str(e))
         return
 
     for frequency in due:
@@ -118,7 +120,7 @@ async def send_due_summaries(now: datetime | None = None) -> None:
 
 async def summary_scheduler_loop(stop_event: asyncio.Event) -> None:
     """Background loop: check every 6h whether summaries are due, send at the configured hour."""
-    logger.info("Summary scheduler started (send hour: {})", settings.summary_send_hour)
+    logger.info("summary_scheduler_started", send_hour=settings.summary_send_hour)
     while not stop_event.is_set():
         now = datetime.now(UTC)
         if now.hour == settings.summary_send_hour:
@@ -132,4 +134,4 @@ async def summary_scheduler_loop(stop_event: asyncio.Event) -> None:
                 await asyncio.wait_for(stop_event.wait(), timeout=1800)
             except TimeoutError:
                 continue
-    logger.info("Summary scheduler stopped")
+    logger.info("summary_scheduler_stopped")

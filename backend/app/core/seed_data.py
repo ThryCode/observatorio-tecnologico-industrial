@@ -14,7 +14,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from uuid import uuid4
 
-from loguru import logger
+import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -33,6 +33,8 @@ from app.models.professional_profile import ProfessionalProfile
 from app.models.research_publication import ResearchPublication
 from app.models.technology import Technology
 from app.models.user import User, UserStatus
+
+logger = structlog.stdlib.get_logger()
 
 # ---------------------------------------------------------------------------
 # Organizations
@@ -153,7 +155,7 @@ async def seed_organizations(session: AsyncSession) -> int:
 
     if inserted:
         await session.flush()
-        logger.info(f"Seeded {inserted} organizations")
+        logger.info("seeded_organizations", count=inserted)
 
     return inserted
 
@@ -314,7 +316,7 @@ async def seed_users(session: AsyncSession) -> int:
 
     if inserted:
         await session.flush()
-        logger.info(f"Seeded {inserted} users")
+        logger.info("seeded_users", count=inserted)
 
     return inserted
 
@@ -390,7 +392,7 @@ async def seed_technologies(session: AsyncSession) -> int:
 
     if inserted:
         await session.flush()
-        logger.info(f"Seeded {inserted} technologies")
+        logger.info("seeded_technologies", count=inserted)
 
     return inserted
 
@@ -467,7 +469,7 @@ async def seed_indicators(session: AsyncSession) -> int:
 
     if inserted:
         await session.flush()
-        logger.info(f"Seeded {inserted} indicators")
+        logger.info("seeded_indicators", count=inserted)
 
     return inserted
 
@@ -550,7 +552,7 @@ async def seed_professional_profiles(session: AsyncSession) -> int:
 
     if inserted:
         await session.flush()
-        logger.info(f"Seeded {inserted} professional profiles")
+        logger.info("seeded_professional_profiles", count=inserted)
 
     return inserted
 
@@ -568,7 +570,7 @@ async def seed_alerts(session: AsyncSession) -> int:
     """
     result = await session.execute(select(Alert.titulo).limit(1))
     if result.scalar_one_or_none():
-        logger.info("Alerts already seeded, skipping")
+        logger.info("alerts_already_seeded")
         return 0
 
     alerts = [
@@ -601,7 +603,7 @@ async def seed_alerts(session: AsyncSession) -> int:
     for alert in alerts:
         session.add(alert)
     await session.flush()
-    logger.info(f"Seeded {len(alerts)} alerts")
+    logger.info("seeded_alerts", count=len(alerts))
     return len(alerts)
 
 
@@ -647,7 +649,7 @@ async def seed_bulletins(session: AsyncSession) -> int:
             inserted += 1
     if inserted:
         await session.flush()
-        logger.info(f"Seeded {inserted} bulletins")
+        logger.info("seeded_bulletins", count=inserted)
     return inserted
 
 
@@ -679,7 +681,7 @@ async def seed_competitiveness(session: AsyncSession) -> int:
             ))
             count += 1
     await session.flush()
-    logger.info(f"Seeded {count} competitiveness indices")
+    logger.info("seeded_competitiveness_indices", count=count)
     return count
 
 
@@ -710,7 +712,7 @@ async def seed_patent_maps(session: AsyncSession) -> int:
             periodo="2026-Q2", tendencia=tendencia,
         ))
     await session.flush()
-    logger.info(f"Seeded {len(_PATENT_MAP_DATA)} patent map entries")
+    logger.info("seeded_patent_map_entries", count=len(_PATENT_MAP_DATA))
     return len(_PATENT_MAP_DATA)
 
 
@@ -741,7 +743,7 @@ async def seed_industrial_sectors(session: AsyncSession) -> int:
             count += 1
     await session.flush()
     if count:
-        logger.info(f"Seeded {count} industrial sectors")
+        logger.info("seeded_industrial_sectors", count=count)
     return count
 
 
@@ -958,7 +960,7 @@ async def seed_research_publications(session: AsyncSession) -> int:
     for data in _RESEARCH_PUBLICATIONS:
         session.add(ResearchPublication(id=uuid4(), **data))
     await session.flush()
-    logger.info(f"Seeded {len(_RESEARCH_PUBLICATIONS)} research publications")
+    logger.info("seeded_research_publications", count=len(_RESEARCH_PUBLICATIONS))
     return len(_RESEARCH_PUBLICATIONS)
 
 
@@ -1093,7 +1095,7 @@ async def seed_patents(session: AsyncSession) -> int:
             updated += 1
     if inserted or updated:
         await session.flush()
-        logger.info(f"Seeded {inserted} patents, linked {updated} to organizations")
+        logger.info("seeded_patents", inserted=inserted, linked=updated)
     return inserted
 
 
@@ -1124,7 +1126,7 @@ async def seed_follows(session: AsyncSession) -> int:
 
     if inserted:
         await session.flush()
-        logger.info(f"Seeded {inserted} organization follows")
+        logger.info("seeded_organization_follows", count=inserted)
     return inserted
 
 

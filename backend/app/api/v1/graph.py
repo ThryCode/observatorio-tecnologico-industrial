@@ -1,8 +1,8 @@
 import uuid
 from collections import defaultdict
 
+import structlog
 from fastapi import APIRouter, Depends, Query
-from loguru import logger
 from neo4j import AsyncDriver
 from redis.asyncio import Redis
 from sqlalchemy import select
@@ -31,6 +31,8 @@ from app.schemas.graph import (
     SyncResponse,
 )
 from app.services.cache import cache_key, get_cached, set_cached
+
+logger = structlog.stdlib.get_logger()
 
 router = APIRouter(prefix="/graph", tags=["graph"])
 
@@ -184,7 +186,7 @@ async def enterprise_graph(
         try:
             return await _enterprise_graph_from_neo4j(neo4j)
         except Exception as exc:
-            logger.warning("Neo4j unavailable, falling back to SQLite for enterprise graph: {}", exc)
+            logger.warning("neo4j_fallback_enterprise_graph", error=str(exc))
 
     from app.services.graph_service import GraphService
     return await GraphService(db).get_enterprise_graph()

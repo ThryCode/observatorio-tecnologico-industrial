@@ -6,8 +6,10 @@ into a single Neo4j sync operation.
 
 import asyncio
 
+import structlog
 from fastapi import BackgroundTasks
-from loguru import logger
+
+logger = structlog.stdlib.get_logger()
 
 _sync_task: asyncio.Task | None = None
 _pending = False
@@ -23,7 +25,7 @@ async def _run_sync() -> None:
         from app.core.db import _session_factory
 
         if _session_factory is None:
-            logger.warning("Graph sync skipped: database not initialized")
+            logger.warning("graph_sync_skipped", reason="database_not_initialized")
             return
 
         driver = AsyncGraphDatabase.driver(
@@ -38,9 +40,9 @@ async def _run_sync() -> None:
             async with _session_factory() as session:
                 result = await repo.sync_all(session)
                 await session.commit()
-                logger.info(f"Auto graph sync: {result}")
+                logger.info("auto_graph_sync", result=str(result))
         except Exception as e:
-            logger.error(f"Graph sync failed: {e}")
+            logger.error("graph_sync_failed", error=str(e))
         finally:
             await driver.close()
     finally:

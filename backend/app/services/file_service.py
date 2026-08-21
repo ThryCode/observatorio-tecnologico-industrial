@@ -1,10 +1,12 @@
 import uuid
 from pathlib import Path
 
+import structlog
 from fastapi import UploadFile
-from loguru import logger
 
 from app.core.config import settings
+
+logger = structlog.stdlib.get_logger()
 
 ALLOWED = settings.allowed_extensions_list
 MAX_SIZE = settings.max_upload_size
@@ -41,7 +43,7 @@ async def save_upload(file: UploadFile, subdir: str = "") -> dict:
         raise FileServiceError(f"El archivo excede el tamaño máximo de {MAX_SIZE // 1_048_576}MB")
 
     path.write_bytes(content)
-    logger.info("File saved: {} ({} bytes)", path, len(content))
+    logger.info("file_saved", path=str(path), size=len(content))
 
     return {
         "filename": filename,

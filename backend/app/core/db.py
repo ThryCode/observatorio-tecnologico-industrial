@@ -1,4 +1,3 @@
-import asyncio
 import sys
 from collections.abc import AsyncGenerator
 from pathlib import Path
@@ -18,24 +17,22 @@ _session_factory: async_sessionmaker[AsyncSession] | None = None
 
 
 async def _run_alembic_migrations() -> None:
-    from loguru import logger
+    import subprocess
+
+    import structlog
+
+    logger = structlog.stdlib.get_logger()
 
     backend_dir = str(Path(__file__).resolve().parent.parent.parent)
-    proc = await asyncio.create_subprocess_exec(
-        sys.executable,
-        "-m",
-        "alembic",
-        "upgrade",
-        "head",
+    result = subprocess.run(
+        [sys.executable, "-m", "alembic", "upgrade", "head"],
         cwd=backend_dir,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
+        capture_output=True,
     )
-    stdout, stderr = await proc.communicate()
-    if proc.returncode != 0:
-        logger.error("Alembic migration failed: {}", stderr.decode())
-        raise RuntimeError(f"Alembic migration failed: {stderr.decode()}")
-    logger.info("Alembic migrations applied successfully")
+    if result.returncode != 0:
+        logger.error("alembic_migration_failed", stderr=result.stderr.decode())
+        raise RuntimeError(f"Alembic migration failed: {result.stderr.decode()}")
+    logger.info("alembic_migrations_applied")
 
 
 async def startup_db() -> None:
