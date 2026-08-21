@@ -5,7 +5,7 @@ import { queryKeys } from '@/lib/queryKeys';
 import { toast } from 'sonner';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api/v1';
-const WS_URL = API_URL.replace(/^http/, 'ws') + '/ws';
+const WS_BASE = API_URL.replace(/^http/, 'ws') + '/ws';
 const RECONNECT_DELAY = 3000;
 
 export function useWebSocket() {
@@ -23,11 +23,7 @@ export function useWebSocket() {
       if (disposed) return;
 
       try {
-        const ws = new WebSocket(WS_URL);
-
-        ws.onopen = () => {
-          if (token) ws.send(token);
-        };
+        const ws = new WebSocket(`${WS_BASE}?token=${encodeURIComponent(token)}`);
 
         ws.onmessage = (event) => {
           try {
