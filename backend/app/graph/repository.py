@@ -1044,6 +1044,10 @@ class GraphRepository:
         "Indicator", "IndustrialSector", "Person",
     })
     VALID_NODE_KEYS = frozenset({"id", "codigo"})
+    VALID_ANALYTICS_LABELS = frozenset({
+        "Organization", "Technology", "Patent", "Regulation",
+        "Indicator", "IndustrialSector",
+    })
 
     @classmethod
     async def _delete_missing(cls, session, label: str, key: str, valid_ids: list[str]) -> int:
@@ -1070,6 +1074,8 @@ class GraphRepository:
 
     async def pagerank(self, label: str | None = None, limit: int = 50) -> list[dict[str, Any]]:
         """Run PageRank algorithm and return top nodes by score."""
+        if label and label not in self.VALID_ANALYTICS_LABELS:
+            raise ValueError(f"Invalid label: {label!r}")
         label_filter = f":{label}" if label else ""
         query = f"""
         MATCH (n{label_filter})
@@ -1087,6 +1093,8 @@ class GraphRepository:
 
     async def community_detection(self, label: str | None = None, limit: int = 50) -> list[dict[str, Any]]:
         """Detect communities using connected components."""
+        if label and label not in self.VALID_ANALYTICS_LABELS:
+            raise ValueError(f"Invalid label: {label!r}")
         label_filter = f":{label}" if label else ""
         query = f"""
         MATCH (n{label_filter})

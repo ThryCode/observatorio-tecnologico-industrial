@@ -315,3 +315,43 @@ async def test_shortest_path_not_found():
     result = await repo.shortest_path("n1", "n2")
 
     assert result is None
+
+
+@pytest.mark.asyncio
+async def test_pagerank_invalid_label():
+    repo = GraphRepository(MockDriver())
+    with pytest.raises(ValueError, match="Invalid label"):
+        await repo.pagerank(label="Organization} DETACH DELETE n //")
+
+
+@pytest.mark.asyncio
+async def test_community_detection_invalid_label():
+    repo = GraphRepository(MockDriver())
+    with pytest.raises(ValueError, match="Invalid label"):
+        await repo.community_detection(label="恶意标签")
+
+
+@pytest.mark.asyncio
+async def test_pagerank_none_label_allowed():
+    mock_records = [
+        MockRecord({"id": "org1", "labels": ["Organization"], "props": {"nombre": "Org1"}}),
+    ]
+    driver = MockDriver()
+    driver.session = lambda: MockSession(mock_records)
+
+    repo = GraphRepository(driver)
+    result = await repo.pagerank(label=None, limit=10)
+    assert len(result) == 1
+
+
+@pytest.mark.asyncio
+async def test_community_detection_none_label_allowed():
+    mock_records = [
+        MockRecord({"id": "org1", "labels": ["Organization"], "props": {"nombre": "Org1"}, "connections": 3}),
+    ]
+    driver = MockDriver()
+    driver.session = lambda: MockSession(mock_records)
+
+    repo = GraphRepository(driver)
+    result = await repo.community_detection(label=None, limit=10)
+    assert len(result) == 1

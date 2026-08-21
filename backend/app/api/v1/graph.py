@@ -192,7 +192,10 @@ async def graph_centrality(
     from app.graph.repository import GraphRepository
 
     repo = GraphRepository(neo4j)
-    raw = await repo.pagerank(label, limit)
+    try:
+        raw = await repo.pagerank(label, limit)
+    except ValueError as exc:
+        raise AppException(400, str(exc)) from exc
     items = [
         {
             "id": r["id"],
@@ -218,7 +221,10 @@ async def graph_communities(
     from app.graph.repository import GraphRepository
 
     repo = GraphRepository(neo4j)
-    raw = await repo.community_detection(label, limit)
+    try:
+        raw = await repo.community_detection(label, limit)
+    except ValueError as exc:
+        raise AppException(400, str(exc)) from exc
     grouped: dict[int, list] = {}
     for r in raw:
         cid = r.get("community", 0)
