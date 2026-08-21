@@ -1,50 +1,75 @@
+import logging
+import logging.handlers
 import sys
+from pathlib import Path
 
-from loguru import logger
-
-from app.core.request_context import get_request_id
+import structlog
 
 
 def setup_logging() -> None:
-    logger.remove()
+    """Configure structlog with stdout (human-readable) + rotating JSON file."""
+    log_dir = Path("logs")
+    log_dir.mkdir(exist_ok=True)
 
-    def request_id_filter(record):
-        record["request_id"] = get_request_id()
-        return True
-
-    log_format = (
-        "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green>"
-        " | <level>{level:8}</level>"
-        " | <cyan>{extra[service]}</cyan>"
-        " | {extra[request_id]}"
-        " | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan>"
-        " - <level>{message}</level>"
-    )
-
-    logger.add(
-        sys.stdout,
-        format=log_format,
-        level="DEBUG",
-        colorize=True,
-        serialize=False,
-        filter=request_id_filter,
-    )
-
-    logger.add(
-        "logs/observatorio.log",
-        format=(
-            "{time:YYYY-MM-DD HH:mm:ss.SSS}"
-            " | {level:8}"
-            " | {extra[service]}"
-            " | {extra[request_id]}"
-            " | {name}:{function}:{line}"
-            " - {message}"
+    shared_processors: list[structlog.types.Processor] = [
+        structlog.contextvars.merge_contextvars,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.add_log_level,
+        structlog.processors.CallsiteParameterAdder(
+            [structlog.processors.CallsiteParameter.FILENAME,
+             structlog.processors.CallsiteParameter.FUNC_NAME,
+             structlog.processors.CallsiteParameter.LINENO]
         ),
-        level="INFO",
-        rotation="10 MB",
-        retention="30 days",
-        serialize=True,
-        filter=request_id_filter,
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+    ]
+
+    structlog.configure(
+        processors=[
+            *shared_processors,
+            structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+        ],
+        wrapper_class=structlog.stdlib.BoundLogger,
+        context_class=dict,
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        cache_logger_on_first_use=True,
     )
 
-    logger.configure(extra={"service": "observatorio", "request_id": ""})
+    formatter_human = structlog.stdlib.ProcessorFormatter(
+        processors=[
+            structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+            structlog.dev.ConsoleRenderer(colors=sys.stdout.isatty()),
+        ],
+    )
+
+    formatter_json = structlog.stdlib.ProcessorFormatter(
+        processors=[
+            structlog.stdlib.ProcessorFormatter.remove_processors_meta,
+            structlog.processors.JSONRenderer(),
+        ],
+    )
+
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setFormatter(formatter_human)
+    stdout_handler.setLevel("DEBUG")
+
+    file_handler = logging.handlers.RotatingFileHandler(
+        log_dir / "observatorio.log",
+        maxBytes=10 * 1024 * 1024,
+        backupCount=30,
+        encoding="utf-8",
+    )
+    file_handler.setFormatter(formatter_json)
+    file_handler.setLevel("INFO")
+
+    root_logger = logging.getLogger()
+    root_logger.handlers.clear()
+    root_logger.addHandler(stdout_handler)
+    root_logger.addHandler(file_handler)
+    root_logger.setLevel("DEBUG")
+
+    for name in ("uvicorn", "uvicorn.error", "uvicorn.access"):
+        logging.getLogger(name).setLevel("WARNING")
+
+    for name in ("sqlalchemy.engine", "sqlalchemy.pool"):
+        logging.getLogger(name).setLevel("WARNING")
